@@ -17,7 +17,7 @@
 #
 #    Description:
 #      This file is the GNU automake template for the Nest Labs Embedded
-#      Runtime I/O third-party software directory.
+#      Runtime third-party software directory.
 #
 
 include $(abs_top_nlbuild_autotools_dir)/automake/pre.am

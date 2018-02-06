@@ -33,7 +33,7 @@
 #
 #    Description:
 #      This file is the GNU automake template for the Nest Labs Embedded
-#      Runtime I/O third-party software directory.
+#      Runtime third-party software directory.
 #
 VPATH = @srcdir@
 am__is_gnu_make = test -n '$(MAKEFILE_LIST)' && test -n '$(MAKELEVEL)'
