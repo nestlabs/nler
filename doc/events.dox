@@ -1,0 +1,197 @@
+/** @page eventsystem Event System
+
+There are two fundamental components to the events system, the event queue to
+which events are posted/retrieved and the events themselves. The queue holds
+pointers to events. Events in the queue are processed in a first in, first out
+model. The number of events that a queue can hold is determined at the time
+the queue is created. The queue size must be tuned according to the
+application's needs. Since queues hold pointers to events, individual events
+can be shared among queues. The memory management model of the events is a
+contract defined by the individual parties involved in posting and processing
+queued events. Different models can be used and may be appropriate in
+different situations. Many different factors can determine what model is
+appropriate for a given interaction. The bottom line is that the design can
+support very efficient use of storage to hold event data. Events can even be
+stored in flash memory if they can be fully initialized at compile time.  Where
+components run on different execution tasks, events are the preferred way to
+communicate among tasks rather than function calls with locks and semaphores.
+
+@section eventqueues Event Queues
+
+Event queues are defined as:
+
+@code
+typedef void * nl_eventqueue_t;
+@endcode
+
+To initialize an event queue, call the following function:
+
+@code
+nl_eventqueue_t nl_eventqueue_create(void *aQueueMemory, int32_t aQueueMemorySize);
+@endcode
+
+@c aQueueMemory is a memory buffer to be used to hold the queue data. The
+number of events that the queue can hold will be <tt>aQueueMemorySize /
+sizeof(void *)</tt>. If an event is posted to a full queue, the event will
+simply fall on the floor and not be posted (there is no blocking on queue
+posting).
+
+Events can be posted from both interrupt service routines and normally
+executing code. There is a different function for each. Events cannot be
+retrieved from queues by interrupt service routines.
+
+Events can be pulled from queues with the following choices of behavior in the
+case that the queue is empty:
+
+  - Without blocking in the case that the queue is empty (return NULL).
+  - With a caller-determined timeout in the case that the queue is empty (wait
+    for event to arrive).
+  - Block indefinitely until an event is posted to the queue.
+
+@subsection eventhandlers Event Handlers
+
+Event handlers are simply functions called to handle an event. The behavior
+and assumptions that can be made or taken by an event handler are application
+specific. The choice of whether to even use event handlers at all is
+application specific. If it chooses, an applicaton my simply handle events
+directly in an event loop. At the other end of the spectrum, for events that
+the application sends and then expects to receive a response, it may pre-define
+individual handler functions for each event type so that in the event loop
+there isn't event a need to check to see what sort of event has been received
+before handling it.
+
+@code
+typedef int (*nl_eventhandler_t)(nl_event_t *aEvent, void *aClosure);
+@endcode
+
+@c aEvent is a pointer to an event for the handler to act on.
+@c aClosure is an application specific data pointer that the handler may make use of.
+
+For application event handling loops where the application does use event
+handling functions, the following helper function can be called for every event
+pulled from an event queue:
+
+@code
+int nl_dispatch_event(nl_event_t *aEvent, nl_eventhandler_t aDefaultHandler, void *aDefaultClosure);
+@endcode
+
+@c aEvent is the event just retreived from a queue. @c aDefaultHandler is a
+function to be called if the event did not specify a handler to be called.  @c
+aDefaultClosure is an application specific data pointer that will be passed to
+the default handler.
+
+@section events Events
+
+Events are C structs that have a minimum of three fields but can be extended to
+have as many fields as necessary to communicate event state. The three required
+fields are:
+
+@code
+typedef struct nl_event_s
+{
+    nl_event_type_t     mType;
+    nl_eventhandler_t   mHandler;
+    void                *mHandlerClosure;
+} nl_event_t;
+@endcode
+
+@c mType specifies what type of event this is. NOTE: it is very likely that
+this will become a 16 bit field and that the other 16 bit half will become a
+flag word.
+
+@c mHandler is a pointer to a function to be called to handle a response event.
+This only applies to events that send a response back to the sender.  The
+sender can set this function and when a response is sent back to the sender the
+specified function can be immediately called without inspecting the event type.
+This functionality can be used to share an event queue among many disparate
+pieces of code and dispatch responses directly back to the places that
+originally sent an event.
+
+@c mHandlerClosure is a piece of closure data that will be called as an
+argument to the @c mHander function. Typically this will be a data
+context owned by the original event sender.
+
+When declaring new event structs you should use the @c NL_DECLARE_EVENT macro
+at the beginning of your struct:
+
+@code
+typedef struct
+{
+    NL_DECLARE_EVENT;
+    nl_event_t  mBaseEvent;
+    int32_t     mMyData1;
+    int32_t     mMyData2;
+} my_event_t;
+@endcode
+
+When initializing the common event fields from code it is recommended that you
+use the @c NL_INIT_EVENT(e, t, h, c) macro.
+
+When statically initializing the common event fields it is recommended that you
+use the @c NL_INIT_EVENT_STATIC(t, h, c) macro.
+
+Using the NL_INIT_EVENT and NL_INIT_EVENT_STATIC macros will simplify changes
+to the underlying event type and flag word.
+
+@subsection eventmanagement Event Management
+
+The eventing system is designed to be extremely flexible and support various
+event management schemes. With that in mind the event system is also designed
+for environments where memory is statically allocated and at a premium. Each
+application or service that uses the event system is free to define an event
+management model that is as flexible and efficient as necessary. Some services
+will dispatch events one way (service -> application). Most services will act
+on a request sent to the service as an event. Services will typically send a
+response at an appropriate time. Some services may send the response by
+sending the initial event back to the sender so that no additional storage is
+required to manage the event responses. Other services could send back a
+specific response event.
+
+@subsection pooledevents Pooled Events
+
+Pooled events are intended to be used by pre-existing pieces of code that were
+not designed with the previously described management models in mind. A global
+pool is initialized and sized according to the total number of pooled events
+must be simultaneously active. Pooled events extend the common event fields
+with two more words as follows:
+
+@code
+typedef struct nl_event_pooled_s
+{
+    NL_DECLARE_EVENT;
+    nl_eventqueue_t     mReturnQueue;
+    void                *mPayload;
+} nl_event_pooled_t;
+@endcode
+
+@c mReturnQueue is an event queue to which a response can be sent.
+@c mPayload is a context specific data pointer.
+
+There is no specific type for a pooled event.  Instead there can be many
+different types as application and services require so that many types of
+events can be pooled.
+
+Events are removed from the pool by calling:
+
+@code
+nl_event_pooled_t *nl_event_pool_get_event(nl_event_pool_t aPool);
+@endcode
+
+And returned to the pool with:
+
+@code
+void nl_event_pool_recycle_event(nl_event_pool_t aPool, nl_event_pooled_t *aEvent);
+@endcode
+
+When an event is removed from the pool it is in an uninitialized state
+including the common event fields. It must be initialized before posting to an
+event queue.
+
+For more information about events and event queues see:
+
+  - nlereventqueue.h
+  - nlerevent.h
+  - nlereventtypes.h
+  - nlereventpooled.h
+
+*/

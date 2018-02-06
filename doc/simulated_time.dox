@@ -1,0 +1,36 @@
+/** @page simulated_time Simulated Time
+
+When compiled with -DNLER_FEATURE_SIMULATEABLE_TIME, the following functions
+are made available in nlertimer_sim.h:
+
+  - @code void nl_time_init_sim(bool pauseTime) @endcode
+  - @code void nl_pause_time(void) @endcode
+  - @code void nl_unpause_time(void) @endcode
+  - @code int nl_advance_time_ms(nl_time_ms_t aTime) @endcode
+  - @code bool nl_is_time_paused(void) @endcode
+  - @code nl_event_timer_t * nl_get_advance_event(void); @endcode
+  - @code sim_time_info_t * nl_get_sim_time_info(void); @endcode
+
+When compiled with -DNLER_FEATURE_SIMULATEABLE_TIME, the following functions
+are made available in nlereventqueue_sim.h:
+
+  - @code int32_t nl_eventqueue_sim_count(void) @endcode
+  - @code void nl_eventqueue_sim_count_inc(void) @endcode
+  - @code void nl_eventqueue_sim_count_dec(void) @endcode
+
+Here is the state diagram for simluated time in embedded-runtime:
+
+\image html simulated_time_states.svg
+
+Time advancement is implemented in the system timer and in the event system.
+Time can only be advanced from the paused state, and is advanced by the amount
+to the next soonest timer timeout event. A count of the number of pending
+events is maintained (by tracking the calls to nl_eventqueue_post_event() /
+nl_eventqueue_post_event_from_isr()). Time is advanced only when this count is
+less than 1 (indicating all tasks are blocked on
+nl_eventqueue_get_event_with_timeout() / nl_eventqueue_get_event()), *and* all
+expired timer events have been processed. This guarantees that all event
+handlers have been processed, including any events that those handlers may post
+to any other queue in the system (e.g. posting to the timer event queue).
+
+*/

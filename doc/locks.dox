@@ -1,0 +1,30 @@
+/** @page binarylocks Binary Locks
+
+Binary locks allow for mutually exclusive access to resources shared among
+tasks. There is no provision for timing out an attempt to enter a lock. Once
+a task has entered a lock all other tasks that attempt to enter the same lock
+will block until the task in the lock has exited. If a task with a priority
+higher than that of the task currently in the lock attempts to enter the lock,
+the lower priority task will be raised to that of the task that is now waiting
+for the lock.
+
+Locks are created and destroyed using:
+
+@code
+nl_lock_t nl_er_lock_create(void);
+void nl_er_lock_destroy(nl_lock_t aLock);
+@endcode
+
+And entered and exited using:
+
+@code
+int nl_er_lock_enter(nl_lock_t aLock);
+int nl_er_lock_exit(nl_lock_t aLock);
+@endcode
+
+Any errors from the underlying Freertos functions are passed up
+using NLER_ERROR_NO_RESOURCE
+
+For more information about binary locks see nlerlock.h
+
+*/

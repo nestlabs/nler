@@ -1,0 +1,105 @@
+/** @page loggingsystem Logging System
+
+The logging system is design to be very simple and manage three things:
+
+  - Emit logs to a log sink function that stores them however the overall application desires.
+  - Remove log messages at compile time that are below a criticality threshold.
+  - Support the ability for runtime selection of which remaining log messages are allowed to pass to the log sink.
+
+@section logsink Log Sink
+
+All log messages pass through a default log sink function defined as:
+
+@code
+typedef void (*nl_log_printer_t)(void *aClosure, nl_log_region_t aRegion, int aPriority, const char *aFormat, va_list aArgs);
+@endcode
+
+@c aClosure is an application defined data context that will be passed to the
+log sink function for each message.
+
+@c aRegion is the log region to which this message belongs. Log filtering is
+done at compile time. However, the application log sink function is free to
+perform additional filtering based on the log region or other criteria.
+
+@c aPriority is the priority that was assigned to the log message. Lower
+priority messages will have already been compiled out, but the application is
+free to perform any additional filtering based on the priority or other
+criteria.
+
+@c aFormat traditional @c printf() style formatting string.
+
+@c aArgs @c printf() style formatting string varargs.
+
+The default log sink function is installed when the runtime is initialized.
+Until that point all log messages will fall on the floor. Each runtime
+implementation is free to define whatever behavior is most appropriate for the
+default log sink function, but typically this will map to @c vprintf(). The
+application should set it's own log sink function to send messages to wherever
+is most appropriate by calling:
+
+@code
+void nl_set_logging_function(nl_log_printer_t aPrinter, void *aClosure);
+@endcode
+
+@c aPrinter is the previously described log sink function.
+
+@c aClosure is an application defined data context that will be supplied to the
+log sink function for each log message.
+
+@section logpriorities Log Priorities
+
+Log messages can have priorities of Debug, Warning and Critical (low -> high).
+The priorities are assigned using the macros @c NL_LOG_DEBUG, @c NL_LOG_WARN
+and @c NL_LOG_CRIT respectively. There is a compile time maximum
+allowable log level named @c nlLOG_PRIORITY that is used to compile out lower
+priority log messages. Typically this is set by a common Makefile in the build
+system as a global log level for a build. It can of course be overridden
+locally by Makefiles or by individual source files to control the log messages
+emitted per-module or per-source file. To allow the ability to control log
+messages at the source file level, it is important that other header files @b
+NOT include nlerlog.h. Only include that file in .c/.cpp files.
+
+The following is an example of overriding the compile time log priority locally
+in a source file:
+
+@code
+#ifdef nlLOG_PRIORITY
+#undef nlLOG_PRIORITY
+#endif
+#define nlLOG_PRIORITY 1
+#include "nlerlog.h"
+@endcode
+
+@section logregions Log Regions
+
+In addition to compile time removal of log messages there is also the ability
+to turn the log level down on a per-subsystem basis. These subsystems have the
+uninspired name of "log regions." Log regions are named in nlerlogregion.h.
+Each region is assigned a number that corresponds to a global array index where
+a log priority is stored as a byte. As such it is important that there be no
+holes in the numerical space used to assign the region indices. There are
+actually two log level tables, one for built-in runtime log regions and one
+that can be defined by the application to handle all log regions required by
+the application and it's dependencies. The symbol 'gAppLogRegions' is the
+optional pointer to the application log level byte table. To allow for
+dependencies to define their own log regions and aggregate them into the app as
+a whole, individual log regions can be defined as header file snippets supplied
+by the dependencies. See nltestlogregions.h for an example of how an
+application defines a set of log regions and test-log.c for an example
+application log level table. If an application (and it's dependencies) does not
+need to use any application log regions @c gAppLogLevels can be set to NULL. If
+an application does define it's own log regions then the header file that
+defines the log regions must be pointed to by the pre-processor symbol @c
+NLER_APPLICATION_LOG_REGION_FILE. Usually the symbol will be defined in a
+Makefile.
+
+The log region array is accessible via:
+
+@code
+void nl_set_log_priority(nl_log_region_t aRegion, int aPri);
+int nl_get_log_priority(nl_log_region_t aRegion);
+@endcode
+
+where <tt>nl_log_region_t aRegion</tt> is a named log region index.
+
+*/

@@ -1,0 +1,29 @@
+/** @mainpage Introduction
+
+Nest Labs Embedded Runtime is designed to supply the minimal building blocks
+necessary to create event passing applications in deeply embedded environments.
+The basic assumption is that there is some underlying facility which can be
+used to manage a message queue capable of enqueueing and dequeueing events
+atomically. There is no requirement for a dynamic memory allocator. All
+interfaces are expressed in the C language to give the most flexibility and
+transparency in design and potential implementation. Where possible,
+individual subsystems of the runtime avoid having dependencies on other
+subsystems to enable an a la carte use of the available functionality. No
+attempt is made to mimic the functionality supplied by more complex runtime
+facilities such as Posix. Implementations of the interfaces are available for
+FreeRTOS, Linux, Darwin and NSPR.
+
+\section subsystems Subsystems
+
+Name                 | Headers
+----                 | -------
+@ref atomicops       | nleratomicops.h
+@ref binarylocks     | nlerlock.h
+@ref eventsystem     | nlereventqueue.h nlerevent.h nlereventtypes.h nlereventpooled.h
+@ref loggingsystem   | nlerlog.h nlerlogregion.h nlerlogmanager.h
+@ref tasks           | nlertask.h
+@ref time            | nlertime.h
+@ref timer           | nlertimer.h
+@ref simulated_time  | nlertimer.h
+
+*/

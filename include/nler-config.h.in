@@ -1,0 +1,228 @@
+/* include/nler-config.h.in.  Generated from configure.ac by autoheader.  */
+
+/* Define to 1 if you have the <dlfcn.h> header file. */
+#undef HAVE_DLFCN_H
+
+/* Define to 1 if you have the <FreeRTOS.h> header file. */
+#undef HAVE_FREERTOS_H
+
+/* Define to 1 if you have the <init.h> header file. */
+#undef HAVE_INIT_H
+
+/* Define to 1 if you have the <inttypes.h> header file. */
+#undef HAVE_INTTYPES_H
+
+/* Define to 1 if you have the <limits.h> header file. */
+#undef HAVE_LIMITS_H
+
+/* Define to 1 if you have the `memcpy' function. */
+#undef HAVE_MEMCPY
+
+/* Define to 1 if you have the <memory.h> header file. */
+#undef HAVE_MEMORY_H
+
+/* Define to 1 if you have the <nlcompiler.h> header file. */
+#undef HAVE_NLCOMPILER_H
+
+/* Define to 1 if you have the <nlmacros.h> header file. */
+#undef HAVE_NLMACROS_H
+
+/* Define to 1 if you have the <nltest.h> header file. */
+#undef HAVE_NLTEST_H
+
+/* Define to 1 if you have the <nlutilities.h> header file. */
+#undef HAVE_NLUTILITIES_H
+
+/* Define to 1 if you have the <nspr/prinit.h> header file. */
+#undef HAVE_NSPR_PRINIT_H
+
+/* Define to 1 if you have the <nspr/prinrval.h> header file. */
+#undef HAVE_NSPR_PRINRVAL_H
+
+/* Define to 1 if you have the <nspr/prio.h> header file. */
+#undef HAVE_NSPR_PRIO_H
+
+/* Define to 1 if you have the <nspr/prlock.h> header file. */
+#undef HAVE_NSPR_PRLOCK_H
+
+/* Define to 1 if you have the <nspr/prthread.h> header file. */
+#undef HAVE_NSPR_PRTHREAD_H
+
+/* Define if you have POSIX threads libraries and header files. */
+#undef HAVE_PTHREAD
+
+/* Have PTHREAD_PRIO_INHERIT. */
+#undef HAVE_PTHREAD_PRIO_INHERIT
+
+/* Define to 1 if you have the <queue.h> header file. */
+#undef HAVE_QUEUE_H
+
+/* Define to 1 if you have the <semphr.h> header file. */
+#undef HAVE_SEMPHR_H
+
+/* Define to 1 if you have the <stdarg.h> header file. */
+#undef HAVE_STDARG_H
+
+/* Define to 1 if you have the <stdbool.h> header file. */
+#undef HAVE_STDBOOL_H
+
+/* Define to 1 if you have the <stddef.h> header file. */
+#undef HAVE_STDDEF_H
+
+/* Define to 1 if you have the <stdint.h> header file. */
+#undef HAVE_STDINT_H
+
+/* Define to 1 if you have the <stdlib.h> header file. */
+#undef HAVE_STDLIB_H
+
+/* Define to 1 if you have the <strings.h> header file. */
+#undef HAVE_STRINGS_H
+
+/* Define to 1 if you have the <string.h> header file. */
+#undef HAVE_STRING_H
+
+/* Define to 1 if you have the <sys/stat.h> header file. */
+#undef HAVE_SYS_STAT_H
+
+/* Define to 1 if you have the <sys/types.h> header file. */
+#undef HAVE_SYS_TYPES_H
+
+/* Define to 1 if you have the <task.h> header file. */
+#undef HAVE_TASK_H
+
+/* Define to 1 if you have the <unistd.h> header file. */
+#undef HAVE_UNISTD_H
+
+/* Define to 1 if the system has the type `_Bool'. */
+#undef HAVE__BOOL
+
+/* Define this if your target compiler supports __sync_add_and_fetch */
+#undef HAVE___SYNC_ADD_AND_FETCH
+
+/* Define this if your target compiler supports __sync_fetch_and_and */
+#undef HAVE___SYNC_FETCH_AND_AND
+
+/* Define this if your target compiler supports __sync_fetch_and_or */
+#undef HAVE___SYNC_FETCH_AND_OR
+
+/* Define this if your target compiler supports __sync_lock_test_and_set */
+#undef HAVE___SYNC_LOCK_TEST_AND_SET
+
+/* Define this if your target compiler supports __sync_sub_and_fetch */
+#undef HAVE___SYNC_SUB_AND_FETCH
+
+/* Define this if your target compiler supports __sync_val_compare_and_swap */
+#undef HAVE___SYNC_VAL_COMPARE_AND_SWAP
+
+/* Define to the sub-directory in which libtool stores uninstalled libraries.
+   */
+#undef LT_OBJDIR
+
+/* Embedded Runtime target CPU-specific instruction set architecture */
+#undef NLER_ASM_ISA
+
+/* Define to 1 if you want to use Embedded Runtime without target CPU-specific
+   instruction set architecture (ISA) support */
+#undef NLER_ASM_ISA_GENERIC
+
+/* Embedded Runtime build platform */
+#undef NLER_BUILD_PLATFORM
+
+/* Define to 1 if you want to use Embedded Runtime with FreeRTOS */
+#undef NLER_BUILD_PLATFORM_FREERTOS
+
+/* Define to 1 if you want to use Embedded Runtime with Netscape Portable
+   Runtime (i.e., nspr) */
+#undef NLER_BUILD_PLATFORM_NSPR
+
+/* Define to 1 if you want to use Embedded Runtime with POSIX threads (i.e.,
+   pthreads) */
+#undef NLER_BUILD_PLATFORM_PTHREADS
+
+/* Define this if your target compiler supports the __sync* atomic built-in
+   functions */
+#undef NLER_HAVE_ATOMIC_BUILTINS
+
+/* Define to 1 if your C compiler doesn't accept -c and -o together. */
+#undef NO_MINUS_C_MINUS_O
+
+/* Name of package */
+#undef PACKAGE
+
+/* Define to the address where bug reports for this package should be sent. */
+#undef PACKAGE_BUGREPORT
+
+/* Define to the full name of this package. */
+#undef PACKAGE_NAME
+
+/* Define to the full name and version of this package. */
+#undef PACKAGE_STRING
+
+/* Define to the one symbol short name of this package. */
+#undef PACKAGE_TARNAME
+
+/* Define to the home page for this package. */
+#undef PACKAGE_URL
+
+/* Define to the version of this package. */
+#undef PACKAGE_VERSION
+
+/* Define to necessary symbol if this constant uses a non-standard name on
+   your system. */
+#undef PTHREAD_CREATE_JOINABLE
+
+/* Approximation of PTHREAD_NULL since pthread.h does not define one */
+#undef PTHREAD_NULL
+
+/* Define to 1 if you have the ANSI C header files. */
+#undef STDC_HEADERS
+
+/* Version number of package */
+#undef VERSION
+
+/* Define for Solaris 2.5.1 so the uint32_t typedef from <sys/synch.h>,
+   <pthread.h>, or <semaphore.h> is not used. If the typedef were allowed, the
+   #define below would cause a syntax error. */
+#undef _UINT32_T
+
+/* Define for Solaris 2.5.1 so the uint64_t typedef from <sys/synch.h>,
+   <pthread.h>, or <semaphore.h> is not used. If the typedef were allowed, the
+   #define below would cause a syntax error. */
+#undef _UINT64_T
+
+/* Define for Solaris 2.5.1 so the uint8_t typedef from <sys/synch.h>,
+   <pthread.h>, or <semaphore.h> is not used. If the typedef were allowed, the
+   #define below would cause a syntax error. */
+#undef _UINT8_T
+
+/* Define to the type of a signed integer type of width exactly 16 bits if
+   such a type exists and the standard includes do not define it. */
+#undef int16_t
+
+/* Define to the type of a signed integer type of width exactly 32 bits if
+   such a type exists and the standard includes do not define it. */
+#undef int32_t
+
+/* Define to the type of a signed integer type of width exactly 64 bits if
+   such a type exists and the standard includes do not define it. */
+#undef int64_t
+
+/* Define to the type of a signed integer type of width exactly 8 bits if such
+   a type exists and the standard includes do not define it. */
+#undef int8_t
+
+/* Define to the type of an unsigned integer type of width exactly 16 bits if
+   such a type exists and the standard includes do not define it. */
+#undef uint16_t
+
+/* Define to the type of an unsigned integer type of width exactly 32 bits if
+   such a type exists and the standard includes do not define it. */
+#undef uint32_t
+
+/* Define to the type of an unsigned integer type of width exactly 64 bits if
+   such a type exists and the standard includes do not define it. */
+#undef uint64_t
+
+/* Define to the type of an unsigned integer type of width exactly 8 bits if
+   such a type exists and the standard includes do not define it. */
+#undef uint8_t

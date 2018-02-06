@@ -1,0 +1,49 @@
+/** @page tasks Tasks
+
+Tasks are concurrent threads of execution. The frequency of context switching
+is implementation dependent. Tasks have the following attributes:
+
+  - Entry point
+  - Name
+  - Stack
+  - Stack size
+  - Priority
+  - Entry parameters
+
+Each task has a C function entry point that takes a single parameter:
+
+@code
+void taskEntry(void *aParams);
+@endcode
+
+@c aParams is an application defined pointer to task data.
+
+The stack passed in at task creation may or may not be used by the
+implementation as the task stack. Once the amount of stack based memory
+required for a task has been determined, it must be increased by @c
+NLER_TASK_STACK_BASE to account for implementation defined additional overhead
+required for task startup (typically just a few more bytes):
+
+@code
+uint8_t stack[NLER_TASK_STACK_BASE + 96];
+@endcode
+
+Tasks are assigned priorities used by the scheduler. Higher priorities run
+first when they are available for scheduling. They may even be able to starve
+lower priority tasks if they fail to yield. There are four coarse levels of
+priority available: LOW, NORMAL, HIGH and HIGHEST. For all but HIGHEST it is
+allowable to specify one of the coarse priority levels and add or subtract one
+(e.g. NORMAL + 1). The HIGHEST priority cannot be modified in this way and
+defines the very highest priority task(s) in your application.  This scheme
+allows for ten non-conflicting priority levels for application tasks.
+
+It can be assumed that the moment a task is created it will immediately be
+available for scheduling.  All data that the task needs for execution must be
+initialized before creating the task (e.g. if the task will have access to an
+event queue to post events, that queue should be initialized before starting
+the task).  Some implementations may delay scheduling until the scheduler is
+explicitly started, but this may not hold for all implementations.
+
+For a list of functions that can be used on tasks see nlertask.h.
+
+*/
