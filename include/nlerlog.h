@@ -113,12 +113,12 @@ int nl_get_log_priority(nl_log_region_t aRegion);
  * This function handles some of details of sending a tokenized log out
  * over the serial port.
  *
- * @param[in] aOutputCharFunc Function to put a single character on UART
+ * @param[in] aOutputCharFunc Function to put a single character on output stream
  * @param[in] aTimeMs Current time (in milliseconds)
  * @param[in] aFormat Log table entry for this log
  * @param[in] ap Variadic parameter list with arguments for log
  */
-void nl_log_send_tokenized(void (*aOutputCharFunc)(uint8_t c),
+void nl_log_send_tokenized(void (*aOutputCharFunc)(uint8_t c, void *context),
                            nl_time_ms_t aTimeMs,
                            nl_log_utc_ms_t aUtcTimeMs,
                            const nl_log_token_entry_t *aFormat,

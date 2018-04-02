@@ -162,7 +162,7 @@ int nl_get_log_priority(nl_log_region_t aRegion)
 }
 
 #if NLER_FEATURE_LOG_TOKENIZATION
-void nl_log_send_tokenized(void (*aOutputCharFunc)(uint8_t c),
+void nl_log_send_tokenized(void (*aOutputCharFunc)(uint8_t c, void *context),
                            nl_time_ms_t aTimeMs,
                            nl_log_utc_ms_t aUtcTimeMs,
                            const nl_log_token_entry_t *aFormat,
@@ -172,13 +172,13 @@ void nl_log_send_tokenized(void (*aOutputCharFunc)(uint8_t c),
     nl_log_header_t header;
     uint32_t compressedFormat = aFormat->mFormat;
 
-    base64_stream_enc_state_t enc_state;
-    base64_stream_enc_start(&enc_state);
+    nl_base64_stream_enc_state_t enc_state;
+    nl_base64_stream_enc_start(&enc_state, aOutputCharFunc, NULL);
 
     // Output sentinel bytes to identify tokenized log lines
-    aOutputCharFunc(NL_LOG_TOKEN_SENTINEL1);
-    aOutputCharFunc(NL_LOG_TOKEN_SENTINEL2);
-    aOutputCharFunc('\t');
+    aOutputCharFunc(NL_LOG_TOKEN_SENTINEL1, NULL);
+    aOutputCharFunc(NL_LOG_TOKEN_SENTINEL2, NULL);
+    aOutputCharFunc('\t', NULL);
 
     // Output log header, which includes the token.
     header.mHeaderVersion = NL_LOG_HEADER_VERSION_1;
@@ -186,11 +186,9 @@ void nl_log_send_tokenized(void (*aOutputCharFunc)(uint8_t c),
     header.mToken = aFormat->mToken;
     header.mTimeMs = (uint32_t) aTimeMs;
     header.mUtcTimeMs = aUtcTimeMs;
-    base64_stream_enc_more( (const uint8_t *)&header,
-                            sizeof(nl_log_header_t),
-                            &enc_state,
-                            aOutputCharFunc);
-
+    nl_base64_stream_enc_more((const uint8_t *)&header,
+                              sizeof(nl_log_header_t),
+                              &enc_state);
 
     // Output format arguments
     while (!done)
@@ -211,30 +209,30 @@ void nl_log_send_tokenized(void (*aOutputCharFunc)(uint8_t c),
         case kArgType_Numeric32:
             {
                 uint32_t arg = va_arg(ap, uint32_t);
-                base64_stream_enc_more((const uint8_t *)&arg, sizeof(arg),
-                                       &enc_state, aOutputCharFunc);
+                nl_base64_stream_enc_more((const uint8_t *)&arg, sizeof(arg),
+                                          &enc_state);
             }
             break;
         case kArgType_Numeric64:
             {
                 uint64_t arg = va_arg(ap, uint64_t);
-                base64_stream_enc_more((const uint8_t *)&arg, sizeof(arg),
-                                       &enc_state, aOutputCharFunc);
+                nl_base64_stream_enc_more((const uint8_t *)&arg, sizeof(arg),
+                                          &enc_state);
             }
             break;
         case kArgType_String:
             {
                 char * arg = va_arg(ap, char *);
                 size_t len = strlen(arg) + 1;
-                base64_stream_enc_more((const uint8_t *)arg, len,
-                                       &enc_state, aOutputCharFunc);
+                nl_base64_stream_enc_more((const uint8_t *)arg, len,
+                                          &enc_state);
             }
             break;
         }
 
         compressedFormat >>= NL_ER_LOG_ARG_FIELD_WIDTH;
     }
-    base64_stream_enc_finish(/*pad*/true, &enc_state, aOutputCharFunc);
-    aOutputCharFunc('\n');
+    nl_base64_stream_enc_finish(/*pad*/true, &enc_state);
+    aOutputCharFunc('\n', NULL);
 }
 #endif
