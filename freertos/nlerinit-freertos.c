@@ -53,7 +53,7 @@ static void freertos_default_logger(void *aClosure, nl_log_region_t aRegion, int
 }
 
 #if NLER_FEATURE_LOG_TOKENIZATION
-static void outputCharFunc(uint8_t c)
+static void _nl_erinit_freertos_putchar(uint8_t c, void *context)
 {
     NLER_PUTCHAR_FUNC(c);
 }
@@ -62,7 +62,7 @@ static void freertos_default_token_logger(void *aClosure, nl_log_region_t aRegio
 {
     nl_er_lock_enter(logger_lock);
     // Marshal log header, format arguments, encode, and send entire log out serial port.
-    nl_log_send_tokenized(outputCharFunc, 0, NL_LOG_UTC_UNDEFINED, format, ap);
+    nl_log_send_tokenized(_nl_erinit_freertos_putchar, 0, NL_LOG_UTC_UNDEFINED, format, ap);
     nl_er_lock_exit(logger_lock);
 }
 #endif /* NLER_FEATURE_LOG_TOKENIZATION */
