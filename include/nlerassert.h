@@ -1,6 +1,6 @@
 /*
  *
- *    Copyright (c) 2014-2017 Nest Labs, Inc.
+ *    Copyright (c) 2014-2018 Nest Labs, Inc.
  *    All rights reserved.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
@@ -34,7 +34,7 @@
  * give it a default.
  */
 
-#if NLER_FEATURE_ASSERTS
+#if !defined(NLER_FEATURE_ASSERTS) || NLER_FEATURE_ASSERTS
 
 #ifndef FILE_NAME
 #define FILE_NAME __FILE__
