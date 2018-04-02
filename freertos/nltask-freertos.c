@@ -59,7 +59,7 @@ int nl_task_create(nl_task_entry_point_t aEntry, const char *aName, void *aStack
     int retval = NLER_ERROR_BAD_INPUT;
 
 
-    NLER_ASSERT(((unsigned)aStack % NLER_REQUIRED_STACK_ALIGNMENT) == 0);
+    NLER_ASSERT(((uintptr_t)aStack % NLER_REQUIRED_STACK_ALIGNMENT) == 0);
 
     if ((aOutTask != NULL) && (aName != NULL) && (aPriority < configMAX_PRIORITIES))
     {
@@ -74,7 +74,7 @@ int nl_task_create(nl_task_entry_point_t aEntry, const char *aName, void *aStack
         aOutTask->mNativeTask = (void *)aEntry;
 
         err = xTaskGenericCreate(global_entry,
-                                 (const signed char *)aName,
+                                 (const char * const)aName,
                                  aStackSize / sizeof(portSTACK_TYPE),
                                  aOutTask,
                                  aPriority,
