@@ -226,12 +226,19 @@ int nl_eventqueue_post_event_from_isr(nl_eventqueue_t aEventQueue, const nl_even
     return retval;
 }
 
-nl_event_t *nl_eventqueue_get_event_with_timeout(nl_eventqueue_t aEventQueue, nl_time_ms_t aTimeoutMS)
+/**
+ * NOTE: This function isn't intended for use by clients of NLER.
+ *
+ * This exists to let NLER functions get events from a queue without incurring a
+ * +1 tick offset when converting milliseconds to ticks.
+ */
+nl_event_t *nl_eventqueue_get_event_with_timeout_native(nl_eventqueue_t aEventQueue, nl_time_native_t aTimeoutNative);
+nl_event_t *nl_eventqueue_get_event_with_timeout_native(nl_eventqueue_t aEventQueue, nl_time_native_t aTimeoutNative)
 {
     nl_event_t  *retval = NULL;
 
 #if !NLER_FEATURE_SIMULATEABLE_TIME
-    if (xQueueReceive((xQueueHandle)aEventQueue, &retval, nl_time_ms_to_delay_time_native(aTimeoutMS)) != pdTRUE)
+    if (xQueueReceive((xQueueHandle)aEventQueue, &retval, aTimeoutNative) != pdTRUE)
     {
         retval = NULL;
     }
@@ -242,7 +249,7 @@ nl_event_t *nl_eventqueue_get_event_with_timeout(nl_eventqueue_t aEventQueue, nl
         nl_eventqueue_sim_count_dec();
     }
 
-    if (xQueueReceive((xQueueHandle) eventqueue->event_queue, &retval, nl_time_ms_to_delay_time_native(aTimeoutMS)) != pdTRUE)
+    if (xQueueReceive((xQueueHandle) eventqueue->event_queue, &retval, aTimeoutNative) != pdTRUE)
     {
         retval = NULL;
         eventqueue->prev_get_successful = false;
@@ -256,3 +263,7 @@ nl_event_t *nl_eventqueue_get_event_with_timeout(nl_eventqueue_t aEventQueue, nl
     return retval;
 }
 
+nl_event_t *nl_eventqueue_get_event_with_timeout(nl_eventqueue_t aEventQueue, nl_time_ms_t aTimeoutMS)
+{
+    return nl_eventqueue_get_event_with_timeout_native(aEventQueue, nl_time_ms_to_delay_time_native(aTimeoutMS));
+}

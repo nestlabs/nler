@@ -187,7 +187,14 @@ static nl_event_t *remove_event_from_queue(nl_eventqueue_nspr_t *aQueue)
     return retval;
 }
 
-nl_event_t *nl_eventqueue_get_event_with_timeout(nl_eventqueue_t aEventQueue, nl_time_ms_t aTimeoutMS)
+/**
+ * NOTE: This function isn't intended for use by clients of NLER.
+ *
+ * This exists to let NLER functions get events from a queue without incurring a
+ * +1 tick offset when converting milliseconds to ticks.
+ */
+nl_event_t *nl_eventqueue_get_event_with_timeout_native(nl_eventqueue_t aEventQueue, nl_time_native_t aTimeoutNative);
+nl_event_t *nl_eventqueue_get_event_with_timeout_native(nl_eventqueue_t aEventQueue, nl_time_native_t aTimeoutNative)
 {
     nl_event_t              *retval = NULL;
     nl_eventqueue_nspr_t    *queue = (nl_eventqueue_nspr_t *)aEventQueue;
@@ -216,7 +223,7 @@ nl_event_t *nl_eventqueue_get_event_with_timeout(nl_eventqueue_t aEventQueue, nl
         polldesc.in_flags = PR_POLL_READ | PR_POLL_EXCEPT;
         polldesc.out_flags = 0;
 
-        active = PR_Poll(&polldesc, 1, PR_MillisecondsToInterval(aTimeoutMS));
+        active = PR_Poll(&polldesc, 1, aTimeoutNative);
 
         if (active == 1)
         {
@@ -251,3 +258,7 @@ nl_event_t *nl_eventqueue_get_event_with_timeout(nl_eventqueue_t aEventQueue, nl
     return retval;
 }
 
+nl_event_t *nl_eventqueue_get_event_with_timeout(nl_eventqueue_t aEventQueue, nl_time_ms_t aTimeoutMS)
+{
+    return nl_eventqueue_get_event_with_timeout_native(aEventQueue, PR_MillisecondsToInterval(aTimeoutMS));
+}

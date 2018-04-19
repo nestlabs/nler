@@ -126,8 +126,25 @@ static void handle_timer_event(nl_event_timer_t *aEvent)
 
             if (sTimers[idx]->mFlags & NLER_TIMER_FLAG_REPEAT)
             {
-                NL_LOG_DEBUG(lrERTIMER, "timer: timer %p (%d) will repeat\n", sTimers[idx], sTimers[idx]->mTimeoutMS);
-                sTimers[idx]->mTimeNow = now;
+                nl_event_timer_t *timer = sTimers[idx];
+
+                NL_LOG_DEBUG(lrERTIMER, "timer: timer %p (%d) will repeat\n", timer, timer->mTimeoutMS);
+
+                /**
+                 * NOTE: It's necessary to correct the value of mTimeoutNative
+                 * for repeat timers.
+                 *
+                 * nl_init_event_timer() uses nl_time_ms_to_delay_time_native()
+                 * to compute aTimer->mTimeoutNative, which adds an extra tick
+                 * to guarantee at *least* aTimeoutMS milliseconds transpire
+                 * before the first timeout.
+                 *
+                 * Without fixing aTimer->mTimeoutNative the extra tick impacts
+                 * all subsequent timeouts.
+                 */
+
+                timer->mTimeNow = now;
+                timer->mTimeoutNative = nl_time_ms_to_time_native(timer->mTimeoutMS);
             }
             else
             {
@@ -263,8 +280,9 @@ static void nl_timer_run_loop(void *aParams)
     while (sRunning)
     {
         nl_event_t *ev;
+        nl_event_t *nl_eventqueue_get_event_with_timeout_native(nl_eventqueue_t aEventQueue, nl_time_native_t aTimeoutNative);
 
-        ev = nl_eventqueue_get_event_with_timeout(sQueue, nl_time_native_to_time_ms(sTimeoutNative));
+        ev = nl_eventqueue_get_event_with_timeout_native(sQueue, sTimeoutNative);
 
 #if !defined(NLER_FEATURE_SIMULATEABLE_TIME) || !NLER_FEATURE_SIMULATEABLE_TIME
         nl_timer_eventhandler(ev);
