@@ -121,6 +121,14 @@ nl_event_t *nl_eventqueue_get_event_with_timeout(nl_eventqueue_t aEventQueue, nl
 #define nl_eventqueue_get_event(aEventQueue) \
     nl_eventqueue_get_event_with_timeout(aEventQueue, NLER_TIMEOUT_NEVER)
 
+/** Get number of events in a queue.
+ *
+ * @param[in] aEventQueue Queue from which to read the event count
+ *
+ * @return a count of pending events in the event queue
+ */
+uint32_t nl_eventqueue_get_count(nl_eventqueue_t aEventQueue);
+
 #ifdef __cplusplus
 }
 #endif

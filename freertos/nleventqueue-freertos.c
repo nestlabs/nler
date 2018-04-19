@@ -267,3 +267,10 @@ nl_event_t *nl_eventqueue_get_event_with_timeout(nl_eventqueue_t aEventQueue, nl
 {
     return nl_eventqueue_get_event_with_timeout_native(aEventQueue, nl_time_ms_to_delay_time_native(aTimeoutMS));
 }
+
+uint32_t nl_eventqueue_get_count(nl_eventqueue_t aEventQueue)
+{
+    uint32_t retval;
+
+    retval = uxQueueMessagesWaiting(aEventQueue);
+}
