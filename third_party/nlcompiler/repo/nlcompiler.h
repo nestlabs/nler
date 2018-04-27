@@ -17,20 +17,16 @@
 #ifndef NLCOMPILER_H
 #define NLCOMPILER_H
 
-#if NL_SIMULATOR
-    #if defined(__GNUC__)
-        #if defined(__MACH__)
-            #if defined(__llvm__)
-                #include "llvm-macho/nlcompiler.h"
-            #else
-                #include "gcc-macho/nlcompiler.h"
-            #endif
-        #elif defined(__linux__)
-            #include "gcc-linux/nlcompiler.h"
+#if defined(__GNUC__)
+    #if defined(__MACH__)
+        #if defined(__llvm__)
+            #include "llvm-macho/nlcompiler.h"
+        #else
+            #include "gcc-macho/nlcompiler.h"
         #endif
-    #endif
-#else
-    #if defined(__GNUC__)
+    #elif defined(__linux__)
+        #include "gcc-linux/nlcompiler.h"
+    #else
         #if defined(__llvm__)
             #include "llvm-elf/nlcompiler.h"
         #else
