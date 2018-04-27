@@ -1,6 +1,6 @@
 /*
  *
- *    Copyright (c) 2010-2015 Nest Labs, Inc.
+ *    Copyright (c) 2010-2018 Nest Labs, Inc.
  *    All rights reserved.
  *
  *    This document is the property of Nest. It is considered
@@ -10,7 +10,15 @@
  *    in whole or in part, without the express written permission of
  *    Nest.
  *
- *    Description:
+ */
+
+/**
+ *
+ *    @file
+ *      This file is an umbrella header for a suite of compiler
+ *      feature compatibility headers, providing macros that help
+ *      abstract away compiler-dependent and compiler version-depedent
+ *      features from the code that uses those features.
  *
  */
 
@@ -33,6 +41,8 @@
             #include "gcc-elf/nlcompiler.h"
         #endif
     #endif
+#else
+    #include "non-gnuc/nlcompiler.h"
 #endif
 
 /* RETAIN is only used by breadcrumbs sEraseNeeded right now.
