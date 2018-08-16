@@ -21,13 +21,13 @@ communicate among tasks rather than function calls with locks and semaphores.
 Event queues are defined as:
 
 @code
-typedef void * nl_eventqueue_t;
+typedef void * nleventqueue_t;
 @endcode
 
 To initialize an event queue, call the following function:
 
 @code
-nl_eventqueue_t nl_eventqueue_create(void *aQueueMemory, int32_t aQueueMemorySize);
+int nleventqueue_create(void *aQueueMemory, int32_t aQueueMemorySize, nleventqueue_t *aOutQueueObj);
 @endcode
 
 @c aQueueMemory is a memory buffer to be used to hold the queue data. The
@@ -156,12 +156,12 @@ must be simultaneously active. Pooled events extend the common event fields
 with two more words as follows:
 
 @code
-typedef struct nl_event_pooled_s
+typedef struct nlevent_pooled_s
 {
     NL_DECLARE_EVENT;
-    nl_eventqueue_t     mReturnQueue;
+    nleventqueue_t      mReturnQueue;
     void                *mPayload;
-} nl_event_pooled_t;
+} nlevent_pooled_t;
 @endcode
 
 @c mReturnQueue is an event queue to which a response can be sent.
@@ -174,13 +174,13 @@ events can be pooled.
 Events are removed from the pool by calling:
 
 @code
-nl_event_pooled_t *nl_event_pool_get_event(nl_event_pool_t aPool);
+nlevent_pooled_t *nl_event_pool_get_event(nlevent_pool_t *aPool);
 @endcode
 
 And returned to the pool with:
 
 @code
-void nl_event_pool_recycle_event(nl_event_pool_t aPool, nl_event_pooled_t *aEvent);
+void nl_event_pool_recycle_event(nlevent_pool_t *aPool, nlevent_pooled_t *aEvent);
 @endcode
 
 When an event is removed from the pool it is in an uninitialized state

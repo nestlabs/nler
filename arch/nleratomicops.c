@@ -32,7 +32,7 @@
 #include <nlerlock.h>
 
 #if !NLER_HAVE_ATOMIC_BUILTINS
-static nl_lock_t sAtomicsLock = NULL;
+static nllock_t sAtomicsLock = NULL;
 
 int32_t nl_er_atomic_inc(int32_t *aValue)
 {
