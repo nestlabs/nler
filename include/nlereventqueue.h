@@ -29,6 +29,7 @@
 #include <stddef.h>
 #include "nlerevent.h"
 #include "nlertime.h"
+#include "nlernative.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -38,7 +39,6 @@ extern "C" {
  * queue depth requirements of the creator. The creator must supply the memory
  * to be used for the queue storage. Queues are used as FIFOs.
  */
-typedef void * nl_eventqueue_t;
 
 /** Create an event queue.
  *
@@ -48,15 +48,17 @@ typedef void * nl_eventqueue_t;
  * event pointers. The number of events the queue can hold is directly
  * determined by this size.
  *
- * @return The event queue if successful, NULL otherwise.
+ * @param[in] aQueueObj pointer to storage used for the eventqueue object
+ *
+ * @return NLER_SUCCESS if the event queue is created succesfully.
  */
-nl_eventqueue_t nl_eventqueue_create(void *aQueueMemory, size_t aQueueMemorySize);
+int nleventqueue_create(void *aQueueMemory, size_t aQueueMemorySize, nleventqueue_t *aQueueObj);
 
 /** Destroy an event queue
  *
  * @param[in] aEventQueue The event queue to destroy.
  */
-void nl_eventqueue_destroy(nl_eventqueue_t aEventQueue);
+void nleventqueue_destroy(nleventqueue_t *aEventQueue);
 
 /** Disable event counting for the queue in the simulator.
  *
@@ -70,7 +72,7 @@ void nl_eventqueue_destroy(nl_eventqueue_t aEventQueue);
  *
  * @param[in] aEventQueue The event queue.
  */
-void nl_eventqueue_disable_event_counting(nl_eventqueue_t aEventQueue);
+void nleventqueue_disable_event_counting(nleventqueue_t *aEventQueue);
 
 /** Post an event to the tail of the queue.
  *
@@ -82,7 +84,7 @@ void nl_eventqueue_disable_event_counting(nl_eventqueue_t aEventQueue);
  *
  * @return NLER_SUCCESS if there was enough space in the queue for the event.
  */
-int nl_eventqueue_post_event(nl_eventqueue_t aEventQueue, const nl_event_t *aEvent);
+int nleventqueue_post_event(nleventqueue_t *aEventQueue, const nl_event_t *aEvent);
 
 /** Post an event to the tail of the queue from an ISR.
  *
@@ -95,7 +97,7 @@ int nl_eventqueue_post_event(nl_eventqueue_t aEventQueue, const nl_event_t *aEve
  *
  * @return NLER_SUCCESS if there was enough space in the queue for the event.
  */
-int nl_eventqueue_post_event_from_isr(nl_eventqueue_t aEventQueue, const nl_event_t *aEvent);
+int nleventqueue_post_event_from_isr(nleventqueue_t *aEventQueue, const nl_event_t *aEvent);
 
 /** Receive an event from the queue with a timeout.
  *
@@ -108,7 +110,7 @@ int nl_eventqueue_post_event_from_isr(nl_eventqueue_t aEventQueue, const nl_even
  *
  * @return a pointer to an event or NULL if the timeout expires.
  */
-nl_event_t *nl_eventqueue_get_event_with_timeout(nl_eventqueue_t aEventQueue, nl_time_ms_t aTimeoutMS);
+nl_event_t *nleventqueue_get_event_with_timeout(nleventqueue_t *aEventQueue, nl_time_ms_t aTimeoutMS);
 
 /** Receive an event from the queue.
  *
@@ -118,8 +120,8 @@ nl_event_t *nl_eventqueue_get_event_with_timeout(nl_eventqueue_t aEventQueue, nl
  *
  * @return a pointer to an event
  */
-#define nl_eventqueue_get_event(aEventQueue) \
-    nl_eventqueue_get_event_with_timeout(aEventQueue, NLER_TIMEOUT_NEVER)
+#define nleventqueue_get_event(aEventQueue) \
+    nleventqueue_get_event_with_timeout(aEventQueue, NLER_TIMEOUT_NEVER)
 
 /** Get number of events in a queue.
  *
@@ -127,7 +129,7 @@ nl_event_t *nl_eventqueue_get_event_with_timeout(nl_eventqueue_t aEventQueue, nl
  *
  * @return a count of pending events in the event queue
  */
-uint32_t nl_eventqueue_get_count(nl_eventqueue_t aEventQueue);
+uint32_t nleventqueue_get_count(nleventqueue_t *aEventQueue);
 
 #ifdef __cplusplus
 }

@@ -36,18 +36,18 @@ extern "C" {
  * recycled to that pool when no longer in use. It is a larger policy decision
  * on when to recycle the event.
  */
-typedef void * nl_event_pool_t;
+typedef nleventqueue_t nlevent_pool_t;
 
 /** Pooled event. Pooled events extend standard events with a queue to send a
  * response to in case that is required and an additional pointer to pass any
  * additional data to the recipient.
  */
-typedef struct nl_event_pooled_s
+typedef struct nlevent_pooled_s
 {
     NL_DECLARE_EVENT;                   /**< Common event fields. */
-    nl_eventqueue_t     mReturnQueue;   /**< Return response queue. */
+    nleventqueue_t      *mReturnQueue;  /**< Return response queue. */
     void                *mPayload;      /**< Additional data. */
-} nl_event_pooled_t;
+} nlevent_pooled_t;
 
 /** Create event pool.
  *
@@ -57,17 +57,19 @@ typedef struct nl_event_pooled_s
  *
  * @param[in] aPoolMemorySize Size in bytes of aPoolMemory.
  *
- * @return Initialized event pool if successful, NULL otherwise.
+ * @param[in] aPoolObj pointer to storage used for the event pool object
+ *
+ * @return NLER_SUCCESS if the event pool is created succesfully.
  *
  */
 
-nl_event_pool_t nl_event_pool_create(void *aPoolMemory, int32_t aPoolMemorySize);
+int nlevent_pool_create(void *aPoolMemory, int32_t aPoolMemorySize, nlevent_pool_t *aPoolObj);
 
 /** Destroy the event pool.
  *
  * @param[in, out] aPool Event pool to destroy.
  */
-void nl_event_pool_destroy(nl_event_pool_t aPool);
+void nlevent_pool_destroy(nlevent_pool_t *aPool);
 
 /** Get an event from the event pool.
  *
@@ -75,7 +77,7 @@ void nl_event_pool_destroy(nl_event_pool_t aPool);
  *
  * @return An event if there are events in the pool, NULL otherwise.
  */
-nl_event_pooled_t *nl_event_pool_get_event(nl_event_pool_t aPool);
+nlevent_pooled_t *nlevent_pool_get_event(nlevent_pool_t *aPool);
 
 /** Recycle an event to the pool.
  *
@@ -83,7 +85,7 @@ nl_event_pooled_t *nl_event_pool_get_event(nl_event_pool_t aPool);
  *
  * @param[in] aEvent The event to recycle.
  */
-void nl_event_pool_recycle_event(nl_event_pool_t aPool, nl_event_pooled_t *aEvent);
+void nlevent_pool_recycle_event(nlevent_pool_t *aPool, nlevent_pooled_t *aEvent);
 
 #ifdef __cplusplus
 }

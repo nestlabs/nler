@@ -28,62 +28,81 @@
 #ifndef NL_ER_LOCK_H
 #define NL_ER_LOCK_H
 
+#include "nlernative.h"
+#include "nlertime.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 /** Binary lock.
  */
-typedef void * nl_lock_t;
-typedef void * nl_recursive_lock_t;
 
 /** Create a new binary lock.
  *
- * @return a new binary lock.
+ * @param[in] aLock storage used for the lock control block
+ *
+ * @return NLER_SUCCESS if lock created successfully
  */
-nl_lock_t nl_er_lock_create(void);
+int nllock_create(nllock_t *aLock);
 
 /** Destroy a lock.
  *
  * @param[in] aLock lock to destroy.
  */
-void nl_er_lock_destroy(nl_lock_t aLock);
+void nllock_destroy(nllock_t *aLock);
 
 /** Begin an exclusion section.
  *
  * @param[in] aLock lock to enter to begin resource exclusion.
  */
-int nl_er_lock_enter(nl_lock_t aLock);
+int nllock_enter(nllock_t *aLock);
+
+/** Attempt to begin an exclusion section until timeout
+ *
+ * @param[in] aLock lock to enter to begin resource exclusion.
+ * @param[in] aTimeoutMsec number of msec to attempt to acquire lock
+ */
+int nllock_enter_with_timeout(nllock_t *aLock, nl_time_ms_t aTimeoutMsec);
 
 /** End an exclusion section
  *
  * @param[in] aLock lock to exit to end resource exclusion
  */
-int nl_er_lock_exit(nl_lock_t aLock);
+int nllock_exit(nllock_t *aLock);
 
-/** Create a new recursive binary lock.
+/** Create a new recursive lock.
  *
- * @return a new recursive binary lock.
+ * @param[in] aLock storage used for the lock control block
+ *
+ * @return NLER_SUCCESS if lock created successfully
  */
-nl_recursive_lock_t nl_er_recursive_lock_create(void);
+int nlrecursive_lock_create(nlrecursive_lock_t *aLock);
 
 /** Destroy a recursive lock.
  *
  * @param[in] aLock lock to destroy.
  */
-void nl_er_recursive_lock_destroy(nl_recursive_lock_t aLock);
+void nlrecursive_lock_destroy(nlrecursive_lock_t *aLock);
 
 /** Begin an exclusion section.
  *
  * @param[in] aLock lock to enter to begin resource exclusion.
  */
-int nl_er_recursive_lock_enter(nl_recursive_lock_t aLock);
+int nlrecursive_lock_enter(nlrecursive_lock_t *aLock);
+
+/** Attempt to begin an exclusion section until timeout
+ *
+ * @param[in] aLock lock to enter to begin resource exclusion.
+ * @param[in] aTimeoutMsec number of msec to attempt to acquire lock
+ */
+int nlrecursive_lock_enter_with_timeout(nlrecursive_lock_t *aLock, nl_time_ms_t aTimeoutMsec);
 
 /** End an exclusion section
  *
  * @param[in] aLock lock to exit to end resource exclusion
  */
-int nl_er_recursive_lock_exit(nl_recursive_lock_t aLock);
+int nlrecursive_lock_exit(nlrecursive_lock_t *aLock);
 
 #ifdef __cplusplus
 }

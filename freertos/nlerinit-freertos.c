@@ -26,7 +26,6 @@
 #include "nlerinit.h"
 #include <stdio.h>
 #include "FreeRTOS.h"
-#include "init.h"
 #include "task.h"
 #include "nlerlog.h"
 #include "nlerlogmanager.h"
@@ -43,13 +42,13 @@
 #endif
 
 #if NLER_FEATURE_DEFAULT_LOGGER
-static nl_lock_t logger_lock;
+static nllock_t logger_lock;
 
 static void freertos_default_logger(void *aClosure, nl_log_region_t aRegion, int aPriority, const char *format, va_list ap)
 {
-    nl_er_lock_enter(logger_lock);
+    nllock_enter(&logger_lock);
     vprintf(format, ap);
-    nl_er_lock_exit(logger_lock);
+    nllock_exit(&logger_lock);
 }
 
 #if NLER_FEATURE_LOG_TOKENIZATION
@@ -60,10 +59,10 @@ static void _nl_erinit_freertos_putchar(uint8_t c, void *context)
 
 static void freertos_default_token_logger(void *aClosure, nl_log_region_t aRegion, int aPriority, const nl_log_token_entry_t *format, va_list ap)
 {
-    nl_er_lock_enter(logger_lock);
+    nllock_enter(&logger_lock);
     // Marshal log header, format arguments, encode, and send entire log out serial port.
     nl_log_send_tokenized(_nl_erinit_freertos_putchar, 0, NL_LOG_UTC_UNDEFINED, format, ap);
-    nl_er_lock_exit(logger_lock);
+    nllock_exit(&logger_lock);
 }
 #endif /* NLER_FEATURE_LOG_TOKENIZATION */
 #endif /* NLER_FEATURE_DEFAULT_LOGGER */
@@ -72,14 +71,12 @@ int nl_er_init(void)
 {
     int retval = NLER_SUCCESS;
 
-    xInitRTOS();
-
 #if NLER_FEATURE_FLOW_TRACER
     nl_flowtracer_init();
 #endif
 
 #if NLER_FEATURE_DEFAULT_LOGGER
-    logger_lock = nl_er_lock_create();
+    nllock_create(&logger_lock);
 
     nl_set_logging_function(freertos_default_logger, NULL);
 #if NLER_FEATURE_LOG_TOKENIZATION

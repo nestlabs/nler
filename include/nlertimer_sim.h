@@ -103,7 +103,7 @@ sim_time_info_t * nl_get_sim_time_info(void);
 
 /** Get simulation time information lock
  */
-// nl_lock_t nl_sim_time_get_lock();
+// nllock_t nl_sim_time_get_lock();
 
 #endif /* NLER_FEATURE_SIMULATEABLE_TIME */
 

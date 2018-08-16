@@ -37,21 +37,23 @@
 #include "nlermacros.h"
 #include "nlresendabletimer.h"
 
-static nl_lock_t sLock;
+static bool sLockCreated;
+static nllock_t sLock;
 
 static void lock_enter(void)
 {
-    if (!sLock)
+    if (!sLockCreated)
     {
-        sLock = nl_er_lock_create();
+        nllock_create(&sLock);
+        sLockCreated = true;
     }
 
-    nl_er_lock_enter(sLock);
+    nllock_enter(&sLock);
 }
 
 static void lock_exit(void)
 {
-    nl_er_lock_exit(sLock);
+    nllock_exit(&sLock);
 }
 
 /**

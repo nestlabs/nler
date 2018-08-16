@@ -52,7 +52,7 @@ extern "C" {
 typedef struct nl_event_timer_s
 {
     NL_DECLARE_EVENT                    /**< Common event fields */
-    nl_eventqueue_t     mReturnQueue;   /**< Queue of timer events */
+    nleventqueue_t     *mReturnQueue;   /**< Queue of timer events */
     nl_time_ms_t        mTimeoutMS;     /**< Timeout in milliseconds */
     uint32_t            mFlags;         /**< Timer flags */
     nl_time_native_t    mTimeNow;       /**< For internal use by timer implementation */
@@ -134,7 +134,7 @@ typedef struct nl_event_timer_s
  * countdown begins from the this function is called. If the timer event is not
  * posted to the timer event queue, it will not fire.
  *
- * See nl_eventqueue_post_event for more information.
+ * See nleventqueue_post_event for more information.
  *
  * @param[in, out] aTimer the timer event to initialize
  *
@@ -174,7 +174,7 @@ nl_time_native_t nl_get_wake_time(void);
  * @return Timer event queue representing the timer service. Timer events
  * are sent to this queue to be acted upon by the timer.
  */
-nl_eventqueue_t nl_timer_start(nl_task_priority_t aPriority);
+nleventqueue_t *nl_timer_start(nltask_priority_t aPriority);
 
 /** Get the pointer to the timer event-queue. This is a convenience helper function
  * to insulate callers from having to locate the timer queue.
@@ -183,7 +183,7 @@ nl_eventqueue_t nl_timer_start(nl_task_priority_t aPriority);
  *
  * @return Timer event queue reperesenting the timer service.
  */
-nl_eventqueue_t nl_get_timer_queue(void);
+nleventqueue_t *nl_get_timer_queue(void);
 
 #ifdef __cplusplus
 }

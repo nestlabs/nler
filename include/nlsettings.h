@@ -108,7 +108,7 @@ typedef enum
 typedef struct
 {
     NL_DECLARE_EVENT
-    nl_eventqueue_t     mReturnQueue;
+    nleventqueue_t     *mReturnQueue;
     nl_settings_key_t   mKey;
     nl_settings_value_t mNewValue;
     unsigned int        mChangeCount;

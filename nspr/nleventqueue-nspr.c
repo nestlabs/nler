@@ -42,7 +42,7 @@
  * at the cost of added complexity where it need not be. mmp
  */
 
-typedef struct nl_eventqueue_nspr_s
+typedef struct nleventqueue_nspr_s
 {
     PRLock      *mLock;
     PRFileDesc  *mPollableEvent;
@@ -52,70 +52,72 @@ typedef struct nl_eventqueue_nspr_s
 #if NLER_FEATURE_SIMULATEABLE_TIME
     bool prev_get_successful;
 #endif
-} nl_eventqueue_nspr_t;
+} nleventqueue_nspr_t;
 
-nl_eventqueue_t nl_eventqueue_create(void *aQueueMemory, size_t aQueueMemorySize)
+int nleventqueue_create(void *aQueueMemory, size_t aQueueMemorySize, nleventqueue_t *aOutQueue)
 {
-    nl_eventqueue_nspr_t *retval = NULL;
+    nleventqueue_nspr_t  *lQueue = NULL;
     size_t               qsize = aQueueMemorySize / sizeof(nl_event_t *);
-    int                  err = NLER_ERROR_FAILURE;
+    int                  retval = NLER_ERROR_FAILURE;
 
-    if ((aQueueMemory != NULL) && (qsize > 0))
+    if ((aQueueMemory != NULL) && (qsize > 0) && (aOutQueue != NULL))
     {
-        retval = (nl_eventqueue_nspr_t *)calloc(1, sizeof(nl_eventqueue_nspr_t));
+        lQueue = (nleventqueue_nspr_t *)calloc(1, sizeof(nleventqueue_nspr_t));
 
-        if (retval != NULL)
+        if (lQueue != NULL)
         {
-            retval->mPollableEvent = PR_NewPollableEvent();
+            lQueue->mPollableEvent = PR_NewPollableEvent();
 
-            if (retval->mPollableEvent != NULL)
+            if (lQueue->mPollableEvent != NULL)
             {
-                retval->mLock = PR_NewLock();
+                lQueue->mLock = PR_NewLock();
 
-                if (retval->mLock != NULL)
+                if (lQueue->mLock != NULL)
                 {
-                    retval->mQueue = (nl_event_t **)aQueueMemory;
-                    retval->mQueueSize = qsize;
-                    retval->mQueueEnd = 0;
+                    lQueue->mQueue = (nl_event_t **)aQueueMemory;
+                    lQueue->mQueueSize = qsize;
+                    lQueue->mQueueEnd = 0;
 
-                    err = NLER_SUCCESS;
+                    *aOutQueue = (nleventqueue_t)lQueue;
+
+                    retval = NLER_SUCCESS;
                 }
                 else
                 {
                     NL_LOG_CRIT(lrERQUEUE, "failed to allocate lock for nspr event queue\n");
-                    err = NLER_ERROR_NO_RESOURCE;
+                    retval = NLER_ERROR_NO_RESOURCE;
                 }
             }
             else
             {
                 NL_LOG_CRIT(lrERQUEUE, "failed to allocate pollable event for nspr event queue\n");
-                err = NLER_ERROR_NO_RESOURCE;
+                retval = NLER_ERROR_NO_RESOURCE;
             }
 
-            if (err != NLER_SUCCESS)
+            if (retval != NLER_SUCCESS)
             {
-                nl_eventqueue_destroy((nl_eventqueue_t)retval);
-                retval = NULL;
+                nleventqueue_destroy((nleventqueue_t *)lQueue);
+                lQueue = NULL;
             }
         }
         else
         {
-            NL_LOG_CRIT(lrERQUEUE, "failed to allocate %d bytes for nspr event queue\n", sizeof(nl_eventqueue_nspr_t));
-            err = NLER_ERROR_NO_MEMORY;
+            NL_LOG_CRIT(lrERQUEUE, "failed to allocate %d bytes for nspr event queue\n", sizeof(nleventqueue_nspr_t));
+            retval = NLER_ERROR_NO_MEMORY;
         }
     }
     else
     {
         NL_LOG_CRIT(lrERQUEUE, "invalid queue memory %p with size %d specified\n", aQueueMemory, aQueueMemorySize);
-        err = NLER_ERROR_BAD_INPUT;
+        retval = NLER_ERROR_BAD_INPUT;
     }
 
-    return (nl_eventqueue_t)retval;
+    return retval;
 }
 
-void nl_eventqueue_destroy(nl_eventqueue_t aEventQueue)
+void nleventqueue_destroy(nleventqueue_t *aEventQueue)
 {
-    nl_eventqueue_nspr_t    *queue = (nl_eventqueue_nspr_t *)aEventQueue;
+    nleventqueue_nspr_t    *queue = *(nleventqueue_nspr_t **)aEventQueue;
 
     if (queue->mPollableEvent != NULL)
     {
@@ -130,10 +132,15 @@ void nl_eventqueue_destroy(nl_eventqueue_t aEventQueue)
     free(queue);
 }
 
-int nl_eventqueue_post_event(nl_eventqueue_t aEventQueue, const nl_event_t *aEvent)
+void nleventqueue_disable_event_counting(nleventqueue_t *aEventQueue)
+{
+    return;
+}
+
+int nleventqueue_post_event(nleventqueue_t *aEventQueue, const nl_event_t *aEvent)
 {
     int                     retval = NLER_SUCCESS;
-    nl_eventqueue_nspr_t    *queue = (nl_eventqueue_nspr_t *)aEventQueue;
+    nleventqueue_nspr_t    *queue = *(nleventqueue_nspr_t **)aEventQueue;
 
     PR_Lock(queue->mLock);
 
@@ -173,7 +180,7 @@ int nl_eventqueue_post_event(nl_eventqueue_t aEventQueue, const nl_event_t *aEve
     return retval;
 }
 
-static nl_event_t *remove_event_from_queue(nl_eventqueue_nspr_t *aQueue)
+static nl_event_t *remove_event_from_queue(nleventqueue_nspr_t *aQueue)
 {
     nl_event_t  *retval;
 
@@ -193,11 +200,11 @@ static nl_event_t *remove_event_from_queue(nl_eventqueue_nspr_t *aQueue)
  * This exists to let NLER functions get events from a queue without incurring a
  * +1 tick offset when converting milliseconds to ticks.
  */
-nl_event_t *nl_eventqueue_get_event_with_timeout_native(nl_eventqueue_t aEventQueue, nl_time_native_t aTimeoutNative);
-nl_event_t *nl_eventqueue_get_event_with_timeout_native(nl_eventqueue_t aEventQueue, nl_time_native_t aTimeoutNative)
+nl_event_t *nleventqueue_get_event_with_timeout_native(nleventqueue_t *aEventQueue, nl_time_native_t aTimeoutNative);
+nl_event_t *nleventqueue_get_event_with_timeout_native(nleventqueue_t *aEventQueue, nl_time_native_t aTimeoutNative)
 {
     nl_event_t              *retval = NULL;
-    nl_eventqueue_nspr_t    *queue = (nl_eventqueue_nspr_t *)aEventQueue;
+    nleventqueue_nspr_t     *queue = *(nleventqueue_nspr_t **)aEventQueue;
     PRPollDesc              polldesc;
     PRInt32                 active;
 
@@ -258,7 +265,14 @@ nl_event_t *nl_eventqueue_get_event_with_timeout_native(nl_eventqueue_t aEventQu
     return retval;
 }
 
-nl_event_t *nl_eventqueue_get_event_with_timeout(nl_eventqueue_t aEventQueue, nl_time_ms_t aTimeoutMS)
+nl_event_t *nleventqueue_get_event_with_timeout(nleventqueue_t *aEventQueue, nl_time_ms_t aTimeoutMS)
 {
-    return nl_eventqueue_get_event_with_timeout_native(aEventQueue, PR_MillisecondsToInterval(aTimeoutMS));
+    return nleventqueue_get_event_with_timeout_native(aEventQueue, PR_MillisecondsToInterval(aTimeoutMS));
+}
+
+uint32_t nleventqueue_get_count(nleventqueue_t *aEventQueue)
+{
+    const nleventqueue_nspr_t  *lEventQueue = *(nleventqueue_nspr_t **)aEventQueue;
+
+    return (lEventQueue->mQueueEnd);
 }

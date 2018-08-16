@@ -53,7 +53,7 @@ static sim_time_info_t sSimTimeInfo = {.real_time_when_paused = 0,
                                        .time_paused = false};
 
 static nl_event_t *sAdvanceEventReturnQueueMem;
-static nl_eventqueue_t sAdvanceQueue;
+static nleventqueue_t sAdvanceQueue;
 static nl_event_timer_t sAdvanceEvent;
 
 nl_event_timer_t * nl_get_advance_event(void)
@@ -76,11 +76,12 @@ void nl_time_init_sim(bool pauseTime)
         sSimTimeInfo.time_paused = true;
     }
 
-    sAdvanceQueue = nl_eventqueue_create(&sAdvanceEventReturnQueueMem,
-                                        sizeof(sAdvanceEventReturnQueueMem));
+    nleventqueue_create(&sAdvanceEventReturnQueueMem,
+                         sizeof(sAdvanceEventReturnQueueMem),
+                         &sAdvanceQueue);
     // these events are never actually dispatched but just sent
     // back to us for synchronization, so no function or arg needed
-    nl_event_timer_init(&sAdvanceEvent, NULL, NULL, sAdvanceQueue);
+    nl_event_timer_init(&sAdvanceEvent, NULL, NULL, &sAdvanceQueue);
 }
 
 void nl_pause_time(void)
@@ -114,7 +115,7 @@ int nl_advance_time_ms(nl_time_ms_t aTime)
         sSimTimeInfo.advance_time_point = nl_get_time_native() + nl_time_ms_to_time_native(aTime);
 
         nl_event_timer_start(&sAdvanceEvent, 0, false);
-        nl_eventqueue_get_event(sAdvanceQueue);
+        nleventqueue_get_event(&sAdvanceQueue);
         retval = NLER_SUCCESS;
     }
 

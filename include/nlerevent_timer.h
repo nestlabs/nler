@@ -93,7 +93,7 @@ typedef struct
  * set the priority to whatever is appropriate given the other tasks the
  * application controls.
  */
-void nl_timer_start(nl_task_priority_t aPriority);
+void nl_timer_start(nltask_priority_t aPriority);
 
 /** Get the pointer to the timer event-queue. This is a convenience helper function
  * to insulate callers from having to locate the timer queue.
@@ -102,7 +102,7 @@ void nl_timer_start(nl_task_priority_t aPriority);
  *
  * @return Timer event queue reperesenting the timer service.
  */
-nl_eventqueue_t nl_get_timer_queue(void);
+nleventqueue_t *nl_get_timer_queue(void);
 
 #endif /* NLER_FEATURE_TIMER_USING_SWTIMER */
 
@@ -116,7 +116,7 @@ nl_eventqueue_t nl_get_timer_queue(void);
  *
  * @param[in] aQueue eventqueue to post the event to when the timeout has expired
  */
-void nl_event_timer_init(nl_event_timer_t *aTimer, nl_eventhandler_t aHandler, void *aHandlerArg, nl_eventqueue_t aQueue);
+void nl_event_timer_init(nl_event_timer_t *aTimer, nl_eventhandler_t aHandler, void *aHandlerArg, nleventqueue_t *aQueue);
 
 /** Start or restart a timer.
  *

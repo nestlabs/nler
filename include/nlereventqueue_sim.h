@@ -39,17 +39,17 @@ extern "C" {
  * single static counter is incremented by all calls to post_event and
  * decremented by get_event.
  */
-int32_t nl_eventqueue_sim_count(void);
+int32_t nleventqueue_sim_count(void);
 
 /** Increment outstanding event counter.
  *
  */
-void nl_eventqueue_sim_count_inc(void);
+void nleventqueue_sim_count_inc(void);
 
 /** Decrement outstanding event counter.
  *
  */
-void nl_eventqueue_sim_count_dec(void);
+void nleventqueue_sim_count_dec(void);
 
 #endif
 

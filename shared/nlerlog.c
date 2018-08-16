@@ -42,7 +42,7 @@ extern nl_log_token_printer_t gTokenLogger;
 extern void                   *gTokenLoggerClosure;
 extern uint8_t                gAppLogLevels[];
 
-static uint8_t loglevels[] =
+static uint8_t sLogLevels[] =
 {
     nlLPDEBG,   /* lrER */
     nlLPDEBG,   /* lrERTASK */
@@ -69,9 +69,9 @@ void nl_log_va_list(nl_log_region_t aRegion, const char *aFormat, va_list aArgLi
     {
         if (aRegion < (lrERLAST + 1))
         {
-            if (loglevels[aRegion] > nlLPNONE)
+            if (sLogLevels[aRegion] > nlLPNONE)
             {
-                (gLogger)(gLoggerClosure, aRegion, loglevels[aRegion], aFormat, aArgList);
+                (gLogger)(gLoggerClosure, aRegion, sLogLevels[aRegion], aFormat, aArgList);
             }
         }
         else if (gAppLogLevels[aRegion - (lrERLAST + 1)] > nlLPNONE)
@@ -88,7 +88,7 @@ void nl_log(nl_log_region_t aRegion, const char *aFormat, ...)
      * in from the build system.
      */
 
-    NLER_STATIC_ASSERT(sizeof(loglevels) == (lrERLAST + 1), __FILE__ ": loglevels arrary size does not match (lrERLAST + 1) defined in nllogregion.h");
+    NLER_STATIC_ASSERT(sizeof(sLogLevels) == (lrERLAST + 1), __FILE__ ": sLogLevels arrary size does not match (lrERLAST + 1) defined in nllogregion.h");
 
     if (gLogger != NULL)
     {
@@ -109,7 +109,7 @@ void nl_log_token(nl_log_region_t aRegion, const nl_log_token_entry_t *aFormat, 
      * in from the build system.
      */
 
-    NLER_STATIC_ASSERT(sizeof(loglevels) == (lrERLAST + 1), __FILE__ ": loglevels arrary size does not match (lrERLAST + 1) defined in nllogregion.h");
+    NLER_STATIC_ASSERT(sizeof(sLogLevels) == (lrERLAST + 1), __FILE__ ": sLogLevels arrary size does not match (lrERLAST + 1) defined in nllogregion.h");
 
     if (gTokenLogger != NULL)
     {
@@ -119,9 +119,9 @@ void nl_log_token(nl_log_region_t aRegion, const nl_log_token_entry_t *aFormat, 
 
         if (aRegion < (lrERLAST + 1))
         {
-            if (loglevels[aRegion] > nlLPNONE)
+            if (sLogLevels[aRegion] > nlLPNONE)
             {
-                (gTokenLogger)(gTokenLoggerClosure, aRegion, loglevels[aRegion], aFormat, ap);
+                (gTokenLogger)(gTokenLoggerClosure, aRegion, sLogLevels[aRegion], aFormat, ap);
             }
         }
         else if (gAppLogLevels[aRegion - (lrERLAST + 1)] > nlLPNONE)
@@ -137,9 +137,9 @@ void nl_set_log_priority(nl_log_region_t aRegion, int aPri)
 {
     if (aRegion < (lrERLAST + 1))
     {
-        loglevels[aRegion] = (uint8_t)aPri;
+        sLogLevels[aRegion] = (uint8_t)aPri;
     }
-    else if (gAppLogLevels != NULL)
+    else if ((uint8_t *)gAppLogLevels != NULL)
     {
         gAppLogLevels[aRegion - (lrERLAST + 1)] = (uint8_t)aPri;
     }
@@ -151,9 +151,9 @@ int nl_get_log_priority(nl_log_region_t aRegion)
 
     if (aRegion < (lrERLAST + 1))
     {
-        retval = loglevels[aRegion];
+        retval = sLogLevels[aRegion];
     }
-    else if (gAppLogLevels != NULL)
+    else if ((uint8_t *)gAppLogLevels != NULL)
     {
         retval = gAppLogLevels[aRegion - (lrERLAST + 1)];
     }

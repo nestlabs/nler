@@ -29,6 +29,6 @@
 typedef enum {
     RX_EVENT, // Used to signal a packet was received.
     TX_EVENT  // Used to signal a packet was transmitted.
-} nl_trace_event_t;
+} nltrace_event_t;
 
 #endif // _FLOWTRACER_ENUM_H_INCLUDED__

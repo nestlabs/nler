@@ -51,7 +51,7 @@ void nl_init_event_timer(nl_event_timer_t *aTimer, nl_time_ms_t aTimeoutMS)
     aTimer->mTimeoutNative = nl_time_ms_to_delay_time_native(aTimeoutMS);
 }
 
-static nl_task_t sTimerTask;
+static nltask_t sTimerTask;
 
 DEFINE_STACK(sTimerStack, (NLER_TASK_STACK_BASE + NLER_TIMER_STACK_SIZE));
 
@@ -60,7 +60,8 @@ DEFINE_STACK(sTimerStack, (NLER_TASK_STACK_BASE + NLER_TIMER_STACK_SIZE));
  */
 static nl_event_t *sQueueMemory[NLER_MAX_TIMER_EVENTS + 1];
 static nl_event_timer_t *sTimers[NLER_MAX_TIMER_EVENTS];
-static nl_eventqueue_t sQueue = NULL;
+static nleventqueue_t sQueueObj;
+static nleventqueue_t *sQueue; // some unit tests reference this
 static nl_time_native_t sTimeoutNative;
 #if NLER_FEATURE_WAKE_TIMER
 static nl_time_native_t sMinWakeTimeNative;
@@ -96,7 +97,7 @@ static void handle_timer_event(nl_event_timer_t *aEvent)
         {
             if (sTimers[idx]->mFlags & NLER_TIMER_FLAG_DISPLACE)
             {
-                nl_eventqueue_post_event(sTimers[idx]->mReturnQueue, (nl_event_t *)sTimers[idx]);
+                nleventqueue_post_event(sTimers[idx]->mReturnQueue, (nl_event_t *)sTimers[idx]);
             }
             NL_LOG_DEBUG(lrERTIMER, "timer: timer %p (%d) replaced\n", sTimers[idx], sTimers[idx]->mTimeoutMS);
             aEvent = NULL;
@@ -105,7 +106,7 @@ static void handle_timer_event(nl_event_timer_t *aEvent)
         if (sTimers[idx]->mFlags & NLER_TIMER_FLAG_CANCEL_ECHO)
         {
             NL_LOG_DEBUG(lrERTIMER, "timer: timer %p (%d) cancelled with echo\n", sTimers[idx], sTimers[idx]->mTimeoutMS);
-            nl_eventqueue_post_event(sTimers[idx]->mReturnQueue, (nl_event_t *)sTimers[idx]);
+            nleventqueue_post_event(sTimers[idx]->mReturnQueue, (nl_event_t *)sTimers[idx]);
             remove_timer(idx);
             continue;
         }
@@ -122,7 +123,7 @@ static void handle_timer_event(nl_event_timer_t *aEvent)
                          sTimers[idx], sTimers[idx]->mTimeoutMS, idx, now, sTimers[idx]->mTimeNow,
                          now - sTimers[idx]->mTimeNow, sTimers[idx]->mTimeoutNative);
 
-            nl_eventqueue_post_event(sTimers[idx]->mReturnQueue, (nl_event_t *)sTimers[idx]);
+            nleventqueue_post_event(sTimers[idx]->mReturnQueue, (nl_event_t *)sTimers[idx]);
 
             if (sTimers[idx]->mFlags & NLER_TIMER_FLAG_REPEAT)
             {
@@ -268,9 +269,9 @@ static void handle_expired_events(void)
 {
     nl_event_t * ev;
     do {
-        ev = nl_eventqueue_get_event_with_timeout(sQueue, 0);
+        ev = nleventqueue_get_event_with_timeout(sQueue, 0);
         nl_timer_eventhandler(ev);
-    } while (ev || (nl_eventqueue_sim_count() > 0));
+    } while (ev || (nleventqueue_sim_count() > 0));
 }
 #endif
 
@@ -280,9 +281,9 @@ static void nl_timer_run_loop(void *aParams)
     while (sRunning)
     {
         nl_event_t *ev;
-        nl_event_t *nl_eventqueue_get_event_with_timeout_native(nl_eventqueue_t aEventQueue, nl_time_native_t aTimeoutNative);
+        nl_event_t *nleventqueue_get_event_with_timeout_native(nleventqueue_t *aEventQueue, nl_time_native_t aTimeoutNative);
 
-        ev = nl_eventqueue_get_event_with_timeout_native(sQueue, sTimeoutNative);
+        ev = nleventqueue_get_event_with_timeout_native(sQueue, sTimeoutNative);
 
 #if !defined(NLER_FEATURE_SIMULATEABLE_TIME) || !NLER_FEATURE_SIMULATEABLE_TIME
         nl_timer_eventhandler(ev);
@@ -311,7 +312,7 @@ static void nl_timer_run_loop(void *aParams)
                 handle_expired_events();
             }
 
-            nl_eventqueue_post_event(nl_get_advance_event()->mReturnQueue,
+            nleventqueue_post_event(nl_get_advance_event()->mReturnQueue,
                     (nl_event_t *) nl_get_advance_event());
         }
         else
@@ -326,11 +327,11 @@ int nl_start_event_timer(nl_event_timer_t *aTimer)
 {
     int retval = NLER_ERROR_INIT;
 
-    if (sQueue && sRunning)
+    if (sRunning)
     {
         aTimer->mFlags &= ~(NLER_TIMER_FLAG_ANY_CANCEL);
 
-        retval = nl_eventqueue_post_event(sQueue, (nl_event_t *)aTimer);
+        retval = nleventqueue_post_event(sQueue, (nl_event_t *)aTimer);
     }
 
     return retval;
@@ -346,18 +347,20 @@ static void timer_init(void)
 #endif // NLER_FEATURE_WAKE_TIMER
 }
 
-nl_eventqueue_t nl_timer_start(nl_task_priority_t aPriority)
+nleventqueue_t *nl_timer_start(nltask_priority_t aPriority)
 {
-    sQueue = nl_eventqueue_create(sQueueMemory, sizeof(sQueueMemory));
+    int err = nleventqueue_create(sQueueMemory, sizeof(sQueueMemory), &sQueueObj);
+    NLER_ASSERT(err >= 0);
+    sQueue = &sQueueObj;
 
     timer_init();
 
-    nl_task_create(nl_timer_run_loop, "tmr", sTimerStack, sizeof(sTimerStack), aPriority, NULL, &sTimerTask);
+    nltask_create(nl_timer_run_loop, "tmr", sTimerStack, sizeof(sTimerStack), aPriority, NULL, &sTimerTask);
 
     return sQueue;
 }
 
-nl_eventqueue_t nl_get_timer_queue(void)
+nleventqueue_t *nl_get_timer_queue(void)
 {
     return sQueue;
 }

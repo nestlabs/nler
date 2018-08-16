@@ -31,11 +31,11 @@
 /* these are the relative priorities of
  * tasks. see nlertask.h for more information.
  */
-typedef int nl_task_priority_t;
+typedef int nltask_priority_t;
 
-#define NLER_TASK_PRIORITY_HIGHEST  (nl_task_priority_t)(configMAX_PRIORITIES - 1)
-#define NLER_TASK_PRIORITY_HIGH     (nl_task_priority_t)(configMAX_PRIORITIES - 3)
-#define NLER_TASK_PRIORITY_NORMAL   (nl_task_priority_t)(configMAX_PRIORITIES - 6)
-#define NLER_TASK_PRIORITY_LOW      (nl_task_priority_t)(configMAX_PRIORITIES - 9)
+#define NLER_TASK_PRIORITY_HIGHEST  (nltask_priority_t)(configMAX_PRIORITIES - 1)
+#define NLER_TASK_PRIORITY_HIGH     (nltask_priority_t)(configMAX_PRIORITIES - 3)
+#define NLER_TASK_PRIORITY_NORMAL   (nltask_priority_t)(configMAX_PRIORITIES - 6)
+#define NLER_TASK_PRIORITY_LOW      (nltask_priority_t)(configMAX_PRIORITIES - 9)
 
 #endif /*  NL_ER_TASK_PRIORITY_H */
