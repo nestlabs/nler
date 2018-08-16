@@ -23,6 +23,8 @@
  *
  */
 
+#include <pthread.h>
+
 #include <nlerlog.h>
 #include <nlerlogmanager.h>
 #include <nlererror.h>
@@ -32,7 +34,8 @@
 #include <nlerflowtracer.h>
 #endif
 
-#include <pthread.h>
+extern int nltask_pthreads_init(void);
+extern void nltask_pthreads_destroy(void);
 
 void pthreads_default_logger(void *aClosure, nl_log_region_t aRegion, int aPriority, const char *format, va_list ap)
 {
@@ -44,6 +47,16 @@ int nl_er_init(void)
     int     retval = NLER_SUCCESS;
 
     retval = nl_er_atomic_init();
+    if (retval != NLER_SUCCESS)
+    {
+        goto done;
+    }
+
+    retval = nltask_pthreads_init();
+    if (retval != NLER_SUCCESS)
+    {
+        goto done;
+    }    
 
 #if NLER_FEATURE_FLOW_TRACER
     nl_flowtracer_init();
@@ -55,12 +68,13 @@ int nl_er_init(void)
     nl_flowtracer_init();
 #endif
 
-    return retval;
+ done:
+    return (retval);
 }
 
 void nl_er_cleanup(void)
 {
-
+    nltask_pthreads_destroy();
 }
 
 void nl_er_start_running(void)

@@ -41,6 +41,7 @@ libnlerpthreads_a_SOURCES       = \
     $(NULL)
 
 include_HEADERS                 = \
+    nlernative.h                  \
     nlertaskpriority.h            \
     nlertaskstack.h               \
     $(NULL)
