@@ -115,12 +115,13 @@ host_triplet = @host@
 target_triplet = @target@
 @NLER_BUILD_TESTS_TRUE@check_PROGRAMS = test-atomic$(EXEEXT) \
 @NLER_BUILD_TESTS_TRUE@	test-earlyevent$(EXEEXT) \
-@NLER_BUILD_TESTS_TRUE@	test-event$(EXEEXT) test-lock$(EXEEXT) \
+@NLER_BUILD_TESTS_TRUE@	test-event$(EXEEXT) \
+@NLER_BUILD_TESTS_TRUE@	test-eventqueue$(EXEEXT) \
+@NLER_BUILD_TESTS_TRUE@	test-lock$(EXEEXT) \
 @NLER_BUILD_TESTS_TRUE@	test-nlmathutil$(EXEEXT) \
 @NLER_BUILD_TESTS_TRUE@	test-pooledevent$(EXEEXT) \
-@NLER_BUILD_TESTS_TRUE@	test-subpub$(EXEEXT) test-task$(EXEEXT) \
-@NLER_BUILD_TESTS_TRUE@	test-timer$(EXEEXT) $(am__EXEEXT_1) \
-@NLER_BUILD_TESTS_TRUE@	$(am__EXEEXT_2)
+@NLER_BUILD_TESTS_TRUE@	test-task$(EXEEXT) $(am__EXEEXT_1) \
+@NLER_BUILD_TESTS_TRUE@	$(am__EXEEXT_2) $(am__EXEEXT_3)
 @NLER_BUILD_FLOW_TRACER_TRUE@@NLER_BUILD_TESTS_TRUE@am__append_1 = \
 @NLER_BUILD_FLOW_TRACER_TRUE@@NLER_BUILD_TESTS_TRUE@    test-nlerflowtracer                          \
 @NLER_BUILD_FLOW_TRACER_TRUE@@NLER_BUILD_TESTS_TRUE@    $(NULL)
@@ -128,6 +129,11 @@ target_triplet = @target@
 @NLER_BUILD_TESTS_TRUE@@NLER_BUILD_UTILITIES_TRUE@am__append_2 = \
 @NLER_BUILD_TESTS_TRUE@@NLER_BUILD_UTILITIES_TRUE@    test-settings                                \
 @NLER_BUILD_TESTS_TRUE@@NLER_BUILD_UTILITIES_TRUE@    $(NULL)
+
+@NLER_BUILD_EVENT_TIMER_FALSE@@NLER_BUILD_TESTS_TRUE@am__append_3 = \
+@NLER_BUILD_EVENT_TIMER_FALSE@@NLER_BUILD_TESTS_TRUE@    test-subpub                                  \
+@NLER_BUILD_EVENT_TIMER_FALSE@@NLER_BUILD_TESTS_TRUE@    test-timer                                   \
+@NLER_BUILD_EVENT_TIMER_FALSE@@NLER_BUILD_TESTS_TRUE@    $(NULL)
 
 @NLER_BUILD_TESTS_TRUE@TESTS = $(check_PROGRAMS)
 subdir = test
@@ -160,6 +166,8 @@ CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
 @NLER_BUILD_FLOW_TRACER_TRUE@@NLER_BUILD_TESTS_TRUE@am__EXEEXT_1 = test-nlerflowtracer$(EXEEXT)
 @NLER_BUILD_TESTS_TRUE@@NLER_BUILD_UTILITIES_TRUE@am__EXEEXT_2 = test-settings$(EXEEXT)
+@NLER_BUILD_EVENT_TIMER_FALSE@@NLER_BUILD_TESTS_TRUE@am__EXEEXT_3 = test-subpub$(EXEEXT) \
+@NLER_BUILD_EVENT_TIMER_FALSE@@NLER_BUILD_TESTS_TRUE@	test-timer$(EXEEXT)
 am__vpath_adj_setup = srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`;
 am__vpath_adj = case $$p in \
     $(srcdir)/*) f=`echo "$$p" | sed "s|^$$srcdirstrip/||"`;; \
@@ -200,8 +208,9 @@ am__libnlertest_a_SOURCES_DIST = nlertimer-test.c
 @NLER_BUILD_TESTS_TRUE@am_libnlertest_a_OBJECTS =  \
 @NLER_BUILD_TESTS_TRUE@	nlertimer-test.$(OBJEXT)
 libnlertest_a_OBJECTS = $(am_libnlertest_a_OBJECTS)
-am__test_atomic_SOURCES_DIST = test-atomic.c
-@NLER_BUILD_TESTS_TRUE@am_test_atomic_OBJECTS = test-atomic.$(OBJEXT)
+am__test_atomic_SOURCES_DIST = test-atomic.c nltestlogregions.c
+@NLER_BUILD_TESTS_TRUE@am_test_atomic_OBJECTS = test-atomic.$(OBJEXT) \
+@NLER_BUILD_TESTS_TRUE@	nltestlogregions.$(OBJEXT)
 test_atomic_OBJECTS = $(am_test_atomic_OBJECTS)
 @NLER_BUILD_TESTS_TRUE@am__DEPENDENCIES_1 = $(top_builddir)/$(NLER_BUILD_PLATFORM)/libnler$(NLER_BUILD_PLATFORM).a \
 @NLER_BUILD_TESTS_TRUE@	$(top_builddir)/arch/libnlerarch.a \
@@ -214,57 +223,78 @@ AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
 am__v_lt_0 = --silent
 am__v_lt_1 = 
-am__test_earlyevent_SOURCES_DIST = test-earlyevent.c
+am__test_earlyevent_SOURCES_DIST = test-earlyevent.c \
+	nltestlogregions.c
 @NLER_BUILD_TESTS_TRUE@am_test_earlyevent_OBJECTS =  \
-@NLER_BUILD_TESTS_TRUE@	test-earlyevent.$(OBJEXT)
+@NLER_BUILD_TESTS_TRUE@	test-earlyevent.$(OBJEXT) \
+@NLER_BUILD_TESTS_TRUE@	nltestlogregions.$(OBJEXT)
 test_earlyevent_OBJECTS = $(am_test_earlyevent_OBJECTS)
 @NLER_BUILD_TESTS_TRUE@test_earlyevent_DEPENDENCIES =  \
 @NLER_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_2)
-am__test_event_SOURCES_DIST = test-event.c test-log.c
+am__test_event_SOURCES_DIST = test-event.c nltestlogregions.c
 @NLER_BUILD_TESTS_TRUE@am_test_event_OBJECTS = test-event.$(OBJEXT) \
-@NLER_BUILD_TESTS_TRUE@	test-log.$(OBJEXT)
+@NLER_BUILD_TESTS_TRUE@	nltestlogregions.$(OBJEXT)
 test_event_OBJECTS = $(am_test_event_OBJECTS)
 @NLER_BUILD_TESTS_TRUE@test_event_DEPENDENCIES =  \
 @NLER_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_2)
-am__test_lock_SOURCES_DIST = test-lock.c
-@NLER_BUILD_TESTS_TRUE@am_test_lock_OBJECTS = test-lock.$(OBJEXT)
+am__test_eventqueue_SOURCES_DIST = test-eventqueue.c \
+	nltestlogregions.c
+@NLER_BUILD_TESTS_TRUE@am_test_eventqueue_OBJECTS =  \
+@NLER_BUILD_TESTS_TRUE@	test-eventqueue.$(OBJEXT) \
+@NLER_BUILD_TESTS_TRUE@	nltestlogregions.$(OBJEXT)
+test_eventqueue_OBJECTS = $(am_test_eventqueue_OBJECTS)
+@NLER_BUILD_TESTS_TRUE@test_eventqueue_DEPENDENCIES =  \
+@NLER_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_2)
+am__test_lock_SOURCES_DIST = test-lock.c nltestlogregions.c
+@NLER_BUILD_TESTS_TRUE@am_test_lock_OBJECTS = test-lock.$(OBJEXT) \
+@NLER_BUILD_TESTS_TRUE@	nltestlogregions.$(OBJEXT)
 test_lock_OBJECTS = $(am_test_lock_OBJECTS)
 @NLER_BUILD_TESTS_TRUE@test_lock_DEPENDENCIES = $(am__DEPENDENCIES_2)
-am__test_nlerflowtracer_SOURCES_DIST = test-nlerflowtracer.c
+am__test_nlerflowtracer_SOURCES_DIST = test-nlerflowtracer.c \
+	nltestlogregions.c
 @NLER_BUILD_TESTS_TRUE@am_test_nlerflowtracer_OBJECTS =  \
-@NLER_BUILD_TESTS_TRUE@	test-nlerflowtracer.$(OBJEXT)
+@NLER_BUILD_TESTS_TRUE@	test-nlerflowtracer.$(OBJEXT) \
+@NLER_BUILD_TESTS_TRUE@	nltestlogregions.$(OBJEXT)
 test_nlerflowtracer_OBJECTS = $(am_test_nlerflowtracer_OBJECTS)
 @NLER_BUILD_TESTS_TRUE@test_nlerflowtracer_DEPENDENCIES =  \
 @NLER_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_2)
-am__test_nlmathutil_SOURCES_DIST = test-nlmathutil.c
+am__test_nlmathutil_SOURCES_DIST = test-nlmathutil.c \
+	nltestlogregions.c
 @NLER_BUILD_TESTS_TRUE@am_test_nlmathutil_OBJECTS =  \
-@NLER_BUILD_TESTS_TRUE@	test-nlmathutil.$(OBJEXT)
+@NLER_BUILD_TESTS_TRUE@	test-nlmathutil.$(OBJEXT) \
+@NLER_BUILD_TESTS_TRUE@	nltestlogregions.$(OBJEXT)
 test_nlmathutil_OBJECTS = $(am_test_nlmathutil_OBJECTS)
 @NLER_BUILD_TESTS_TRUE@test_nlmathutil_DEPENDENCIES =  \
 @NLER_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_2)
-am__test_pooledevent_SOURCES_DIST = test-pooledevent.c
+am__test_pooledevent_SOURCES_DIST = test-pooledevent.c \
+	nltestlogregions.c
 @NLER_BUILD_TESTS_TRUE@am_test_pooledevent_OBJECTS =  \
-@NLER_BUILD_TESTS_TRUE@	test-pooledevent.$(OBJEXT)
+@NLER_BUILD_TESTS_TRUE@	test-pooledevent.$(OBJEXT) \
+@NLER_BUILD_TESTS_TRUE@	nltestlogregions.$(OBJEXT)
 test_pooledevent_OBJECTS = $(am_test_pooledevent_OBJECTS)
 @NLER_BUILD_TESTS_TRUE@test_pooledevent_DEPENDENCIES =  \
 @NLER_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_2)
-am__test_settings_SOURCES_DIST = test-settings.c
+am__test_settings_SOURCES_DIST = test-settings.c nltestlogregions.c
 @NLER_BUILD_TESTS_TRUE@am_test_settings_OBJECTS =  \
-@NLER_BUILD_TESTS_TRUE@	test_settings-test-settings.$(OBJEXT)
+@NLER_BUILD_TESTS_TRUE@	test_settings-test-settings.$(OBJEXT) \
+@NLER_BUILD_TESTS_TRUE@	test_settings-nltestlogregions.$(OBJEXT)
 test_settings_OBJECTS = $(am_test_settings_OBJECTS)
 @NLER_BUILD_TESTS_TRUE@test_settings_DEPENDENCIES =  \
 @NLER_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_2)
-am__test_subpub_SOURCES_DIST = test-subpub.c
-@NLER_BUILD_TESTS_TRUE@am_test_subpub_OBJECTS = test-subpub.$(OBJEXT)
+am__test_subpub_SOURCES_DIST = test-subpub.c nltestlogregions.c
+@NLER_BUILD_TESTS_TRUE@am_test_subpub_OBJECTS = test-subpub.$(OBJEXT) \
+@NLER_BUILD_TESTS_TRUE@	nltestlogregions.$(OBJEXT)
 test_subpub_OBJECTS = $(am_test_subpub_OBJECTS)
 @NLER_BUILD_TESTS_TRUE@test_subpub_DEPENDENCIES =  \
 @NLER_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_2)
-am__test_task_SOURCES_DIST = test-task.c
-@NLER_BUILD_TESTS_TRUE@am_test_task_OBJECTS = test-task.$(OBJEXT)
+am__test_task_SOURCES_DIST = test-task.c nltestlogregions.c
+@NLER_BUILD_TESTS_TRUE@am_test_task_OBJECTS = test-task.$(OBJEXT) \
+@NLER_BUILD_TESTS_TRUE@	nltestlogregions.$(OBJEXT)
 test_task_OBJECTS = $(am_test_task_OBJECTS)
 @NLER_BUILD_TESTS_TRUE@test_task_DEPENDENCIES = $(am__DEPENDENCIES_2)
-am__test_timer_SOURCES_DIST = test-timer.c
-@NLER_BUILD_TESTS_TRUE@am_test_timer_OBJECTS = test-timer.$(OBJEXT)
+am__test_timer_SOURCES_DIST = test-timer.c nltestlogregions.c
+@NLER_BUILD_TESTS_TRUE@am_test_timer_OBJECTS = test-timer.$(OBJEXT) \
+@NLER_BUILD_TESTS_TRUE@	nltestlogregions.$(OBJEXT)
 test_timer_OBJECTS = $(am_test_timer_OBJECTS)
 @NLER_BUILD_TESTS_TRUE@test_timer_DEPENDENCIES =  \
 @NLER_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_2)
@@ -285,12 +315,14 @@ depcomp = $(SHELL) \
 	$(top_srcdir)/third_party/nlbuild-autotools/repo/third_party/autoconf/depcomp
 am__maybe_remake_depfiles = depfiles
 am__depfiles_remade = ./$(DEPDIR)/nlertimer-test.Po \
-	./$(DEPDIR)/test-atomic.Po ./$(DEPDIR)/test-earlyevent.Po \
-	./$(DEPDIR)/test-event.Po ./$(DEPDIR)/test-lock.Po \
-	./$(DEPDIR)/test-log.Po ./$(DEPDIR)/test-nlerflowtracer.Po \
+	./$(DEPDIR)/nltestlogregions.Po ./$(DEPDIR)/test-atomic.Po \
+	./$(DEPDIR)/test-earlyevent.Po ./$(DEPDIR)/test-event.Po \
+	./$(DEPDIR)/test-eventqueue.Po ./$(DEPDIR)/test-lock.Po \
+	./$(DEPDIR)/test-nlerflowtracer.Po \
 	./$(DEPDIR)/test-nlmathutil.Po ./$(DEPDIR)/test-pooledevent.Po \
 	./$(DEPDIR)/test-subpub.Po ./$(DEPDIR)/test-task.Po \
 	./$(DEPDIR)/test-timer.Po \
+	./$(DEPDIR)/test_settings-nltestlogregions.Po \
 	./$(DEPDIR)/test_settings-test-settings.Po
 am__mv = mv -f
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
@@ -313,14 +345,17 @@ am__v_CCLD_0 = @echo "  CCLD    " $@;
 am__v_CCLD_1 = 
 SOURCES = $(libnlertest_a_SOURCES) $(test_atomic_SOURCES) \
 	$(test_earlyevent_SOURCES) $(test_event_SOURCES) \
-	$(test_lock_SOURCES) $(test_nlerflowtracer_SOURCES) \
-	$(test_nlmathutil_SOURCES) $(test_pooledevent_SOURCES) \
-	$(test_settings_SOURCES) $(test_subpub_SOURCES) \
-	$(test_task_SOURCES) $(test_timer_SOURCES)
+	$(test_eventqueue_SOURCES) $(test_lock_SOURCES) \
+	$(test_nlerflowtracer_SOURCES) $(test_nlmathutil_SOURCES) \
+	$(test_pooledevent_SOURCES) $(test_settings_SOURCES) \
+	$(test_subpub_SOURCES) $(test_task_SOURCES) \
+	$(test_timer_SOURCES)
 DIST_SOURCES = $(am__libnlertest_a_SOURCES_DIST) \
 	$(am__test_atomic_SOURCES_DIST) \
 	$(am__test_earlyevent_SOURCES_DIST) \
-	$(am__test_event_SOURCES_DIST) $(am__test_lock_SOURCES_DIST) \
+	$(am__test_event_SOURCES_DIST) \
+	$(am__test_eventqueue_SOURCES_DIST) \
+	$(am__test_lock_SOURCES_DIST) \
 	$(am__test_nlerflowtracer_SOURCES_DIST) \
 	$(am__test_nlmathutil_SOURCES_DIST) \
 	$(am__test_pooledevent_SOURCES_DIST) \
@@ -607,6 +642,7 @@ NLER_BUILD_PLATFORM_PTHREADS = @NLER_BUILD_PLATFORM_PTHREADS@
 NLUNIT_TEST_CPPFLAGS = @NLUNIT_TEST_CPPFLAGS@
 NLUNIT_TEST_LDFLAGS = @NLUNIT_TEST_LDFLAGS@
 NLUNIT_TEST_LIBS = @NLUNIT_TEST_LIBS@
+NLUNIT_TEST_SUBDIRS = @NLUNIT_TEST_SUBDIRS@
 NLUTILITIES_CPPFLAGS = @NLUTILITIES_CPPFLAGS@
 NLUTILITIES_LDFLAGS = @NLUTILITIES_LDFLAGS@
 NLUTILITIES_LIBS = @NLUTILITIES_LIBS@
@@ -689,6 +725,7 @@ psdir = @psdir@
 sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 srcdir = @srcdir@
+subdirs = @subdirs@
 sysconfdir = @sysconfdir@
 target = @target@
 target_alias = @target_alias@
@@ -717,6 +754,7 @@ noinst_HEADERS = \
 # C preprocessor option flags that will apply to all compiled objects in this
 # makefile.
 @NLER_BUILD_TESTS_TRUE@AM_CPPFLAGS = \
+@NLER_BUILD_TESTS_TRUE@    -DNLER_APPLICATION_LOG_REGION_FILE=\"nltestlogregions.h\" \
 @NLER_BUILD_TESTS_TRUE@    -I$(top_srcdir)/include                      \
 @NLER_BUILD_TESTS_TRUE@    $(NULL)
 
@@ -745,28 +783,30 @@ noinst_HEADERS = \
 
 
 # Source, compiler, and linker options for test programs.
-@NLER_BUILD_TESTS_TRUE@test_atomic_SOURCES = test-atomic.c
+@NLER_BUILD_TESTS_TRUE@test_atomic_SOURCES = test-atomic.c nltestlogregions.c
 @NLER_BUILD_TESTS_TRUE@test_atomic_LDADD = $(COMMON_LDADD)
-@NLER_BUILD_TESTS_TRUE@test_earlyevent_SOURCES = test-earlyevent.c
+@NLER_BUILD_TESTS_TRUE@test_earlyevent_SOURCES = test-earlyevent.c nltestlogregions.c
 @NLER_BUILD_TESTS_TRUE@test_earlyevent_LDADD = $(COMMON_LDADD)
-@NLER_BUILD_TESTS_TRUE@test_event_SOURCES = test-event.c test-log.c
+@NLER_BUILD_TESTS_TRUE@test_event_SOURCES = test-event.c nltestlogregions.c
 @NLER_BUILD_TESTS_TRUE@test_event_LDADD = $(COMMON_LDADD)
-@NLER_BUILD_TESTS_TRUE@test_lock_SOURCES = test-lock.c
+@NLER_BUILD_TESTS_TRUE@test_eventqueue_SOURCES = test-eventqueue.c nltestlogregions.c
+@NLER_BUILD_TESTS_TRUE@test_eventqueue_LDADD = $(COMMON_LDADD)
+@NLER_BUILD_TESTS_TRUE@test_lock_SOURCES = test-lock.c nltestlogregions.c
 @NLER_BUILD_TESTS_TRUE@test_lock_LDADD = $(COMMON_LDADD)
-@NLER_BUILD_TESTS_TRUE@test_nlerflowtracer_SOURCES = test-nlerflowtracer.c
+@NLER_BUILD_TESTS_TRUE@test_nlerflowtracer_SOURCES = test-nlerflowtracer.c nltestlogregions.c
 @NLER_BUILD_TESTS_TRUE@test_nlerflowtracer_LDADD = $(COMMON_LDADD)
-@NLER_BUILD_TESTS_TRUE@test_nlmathutil_SOURCES = test-nlmathutil.c
+@NLER_BUILD_TESTS_TRUE@test_nlmathutil_SOURCES = test-nlmathutil.c nltestlogregions.c
 @NLER_BUILD_TESTS_TRUE@test_nlmathutil_LDADD = $(COMMON_LDADD)
-@NLER_BUILD_TESTS_TRUE@test_pooledevent_SOURCES = test-pooledevent.c
+@NLER_BUILD_TESTS_TRUE@test_pooledevent_SOURCES = test-pooledevent.c nltestlogregions.c
 @NLER_BUILD_TESTS_TRUE@test_pooledevent_LDADD = $(COMMON_LDADD)
-@NLER_BUILD_TESTS_TRUE@test_settings_SOURCES = test-settings.c
+@NLER_BUILD_TESTS_TRUE@test_settings_SOURCES = test-settings.c nltestlogregions.c
 @NLER_BUILD_TESTS_TRUE@test_settings_CPPFLAGS = $(AM_CPPFLAGS) -DHAVE_NLER_SETTINGS_APPLICATION_SETTINGS_KEYS -DNLER_SETTINGS_APPLICATION_SETTINGS_KEYS=\"test-settings.h\"
 @NLER_BUILD_TESTS_TRUE@test_settings_LDADD = -L$(top_builddir)/utilities -lnlerutilities $(COMMON_LDADD)
-@NLER_BUILD_TESTS_TRUE@test_subpub_SOURCES = test-subpub.c
+@NLER_BUILD_TESTS_TRUE@test_subpub_SOURCES = test-subpub.c nltestlogregions.c
 @NLER_BUILD_TESTS_TRUE@test_subpub_LDADD = $(COMMON_LDADD)
-@NLER_BUILD_TESTS_TRUE@test_task_SOURCES = test-task.c
+@NLER_BUILD_TESTS_TRUE@test_task_SOURCES = test-task.c nltestlogregions.c
 @NLER_BUILD_TESTS_TRUE@test_task_LDADD = $(COMMON_LDADD)
-@NLER_BUILD_TESTS_TRUE@test_timer_SOURCES = test-timer.c
+@NLER_BUILD_TESTS_TRUE@test_timer_SOURCES = test-timer.c nltestlogregions.c
 @NLER_BUILD_TESTS_TRUE@test_timer_LDADD = $(COMMON_LDADD)
 @NLER_BUILD_COVERAGE_TRUE@@NLER_BUILD_TESTS_TRUE@CLEANFILES = $(wildcard *.gcda *.gcno)
 
@@ -866,6 +906,10 @@ test-event$(EXEEXT): $(test_event_OBJECTS) $(test_event_DEPENDENCIES) $(EXTRA_te
 	@rm -f test-event$(EXEEXT)
 	$(AM_V_CCLD)$(LINK) $(test_event_OBJECTS) $(test_event_LDADD) $(LIBS)
 
+test-eventqueue$(EXEEXT): $(test_eventqueue_OBJECTS) $(test_eventqueue_DEPENDENCIES) $(EXTRA_test_eventqueue_DEPENDENCIES) 
+	@rm -f test-eventqueue$(EXEEXT)
+	$(AM_V_CCLD)$(LINK) $(test_eventqueue_OBJECTS) $(test_eventqueue_LDADD) $(LIBS)
+
 test-lock$(EXEEXT): $(test_lock_OBJECTS) $(test_lock_DEPENDENCIES) $(EXTRA_test_lock_DEPENDENCIES) 
 	@rm -f test-lock$(EXEEXT)
 	$(AM_V_CCLD)$(LINK) $(test_lock_OBJECTS) $(test_lock_LDADD) $(LIBS)
@@ -905,17 +949,19 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nlertimer-test.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nltestlogregions.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-atomic.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-earlyevent.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-event.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-eventqueue.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-lock.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-log.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-nlerflowtracer.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-nlmathutil.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-pooledevent.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-subpub.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-task.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-timer.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_settings-nltestlogregions.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_settings-test-settings.Po@am__quote@ # am--include-marker
 
 $(am__depfiles_remade):
@@ -961,6 +1007,20 @@ test_settings-test-settings.obj: test-settings.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='test-settings.c' object='test_settings-test-settings.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(test_settings_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o test_settings-test-settings.obj `if test -f 'test-settings.c'; then $(CYGPATH_W) 'test-settings.c'; else $(CYGPATH_W) '$(srcdir)/test-settings.c'; fi`
+
+test_settings-nltestlogregions.o: nltestlogregions.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(test_settings_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT test_settings-nltestlogregions.o -MD -MP -MF $(DEPDIR)/test_settings-nltestlogregions.Tpo -c -o test_settings-nltestlogregions.o `test -f 'nltestlogregions.c' || echo '$(srcdir)/'`nltestlogregions.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test_settings-nltestlogregions.Tpo $(DEPDIR)/test_settings-nltestlogregions.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='nltestlogregions.c' object='test_settings-nltestlogregions.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(test_settings_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o test_settings-nltestlogregions.o `test -f 'nltestlogregions.c' || echo '$(srcdir)/'`nltestlogregions.c
+
+test_settings-nltestlogregions.obj: nltestlogregions.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(test_settings_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT test_settings-nltestlogregions.obj -MD -MP -MF $(DEPDIR)/test_settings-nltestlogregions.Tpo -c -o test_settings-nltestlogregions.obj `if test -f 'nltestlogregions.c'; then $(CYGPATH_W) 'nltestlogregions.c'; else $(CYGPATH_W) '$(srcdir)/nltestlogregions.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test_settings-nltestlogregions.Tpo $(DEPDIR)/test_settings-nltestlogregions.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='nltestlogregions.c' object='test_settings-nltestlogregions.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(test_settings_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o test_settings-nltestlogregions.obj `if test -f 'nltestlogregions.c'; then $(CYGPATH_W) 'nltestlogregions.c'; else $(CYGPATH_W) '$(srcdir)/nltestlogregions.c'; fi`
 
 mostlyclean-libtool:
 	-rm -f *.lo
@@ -1182,6 +1242,13 @@ test-event.log: test-event$(EXEEXT)
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
 	"$$tst" $(AM_TESTS_FD_REDIRECT)
+test-eventqueue.log: test-eventqueue$(EXEEXT)
+	@p='test-eventqueue$(EXEEXT)'; \
+	b='test-eventqueue'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
 test-lock.log: test-lock$(EXEEXT)
 	@p='test-lock$(EXEEXT)'; \
 	b='test-lock'; \
@@ -1203,23 +1270,9 @@ test-pooledevent.log: test-pooledevent$(EXEEXT)
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
 	"$$tst" $(AM_TESTS_FD_REDIRECT)
-test-subpub.log: test-subpub$(EXEEXT)
-	@p='test-subpub$(EXEEXT)'; \
-	b='test-subpub'; \
-	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
-	--log-file $$b.log --trs-file $$b.trs \
-	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
-	"$$tst" $(AM_TESTS_FD_REDIRECT)
 test-task.log: test-task$(EXEEXT)
 	@p='test-task$(EXEEXT)'; \
 	b='test-task'; \
-	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
-	--log-file $$b.log --trs-file $$b.trs \
-	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
-	"$$tst" $(AM_TESTS_FD_REDIRECT)
-test-timer.log: test-timer$(EXEEXT)
-	@p='test-timer$(EXEEXT)'; \
-	b='test-timer'; \
 	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
@@ -1234,6 +1287,20 @@ test-nlerflowtracer.log: test-nlerflowtracer$(EXEEXT)
 test-settings.log: test-settings$(EXEEXT)
 	@p='test-settings$(EXEEXT)'; \
 	b='test-settings'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+test-subpub.log: test-subpub$(EXEEXT)
+	@p='test-subpub$(EXEEXT)'; \
+	b='test-subpub'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+test-timer.log: test-timer$(EXEEXT)
+	@p='test-timer$(EXEEXT)'; \
+	b='test-timer'; \
 	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
@@ -1339,17 +1406,19 @@ clean-am: clean-checkPROGRAMS clean-generic clean-libLIBRARIES \
 
 distclean: distclean-am
 		-rm -f ./$(DEPDIR)/nlertimer-test.Po
+	-rm -f ./$(DEPDIR)/nltestlogregions.Po
 	-rm -f ./$(DEPDIR)/test-atomic.Po
 	-rm -f ./$(DEPDIR)/test-earlyevent.Po
 	-rm -f ./$(DEPDIR)/test-event.Po
+	-rm -f ./$(DEPDIR)/test-eventqueue.Po
 	-rm -f ./$(DEPDIR)/test-lock.Po
-	-rm -f ./$(DEPDIR)/test-log.Po
 	-rm -f ./$(DEPDIR)/test-nlerflowtracer.Po
 	-rm -f ./$(DEPDIR)/test-nlmathutil.Po
 	-rm -f ./$(DEPDIR)/test-pooledevent.Po
 	-rm -f ./$(DEPDIR)/test-subpub.Po
 	-rm -f ./$(DEPDIR)/test-task.Po
 	-rm -f ./$(DEPDIR)/test-timer.Po
+	-rm -f ./$(DEPDIR)/test_settings-nltestlogregions.Po
 	-rm -f ./$(DEPDIR)/test_settings-test-settings.Po
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
@@ -1397,17 +1466,19 @@ installcheck-am:
 
 maintainer-clean: maintainer-clean-am
 		-rm -f ./$(DEPDIR)/nlertimer-test.Po
+	-rm -f ./$(DEPDIR)/nltestlogregions.Po
 	-rm -f ./$(DEPDIR)/test-atomic.Po
 	-rm -f ./$(DEPDIR)/test-earlyevent.Po
 	-rm -f ./$(DEPDIR)/test-event.Po
+	-rm -f ./$(DEPDIR)/test-eventqueue.Po
 	-rm -f ./$(DEPDIR)/test-lock.Po
-	-rm -f ./$(DEPDIR)/test-log.Po
 	-rm -f ./$(DEPDIR)/test-nlerflowtracer.Po
 	-rm -f ./$(DEPDIR)/test-nlmathutil.Po
 	-rm -f ./$(DEPDIR)/test-pooledevent.Po
 	-rm -f ./$(DEPDIR)/test-subpub.Po
 	-rm -f ./$(DEPDIR)/test-task.Po
 	-rm -f ./$(DEPDIR)/test-timer.Po
+	-rm -f ./$(DEPDIR)/test_settings-nltestlogregions.Po
 	-rm -f ./$(DEPDIR)/test_settings-test-settings.Po
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic

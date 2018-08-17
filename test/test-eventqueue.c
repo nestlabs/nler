@@ -38,7 +38,7 @@
 #include <nlerinit.h>
 #include <nlerlog.h>
 
-#include <nltest.h>
+#include <nlunit-test.h>
 
 #define NL_EVENT_T_TEST (NL_EVENT_T_WM_USER + 1)
 

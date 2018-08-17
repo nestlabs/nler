@@ -966,21 +966,54 @@ AM_CONDITIONAL([NLER_WITH_FREERTOS], [test "${nl_with_freertos}" != ""])
 #
 
 if test "${nl_cv_build_tests}" = "yes" || test "${nler_build_event_timer}" = "yes"; then
-    NL_WITH_OPTIONAL_EXTERNAL_PACKAGE([Nlunit-test],
+    NL_WITH_PACKAGE(
+        [Nlunit-test],
         [NLUNIT_TEST],
         [nlunit_test],
         [-lnlunit-test],
         [
+	    # At this point, the internal Nlunit-test package will be neither
+	    # configured nor built, so the normal checks we undertake for an
+	    # external package cannot be run here. Simply set the appropriate
+	    # variables and trust all will be well.
+
+            NLUNIT_TEST_CPPFLAGS="-I\${abs_top_srcdir}/third_party/nlunit-test/repo/src"
+            NLUNIT_TEST_LDFLAGS="-L${ac_pwd}/third_party/nlunit-test/repo/src"
+            NLUNIT_TEST_LIBS="-lnlunit-test"
+        ],
+        [
             # Check for required nlunit-test headers.
 
-            AC_CHECK_HEADERS([nltest.h],
+            AC_CHECK_HEADERS([nlunit-test.h],
             [],
             [
                 AC_MSG_ERROR(The nlunit-test header "$ac_header" is required but cannot be found.)
             ])
-        ]
-    )
+        ])
 fi
+
+# Depending on whether nlunit-test has been configured for an internal
+# location, its directory stem within this package needs to be set
+# accordingly. In addition, if the location is internal, then we need
+# to attempt to pull it down using the bootstrap makefile.
+
+if test "${nl_with_nlunit_test}" = "internal"; then
+    maybe_nlunit_test_dirstem="nlunit-test/repo"
+    nlunit_test_dirstem="third_party/${maybe_nlunit_test_dirstem}"
+
+    AC_MSG_NOTICE([attempting to create internal ${nlunit_test_dirstem}])
+
+    ${MAKE-make} --no-print-directory -C ${srcdir} -f Makefile-bootstrap ${nlunit_test_dirstem}
+
+    if test $? -ne 0; then
+        AC_MSG_ERROR([failed to create ${nlunit_test_dirstem}. Please check your network connection or the correctness of 'repos.conf'])
+    fi
+else
+    maybe_nlunit_test_dirstem=""
+fi
+
+AC_SUBST(NLUNIT_TEST_SUBDIRS, [${maybe_nlunit_test_dirstem}])
+AM_CONDITIONAL([NLIO_WITH_NLUNIT_TEST_INTERNAL], [test "${nl_with_nlunit_test}" = "internal"])
 
 #
 # Nlutilities
@@ -1193,6 +1226,12 @@ LIBS="${LIBS} ${NLUTILITIES_LIBS}"
 
 NL_RESTORE_WERROR
 
+# Configure any autotools-based subdirectories
+
+if test "${nl_with_nlunit_test}" = "internal"; then
+    AC_CONFIG_SUBDIRS([third_party/nlunit-test/repo])
+fi
+
 #
 # Identify the various makefiles and auto-generated files for the package
 #
@@ -1267,7 +1306,7 @@ AC_MSG_NOTICE([
   Nlcompiler compile flags                  : ${NLCOMPILER_CPPFLAGS:--}
   Nlcompiler link flags                     : ${NLCOMPILER_LDFLAGS:--}
   Nlcompiler link libraries                 : ${NLCOMPILER_LIBS:--}
-  Nlunit-test source                        : ${nl_with_nlunittest:--}
+  Nlunit-test source                        : ${nl_with_nlunit_test:--}
   Nlunit-test compile flags                 : ${NLUNIT_TEST_CPPFLAGS:--}
   Nlunit-test link flags                    : ${NLUNIT_TEST_LDFLAGS:--}
   Nlunit-test link libraries                : ${NLUNIT_TEST_LIBS:--}

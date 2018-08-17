@@ -359,6 +359,7 @@ NLER_BUILD_PLATFORM_PTHREADS = @NLER_BUILD_PLATFORM_PTHREADS@
 NLUNIT_TEST_CPPFLAGS = @NLUNIT_TEST_CPPFLAGS@
 NLUNIT_TEST_LDFLAGS = @NLUNIT_TEST_LDFLAGS@
 NLUNIT_TEST_LIBS = @NLUNIT_TEST_LIBS@
+NLUNIT_TEST_SUBDIRS = @NLUNIT_TEST_SUBDIRS@
 NLUTILITIES_CPPFLAGS = @NLUTILITIES_CPPFLAGS@
 NLUTILITIES_LDFLAGS = @NLUTILITIES_LDFLAGS@
 NLUTILITIES_LIBS = @NLUTILITIES_LIBS@
@@ -441,6 +442,7 @@ psdir = @psdir@
 sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 srcdir = @srcdir@
+subdirs = @subdirs@
 sysconfdir = @sysconfdir@
 target = @target@
 target_alias = @target_alias@
@@ -476,6 +478,7 @@ MAYBE_UTILITIES_SUBDIRS = $(NULL) $(am__append_1)
 
 # Unconditionally build these subdirectories.
 SUBDIRS = \
+    third_party                             \
     include                                 \
     shared                                  \
     arch                                    \
@@ -489,11 +492,13 @@ EXTRA_DIST = \
     CHANGES                                 \
     CONTRIBUTING.md                         \
     LICENSE                                 \
+    Makefile-bootstrap                      \
     README.md                               \
     .default-version                        \
     .travis.yml                             \
     bootstrap                               \
     bootstrap-configure                     \
+    repos.conf                              \
     $(srcdir)/third_party/nlbuild-autotools \
     $(srcdir)/third_party/nlcompiler        \
     $(NULL)
@@ -530,6 +535,14 @@ DISTCLEANFILES = \
 # .dist-version second, and the .default-version last.
 #
 VERSION_FILE := $(if $(wildcard $(builddir)/.local-version),$(builddir)/.local-version,$(if $(wildcard $(srcdir)/.dist-version),$(srcdir)/.dist-version,$(srcdir)/.default-version))
+
+#
+# When we run 'distcheck' and --with-nlunit_test defaults to 'internal',
+# the nlbuild-autotools infrastructure will attempt to create git paths
+# to manage the nlunit-test repo. Two directories need to be writable
+# to facilitate this.
+#
+DISTCHECK_CONFIGURE_FLAGS = `chmod u+w .. ../third_party`
 all: $(BUILT_SOURCES)
 	$(MAKE) $(AM_MAKEFLAGS) all-recursive
 
@@ -948,7 +961,7 @@ distclean: distclean-recursive
 	-rm -f $(am__CONFIG_DISTCLEAN_FILES)
 	-rm -f Makefile
 distclean-am: clean-am distclean-generic distclean-libtool \
-	distclean-tags
+	distclean-local distclean-tags
 
 dvi: dvi-recursive
 
@@ -1018,10 +1031,10 @@ uninstall-am: uninstall-dist_docDATA
 	clean-libtool cscope cscopelist-am ctags ctags-am dist \
 	dist-all dist-bzip2 dist-gzip dist-hook dist-lzip dist-shar \
 	dist-tarZ dist-xz dist-zip distcheck distclean \
-	distclean-generic distclean-libtool distclean-tags \
-	distcleancheck distdir distuninstallcheck dvi dvi-am html \
-	html-am info info-am install install-am install-data \
-	install-data-am install-dist_docDATA install-dvi \
+	distclean-generic distclean-libtool distclean-local \
+	distclean-tags distcleancheck distdir distuninstallcheck dvi \
+	dvi-am html html-am info info-am install install-am \
+	install-data install-data-am install-dist_docDATA install-dvi \
 	install-dvi-am install-exec install-exec-am install-html \
 	install-html-am install-info install-info-am install-man \
 	install-pdf install-pdf-am install-ps install-ps-am \
@@ -1058,12 +1071,12 @@ NLER_VERSION     ?= $(shell cat $(VERSION_FILE) 2> /dev/null)
 # This is called from $(call check-file,.local-version).
 #
 define check-file-.local-version
-if [ "$(origin NLER_VERSION)" != "file" ]; then \
-    echo "$(NLER_VERSION)" > "$(2)";            \
-else                                                             \
-    $(abs_top_nlbuild_autotools_dir)/scripts/mkversion           \
-        -b "$(NLER_VERSION)" "$(top_srcdir)"    \
-        > "$(2)";                                                \
+if [ "$(origin NLER_VERSION)" != "file" ]; then        \
+    echo "$(NLER_VERSION)" > "$(2)";                   \
+else                                                   \
+    $(abs_top_nlbuild_autotools_dir)/scripts/mkversion \
+        -b "$(NLER_VERSION)" "$(top_srcdir)"           \
+        > "$(2)";                                      \
 fi
 endef
 
@@ -1102,6 +1115,13 @@ $(distdir)/.dist-version $(builddir)/.local-version:
 dist distcheck: $(BUILT_SOURCES)
 
 dist-hook: $(distdir)/.dist-version
+
+#
+# Ensure any locally synchronized repositories defined by 'repos.conf'
+# are cleaned up.
+#
+distclean-local:
+	$(MAKE) -C $(srcdir) -f Makefile-bootstrap clean-repos
 
 #
 # Top-level convenience target for making a documentation-only
