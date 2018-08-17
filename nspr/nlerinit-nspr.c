@@ -34,9 +34,7 @@
 #include "nlerflowtracer.h"
 #endif
 
-/* this needs to move into an implementation-private header */
-
-PRIntn *nl_er_nspr_get_taskptridx(void);
+extern int nltask_nspr_init(void);
 
 #if NLER_FEATURE_DEFAULT_LOGGER
 static void nspr_default_logger(void *aClosure, nl_log_region_t aRegion, int aPriority, const char *format, va_list ap)
@@ -48,7 +46,6 @@ static void nspr_default_logger(void *aClosure, nl_log_region_t aRegion, int aPr
 int nl_er_init(void)
 {
     int     retval = NLER_SUCCESS;
-    PRIntn  *taskptridx;
 
     PR_Init(PR_USER_THREAD, PR_PRIORITY_NORMAL, 0);
 
@@ -62,30 +59,17 @@ int nl_er_init(void)
     nl_set_logging_function(nspr_default_logger, NULL);
 #endif /* NLER_FEATURE_DEFAULT_LOGGER */
 
-    taskptridx = nl_er_nspr_get_taskptridx();
+    retval = nltask_nspr_init();
+    if (retval != NLER_SUCCESS)
+    {
+        goto done;
+    }
 
 #if NLER_FEATURE_FLOW_TRACER
     nl_flowtracer_init();
 #endif
 
-    if (*taskptridx == -1)
-    {
-        PRUintn     newptridx;
-        PRStatus    status;
-
-        status = PR_NewThreadPrivateIndex(&newptridx, NULL);
-
-        if (status == PR_SUCCESS)
-        {
-            *taskptridx = (PRIntn)newptridx;
-        }
-        else
-        {
-            NL_LOG_CRIT(lrERINIT, "failed to get thread private index for task ptr\n");
-            retval = NLER_ERROR_NO_RESOURCE;
-        }
-    }
-
+ done:
     return retval;
 }
 

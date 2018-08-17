@@ -1,6 +1,6 @@
 /*
  *
- *    Copyright (c) 2016 Nest Labs, Inc.
+ *    Copyright (c) 2018 Google LLC
  *    All rights reserved.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,17 +18,30 @@
 
 /**
  *    @file
- *      This file defines the list of logging events used by
- *      NLER flow tracer.
+ *      This file defines FreeRTOS-specific object types.
+ *
  */
 
-#ifndef _FLOWTRACER_ENUM_H_INCLUDED__
-#define _FLOWTRACER_ENUM_H_INCLUDED__
+#ifndef NLER_NATIVE_H
+#define NLER_NATIVE_H
 
-// Please add new types to the end of enum.
-typedef enum {
-    RX_EVENT, // Used to signal a packet was received.
-    TX_EVENT  // Used to signal a packet was transmitted.
-} nltrace_event_t;
+#include "FreeRTOS.h"
+#include "FreeRTOSConfig.h"
 
-#endif // _FLOWTRACER_ENUM_H_INCLUDED__
+/* the buffer/control block for the task
+ */
+typedef StaticTask_t nltask_obj_t;
+
+/* the buffer/control block for the eventqueue
+ */
+typedef StaticQueue_t nleventqueue_t;
+
+/* the buffer/control block for the lock
+ */
+typedef StaticSemaphore_t nllock_t;
+typedef StaticSemaphore_t nlrecursive_lock_t;
+
+#define NLLOCK_INITIALIZER {}
+#define NLRECURSIVE_LOCK_INITIALIZER {}
+
+#endif /* NLER_NATIVE_H */

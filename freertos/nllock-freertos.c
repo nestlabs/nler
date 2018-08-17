@@ -28,81 +28,123 @@
 #include "FreeRTOS.h"
 #include "semphr.h"
 
-nl_lock_t nl_er_lock_create(void)
+int nllock_create(nllock_t *aLock)
 {
-    nl_lock_t   retval = NULL;
-
-    retval = (nl_lock_t)xSemaphoreCreateMutex();
-
-    return retval;
+    SemaphoreHandle_t semaphore_handle = xSemaphoreCreateMutexStatic(aLock);
+    return ((semaphore_handle == NULL) ? NLER_ERROR_BAD_INPUT : NLER_SUCCESS);
 }
 
-void nl_er_lock_destroy(nl_lock_t aLock)
+void nllock_destroy(nllock_t *aLock)
 {
 #ifdef xSemaphoreDelete
-    xSemaphoreDelete((xSemaphoreHandle)aLock);
+    xSemaphoreDelete((SemaphoreHandle_t)aLock);
 #endif
 }
 
-int nl_er_lock_enter(nl_lock_t aLock)
+int nllock_enter(nllock_t *aLock)
 {
-    int retval = NLER_SUCCESS;
+    int retval;
 
-    if (pdTRUE != xSemaphoreTake((xSemaphoreHandle)aLock, portMAX_DELAY))
+    if (pdTRUE != xSemaphoreTake((SemaphoreHandle_t)aLock, portMAX_DELAY))
     {
         retval = NLER_ERROR_NO_RESOURCE;
+    }
+    else
+    {
+        retval = NLER_SUCCESS;
     }
 
     return retval;
 }
 
-int nl_er_lock_exit(nl_lock_t aLock)
+int nllock_enter_with_timeout(nllock_t *aLock, nl_time_ms_t aTimeoutMsec)
 {
-    int retval = NLER_SUCCESS;
+    int retval;
 
-    if (pdTRUE != xSemaphoreGive((xSemaphoreHandle)aLock))
+    if (pdTRUE != xSemaphoreTake((SemaphoreHandle_t)aLock, nl_time_ms_to_delay_time_native(aTimeoutMsec)))
     {
         retval = NLER_ERROR_NO_RESOURCE;
+    }
+    else
+    {
+        retval = NLER_SUCCESS;
     }
 
     return retval;
 }
 
-nl_recursive_lock_t nl_er_recursive_lock_create(void)
+int nllock_exit(nllock_t *aLock)
 {
-    nl_recursive_lock_t   retval = NULL;
+    int retval;
 
-    retval = (nl_recursive_lock_t)xSemaphoreCreateRecursiveMutex();
+    if (pdTRUE != xSemaphoreGive((SemaphoreHandle_t)aLock))
+    {
+        retval = NLER_ERROR_NO_RESOURCE;
+    }
+    else
+    {
+        retval = NLER_SUCCESS;
+    }
 
     return retval;
 }
 
-void nl_er_recursive_lock_destroy(nl_recursive_lock_t aLock)
+int nlrecursive_lock_create(nlrecursive_lock_t *aLock)
+{
+    SemaphoreHandle_t semaphore_handle = xSemaphoreCreateRecursiveMutexStatic(aLock);
+    return ((semaphore_handle == NULL) ? NLER_ERROR_BAD_INPUT : NLER_SUCCESS);
+}
+
+void nlrecursive_lock_destroy(nlrecursive_lock_t *aLock)
 {
 #ifdef xSemaphoreDelete
-    xSemaphoreDelete((xSemaphoreHandle)aLock);
+    xSemaphoreDelete((SemaphoreHandle_t)aLock);
 #endif
 }
 
-int nl_er_recursive_lock_enter(nl_recursive_lock_t aLock)
+int nlrecursive_lock_enter(nlrecursive_lock_t *aLock)
 {
-    int retval = NLER_SUCCESS;
+    int retval;
 
-    if (pdTRUE != xSemaphoreTakeRecursive((xSemaphoreHandle)aLock, portMAX_DELAY))
+    if (pdTRUE != xSemaphoreTakeRecursive((SemaphoreHandle_t)aLock, portMAX_DELAY))
     {
         retval = NLER_ERROR_NO_RESOURCE;
+    }
+    else
+    {
+        retval = NLER_SUCCESS;
     }
 
     return retval;
 }
 
-int nl_er_recursive_lock_exit(nl_recursive_lock_t aLock)
+int nlrecursive_lock_enter_with_timeout(nlrecursive_lock_t *aLock, nl_time_ms_t aTimeoutMsec)
 {
-    int retval = NLER_SUCCESS;
+    int retval;
 
-    if (pdTRUE != xSemaphoreGiveRecursive((xSemaphoreHandle)aLock))
+    if (pdTRUE != xSemaphoreTakeRecursive((SemaphoreHandle_t)aLock, nl_time_ms_to_delay_time_native(aTimeoutMsec)))
     {
         retval = NLER_ERROR_NO_RESOURCE;
+    }
+    else
+    {
+        retval = NLER_SUCCESS;
+    }
+
+    return retval;
+}
+
+int nlrecursive_lock_exit(nlrecursive_lock_t *aLock)
+{
+    int retval;
+
+    if (pdTRUE != xSemaphoreGiveRecursive((SemaphoreHandle_t)aLock))
+    {
+        retval = NLER_ERROR_NO_RESOURCE;
+    }
+    else
+    {
+        retval = NLER_SUCCESS;
     }
 
     return retval;

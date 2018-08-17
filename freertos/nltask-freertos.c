@@ -38,51 +38,28 @@ extern char NLER_STACK_SECTION_START[];
 extern char NLER_STACK_SECTION_END[];
 #endif // HAVE_NLER_STACK_SECTION
 
-static void global_entry(void *aClosure)
-{
-    nl_task_t               *task = (nl_task_t *)aClosure;
-    nl_task_entry_point_t   entry;
-
-    entry = (nl_task_entry_point_t)task->mNativeTask;
-
-    task->mNativeTask = xTaskGetCurrentTaskHandle();
-
-    NL_LOG_DEBUG(lrERTASK, "setting application tag for task %p ('%s') to %p\n", task->mNativeTask, task->mName, task);
-
-    vTaskSetApplicationTaskTag(task->mNativeTask, (pdTASK_HOOK_CODE)task);
-
-    (*entry)(task->mParams);
-}
-
-int nl_task_create(nl_task_entry_point_t aEntry, const char *aName, void *aStack, size_t aStackSize, nl_task_priority_t aPriority, void *aParams, nl_task_t *aOutTask)
+int nltask_create(nltask_entry_point_t aEntry, const char *aName, void *aStack, size_t aStackSize, nltask_priority_t aPriority, void *aParams, nltask_t *aTask)
 {
     int retval = NLER_ERROR_BAD_INPUT;
 
-
     NLER_ASSERT(((uintptr_t)aStack % NLER_REQUIRED_STACK_ALIGNMENT) == 0);
 
-    if ((aOutTask != NULL) && (aName != NULL) && (aPriority < configMAX_PRIORITIES))
+    if ((aTask != NULL) && (aName != NULL) && (aPriority < configMAX_PRIORITIES))
     {
-        portBASE_TYPE   err;
-        xTaskHandle     task;
+        TaskHandle_t task_handle = (TaskHandle_t)&aTask->mNativeTaskObj;
 
-        aOutTask->mName = aName;
-        aOutTask->mStack = aStack;
-        aOutTask->mStackSize = aStackSize;
-        aOutTask->mPriority = aPriority;
-        aOutTask->mParams = aParams;
-        aOutTask->mNativeTask = (void *)aEntry;
+        aTask->mStackTop = aStack + aStackSize;
 
-        err = xTaskGenericCreate(global_entry,
-                                 (const char * const)aName,
-                                 aStackSize / sizeof(portSTACK_TYPE),
-                                 aOutTask,
-                                 aPriority,
-                                 &task,
-                                 (portSTACK_TYPE *)aStack,
-                                 NULL);
+        // Now create the task
+        task_handle = xTaskCreateStatic(aEntry,
+                                        (const char *)aName,
+                                        aStackSize / sizeof(portSTACK_TYPE),
+                                        aParams,
+                                        aPriority,
+                                        (StackType_t *)aStack,
+                                        &aTask->mNativeTaskObj);
 
-        if (err == pdPASS)
+        if (task_handle)
         {
             retval = NLER_SUCCESS;
         }
@@ -100,51 +77,70 @@ int nl_task_create(nl_task_entry_point_t aEntry, const char *aName, void *aStack
     return retval;
 }
 
-void nl_task_suspend(nl_task_t *aTask)
+void nltask_suspend(nltask_t *aTask)
 {
     if (aTask != NULL)
     {
-        vTaskSuspend(aTask->mNativeTask);
+        vTaskSuspend((TaskHandle_t)&aTask->mNativeTaskObj);
     }
 }
 
-void nl_task_resume(nl_task_t *aTask)
+void nltask_resume(nltask_t *aTask)
 {
     if (aTask != NULL)
     {
-        vTaskResume(aTask->mNativeTask);
+        vTaskResume((TaskHandle_t)&aTask->mNativeTaskObj);
     }
 }
 
-void nl_task_set_priority(nl_task_t *aTask, int aPriority)
+void nltask_set_priority(nltask_t *aTask, nltask_priority_t aPriority)
 {
     if (aTask != NULL)
     {
-        aTask->mPriority = aPriority;
-        vTaskPrioritySet(aTask->mNativeTask, aPriority);
+        vTaskPrioritySet((TaskHandle_t)&aTask->mNativeTaskObj, aPriority);
     }
 }
 
-nl_task_t *nl_task_get_current(void)
+nltask_priority_t nltask_get_priority(const nltask_t *aTask)
 {
-    nl_task_t  *retval = NULL;
-    xTaskHandle task = xTaskGetCurrentTaskHandle();
-
-    if (task != NULL)
+    int priority = -1;
+    if (aTask != NULL)
     {
-        retval = (nl_task_t *)xTaskGetApplicationTaskTag(task);
+        priority = uxTaskPriorityGet((TaskHandle_t)&aTask->mNativeTaskObj);
     }
-
-    return retval;
+    return priority;
 }
 
-void nl_task_sleep_ms(nl_time_ms_t aDurationMS)
+nltask_t *nltask_get_current(void)
+{
+    return (nltask_t*)xTaskGetCurrentTaskHandle();
+}
+
+void nltask_sleep_ms(nl_time_ms_t aDurationMS)
 {
     vTaskDelay(nl_time_ms_to_delay_time_native(aDurationMS));
 }
 
-void nl_task_yield(void)
+void nltask_yield(void)
 {
     taskYIELD();
 }
 
+const char *nltask_get_name(const nltask_t *aTask)
+{
+    return pcTaskGetName((TaskHandle_t)&aTask->mNativeTaskObj);
+}
+
+static StaticTask_t sIdleTaskObj;
+// don't make this stack static so it's symbol is easier to locate in map file.
+// configMINIAM_STACK_SIZE is in units of StackType_t, not bytes, but the
+// DEFINE_STACK macro takes bytes.
+DEFINE_STACK(idleTaskStack, configMINIMAL_STACK_SIZE*sizeof(StackType_t));
+
+void vApplicationGetIdleTaskMemory( StaticTask_t **ppxIdleTaskTCBBuffer, StackType_t **ppxIdleTaskStackBuffer, uint32_t *pulIdleTaskStackSize );
+void vApplicationGetIdleTaskMemory( StaticTask_t **ppxIdleTaskTCBBuffer, StackType_t **ppxIdleTaskStackBuffer, uint32_t *pulIdleTaskStackSize )
+{
+    *ppxIdleTaskTCBBuffer = &sIdleTaskObj;
+    *ppxIdleTaskStackBuffer = idleTaskStack;
+    *pulIdleTaskStackSize = configMINIMAL_STACK_SIZE;
+}

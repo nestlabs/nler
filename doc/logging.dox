@@ -85,13 +85,14 @@ optional pointer to the application log level byte table. To allow for
 dependencies to define their own log regions and aggregate them into the app as
 a whole, individual log regions can be defined as header file snippets supplied
 by the dependencies. See nltestlogregions.h for an example of how an
-application defines a set of log regions and test-log.c for an example
-application log level table. If an application (and it's dependencies) does not
-need to use any application log regions @c gAppLogLevels can be set to NULL. If
-an application does define it's own log regions then the header file that
-defines the log regions must be pointed to by the pre-processor symbol @c
-NLER_APPLICATION_LOG_REGION_FILE. Usually the symbol will be defined in a
-Makefile.
+application defines a set of log regions and test/nltestlogregions.c
+for an example application log level table. If an application (and
+it's dependencies) does not need to use any application log regions @c
+gAppLogLevels can be set to NULL. If an application does define it's
+own log regions then the header file that defines the log regions must
+be pointed to by the pre-processor symbol @c
+NLER_APPLICATION_LOG_REGION_FILE. Usually the symbol will be defined
+in a Makefile.
 
 The log region array is accessible via:
 

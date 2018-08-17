@@ -1067,6 +1067,79 @@ AC_TYPE_UINT64_T
 
 if test "${ac_no_link}" != "yes"; then
     AC_CHECK_FUNCS([memcpy])
+
+    if test "${NLER_BUILD_PLATFORM}" == "pthreads"; then
+
+        # Check if pthread_setschedprio exists. If so, prefer it. If
+        # not, fall back to pthread_setschedparam.
+
+	AC_SEARCH_LIBS([pthread_setschedprio], [pthread])
+	AC_CHECK_FUNCS([pthread_setschedprio])
+
+	if test "${ac_cv_func_pthread_setschedprio}" == "no"; then
+            AC_SEARCH_LIBS([pthread_setschedparam], [pthread])
+            AC_CHECK_FUNCS([pthread_setschedparam])
+
+            if test "${ac_cv_func_pthread_setschedparam}" == "no"; then
+	        AC_MSG_ERROR([unable to find either pthread_setschedprio or pthread_setschedparam to support nltask_set_priority])
+            fi
+	fi
+
+
+	# Check if pthread_yield (most systems) or pthread_yield_np
+	# (Darwin) exists.
+
+	AC_SEARCH_LIBS([pthread_yield], [pthread])
+	AC_CHECK_FUNCS([pthread_yield])
+
+	if test "${ac_cv_func_pthread_yield}" == "no"; then
+            AC_SEARCH_LIBS([pthread_yield_np], [pthread])
+            AC_CHECK_FUNCS([pthread_yield_np])
+
+            if test "${ac_cv_func_pthread_yield_np}" == "no"; then
+	        AC_MSG_ERROR([unable to find either pthread_yield or pthread_yield_np to support nltask_yield])
+            fi
+	fi
+
+	# Check if the non-portable pthread_setname_np function exists.
+
+	AC_SEARCH_LIBS([pthread_setname_np], [pthread])
+	AC_CHECK_FUNCS([pthread_setname_np])
+
+	# If the non-portable pthread_setname_np exists, determine
+	# whether it takes one or two arguments.
+
+	AS_IF([test "${ac_cv_func_pthread_setname_np}" = yes], [
+	    AC_MSG_CHECKING([number of arguments to pthread_setname_np()])
+	    AC_TRY_COMPILE([#include <pthread.h>
+	        ],[pthread_t thread = 0;
+	        const char *name = "";
+	        pthread_setname_np(thread, name);],[
+	            AC_MSG_RESULT([2])
+	            AC_DEFINE(PTHREAD_SETNAME_NP_ARGS, 2, [Number of arguments to pthread_setname_np()])],[
+	                AC_TRY_COMPILE([#include <pthread.h>
+	                    ],[const char *name = "";
+	                    pthread_setname_np(name);],[
+	                        AC_MSG_RESULT([1])
+	                        AC_DEFINE(PTHREAD_SETNAME_NP_ARGS, 1, [Number of arguments to pthread_setname_np()])],[
+	                        AC_MSG_RESULT([unknown])
+	                        AC_MSG_ERROR([unable to determine number of arguments to pthread_setname_np()])])])
+	])
+
+        # Check for clock_gettime and gettimeofday. In some traget
+        # environments, clock_gettime exists in librt.
+
+        AC_SEARCH_LIBS([clock_gettime], [rt])
+        AC_CHECK_FUNCS([clock_gettime gettimeofday])
+        AC_CHECK_HEADERS([time.h sys/time.h])
+        AC_CHECK_TYPES([clockid_t], [], [], [[#include <time.h>]])
+
+        # Note that different platforms have different APIs for monotonic
+        # timer with sleep time compensation. CLOCK_BOOTTIME is available
+        # in later versions of Linux.
+
+        AC_CHECK_DECLS([CLOCK_MONOTONIC, CLOCK_BOOTTIME], [], [], [[#include <time.h>]])
+    fi
 fi
 
 # Accumulate any build platform-specific CPPFLAGS, LDFLAGS, and LIBS
@@ -1115,7 +1188,7 @@ LDFLAGS="${LDFLAGS} ${NLUTILITIES_LDFLAGS}"
 LIBS="${LIBS} ${NLUTILITIES_LIBS}"
 
 # At this point, we can restore the compiler flags to whatever the
-# user passed in, now that we're clear of an -Werror issues by
+# user passed in, now that we're clear of any -Werror issues by
 # transforming -Wno-error back to -Werror.
 
 NL_RESTORE_WERROR

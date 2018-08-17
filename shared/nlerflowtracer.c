@@ -35,7 +35,7 @@
 
 static struct nl_tracer_t sTracer;
 
-inline static void nl_flowtracer_add_trace_internal(nl_time_native_t timestamp, nl_trace_event_t event, uint32_t data)
+inline static void nl_flowtracer_add_trace_internal(nl_time_native_t timestamp, nltrace_event_t event, uint32_t data)
 {
     const struct nl_trace_entry_t entry = {timestamp, event, data};
 
@@ -59,7 +59,7 @@ void nl_flowtracer_init(void)
     sTracer.isEmpty = 1;
 }
 
-void nl_flowtracer_add_trace(nl_trace_event_t event, uint32_t data)
+void nl_flowtracer_add_trace(nltrace_event_t event, uint32_t data)
 {
     nl_time_native_t timestamp = nl_get_time_native();
     taskENTER_CRITICAL();
@@ -67,7 +67,7 @@ void nl_flowtracer_add_trace(nl_trace_event_t event, uint32_t data)
     taskEXIT_CRITICAL();
 }
 
-void nl_flowtracer_add_trace_from_isr(nl_trace_event_t event, uint32_t data)
+void nl_flowtracer_add_trace_from_isr(nltrace_event_t event, uint32_t data)
 {
     nl_flowtracer_add_trace_internal(nl_get_time_native_from_isr(), event, data);
 }

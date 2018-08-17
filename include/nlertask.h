@@ -32,13 +32,14 @@
 #include "nlertaskstack.h"
 #include "nlertaskpriority.h"
 #include "nlertime.h"
+#include "nlernative.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 #if NLER_FEATURE_TASK_LOCAL_STORAGE
-typedef NLER_TASK_STORAGE_TYPE nl_task_storage_t;
+typedef NLER_TASK_STORAGE_TYPE nltask_storage_t;
 #endif
 
 #if NLER_FEATURE_STACK_ALIGNMENT
@@ -83,23 +84,19 @@ typedef NLER_TASK_STORAGE_TYPE nl_task_storage_t;
  *
  * @param aParams Data passed to task upon startup.
  */
-typedef void (*nl_task_entry_point_t)(void *aParams);
+typedef void (*nltask_entry_point_t)(void *aParams);
 
 /** Task structure. It need not be initialized and will be filled in when
- * created using nl_task_create. Callers provide the storage.
+ * created using nltask_create. Callers provide the storage.
  */
-typedef struct nl_task_s
+typedef struct nltask_s
 {
-    const char            *mName;         /**< Name */
-    void                  *mStack;        /**< Stack */
-    size_t                mStackSize;     /**< Stack size */
-    nl_task_priority_t    mPriority;      /**< Priority */
-    void                  *mParams;       /**< Parameters */
-    nl_task_entry_point_t mNativeTask;    /**< Task entry function */
+    nltask_obj_t          mNativeTaskObj; /**< Task buffer/control block */
+    void                 *mStackTop;      /**< StackTop, useful for backtracing */
 #if NLER_FEATURE_TASK_LOCAL_STORAGE
     nl_task_storage_t     mStorage;       /**< Task storage */
 #endif
-} nl_task_t;
+} nltask_t;
 
 /** Create a new task
  *
@@ -122,17 +119,17 @@ typedef struct nl_task_s
  *
  * @param[in] aParams Argument passed to aEntry upon task startup
  *
- * @param[in] aOutTask points to an nl_task_t structure managed by the caller.
+ * @param[in] aTask points to an nltask_t structure managed by the caller.
  *
  * @return NLER_SUCCESS if the task was able to be created
  */
-int nl_task_create(nl_task_entry_point_t aEntry,
-                   const char *aName,
-                   void *aStack,
-                   size_t aStackSize,
-                   nl_task_priority_t aPriority,
-                   void *aParams,
-                   nl_task_t *aOutTask);
+int nltask_create(nltask_entry_point_t aEntry,
+                  const char *aName,
+                  void *aStack,
+                  size_t aStackSize,
+                  nltask_priority_t aPriority,
+                  void *aParams,
+                  nltask_t *aTask);
 
 /** Suspend execution of a task. This request is a best-effort by the runtime
  * implementation. Has no effect if the task is already suspended.
@@ -140,7 +137,7 @@ int nl_task_create(nl_task_entry_point_t aEntry,
  * @param[in, out] aTask task to prevent from being considered a candidate to
  * resume execution at the next task reschedule.
  */
-void nl_task_suspend(nl_task_t *aTask);
+void nltask_suspend(nltask_t *aTask);
 
 /** Resume execution of a suspended task. This is a best-effort by the runtime
  * implementation. Has no effect on tasks that are not suspended.
@@ -148,7 +145,7 @@ void nl_task_suspend(nl_task_t *aTask);
  * @param[in] aTask suspended task to resume executing
  * at the scheduler's convenience.
  */
-void nl_task_resume(nl_task_t *aTask);
+void nltask_resume(nltask_t *aTask);
 
 /** Alter the scheduling priority of a task.
  *
@@ -157,24 +154,36 @@ void nl_task_resume(nl_task_t *aTask);
  * @param[in] aPriority new priority. the priority will be altered at the
  * convenience of the scheduler.
  */
-void nl_task_set_priority(nl_task_t *aTask, int aPriority);
+void nltask_set_priority(nltask_t *aTask, nltask_priority_t aPriority);
+
+/** Get the scheduling priority of a task.
+ *
+ * @param[in] aTask task to get priority of
+ *
+ * @return Priority of aTask
+ */
+nltask_priority_t nltask_get_priority(const nltask_t *aTask);
 
 /** Get the currently executing task.
  *
  * @return Pointer to the currently running task
  */
-nl_task_t *nl_task_get_current(void);
+nltask_t *nltask_get_current(void);
 
 /** Pause execution of the current task for at least aDurationMS milliseconds.
  *
  * @param[in] aDurationMS time in milliseconds to sleep
  */
-void nl_task_sleep_ms(nl_time_ms_t aDurationMS);
+void nltask_sleep_ms(nl_time_ms_t aDurationMS);
 
 /** Yield current task.  This asks the scheduler to run and possibly schedule
  * another task to run.
  */
-void nl_task_yield(void);
+void nltask_yield(void);
+
+/** Get name of a task.
+ */
+const char *nltask_get_name(const nltask_t *aTask);
 
 #ifdef __cplusplus
 }

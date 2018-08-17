@@ -35,7 +35,7 @@ typedef struct
 {
     nl_settings_entry_t         *mSettings;
     uint32_t                    mFlags;
-    nl_lock_t                   mLock;
+    nllock_t                    mLock;
     nl_settings_change_event_t  *mSubscribers;
     unsigned int                mChangeCount;
     void                        *aValueStore;
@@ -51,7 +51,7 @@ static nl_settings_t sSettings =
 {
     sSettingsEntries,
     0,
-    NULL,
+    NLLOCK_INITIALIZER,
     NULL,
     0,
     NULL,
@@ -112,9 +112,9 @@ int nl_settings_init(nl_settings_value_t *aDefaults, int aNumDefaults, nl_settin
 
         if (retval == NLER_SUCCESS)
         {
-            sSettings.mLock = nl_er_lock_create();
+            retval = nllock_create(&sSettings.mLock);
 
-            if (sSettings.mLock != NULL)
+            if (retval == NLER_SUCCESS)
             {
                 sSettings.mSettings = sSettingsEntries;
                 sSettings.mFlags = NLER_SETTINGS_FLAG_VALID;
@@ -147,7 +147,7 @@ static int nl_settings_notify_subscriber(nl_settings_value_t aValue,
 
     aSubscriber->mChangeCount = aChangeCount;
 
-    return nl_eventqueue_post_event(aSubscriber->mReturnQueue, (nl_event_t *)aSubscriber);
+    return nleventqueue_post_event(aSubscriber->mReturnQueue, (nl_event_t *)aSubscriber);
 }
 
 static int nl_settings_notify_subscriber_chain(nl_settings_value_t aValue,
@@ -206,7 +206,7 @@ int nl_settings_get_value_as_value(nl_settings_key_t aKey, nl_settings_value_t a
     int                 retval = NLER_ERROR_BAD_INPUT;
     nl_settings_entry_t *entry;
 
-    nl_er_lock_enter(sSettings.mLock);
+    nllock_enter(&sSettings.mLock);
 
     entry = nl_settings_get_entry(aKey);
 
@@ -216,7 +216,7 @@ int nl_settings_get_value_as_value(nl_settings_key_t aKey, nl_settings_value_t a
         retval = NLER_SUCCESS;
     }
 
-    nl_er_lock_exit(sSettings.mLock);
+    nllock_exit(&sSettings.mLock);
 
     return retval;
 }
@@ -226,7 +226,7 @@ int nl_settings_get_value_as_int(nl_settings_key_t aKey, int32_t *aOutValue)
     int                 retval = NLER_ERROR_BAD_INPUT;
     nl_settings_entry_t *entry;
 
-    nl_er_lock_enter(sSettings.mLock);
+    nllock_enter(&sSettings.mLock);
 
     entry = nl_settings_get_entry(aKey);
 
@@ -248,7 +248,7 @@ int nl_settings_get_value_as_int(nl_settings_key_t aKey, int32_t *aOutValue)
         }
     }
 
-    nl_er_lock_exit(sSettings.mLock);
+    nllock_exit(&sSettings.mLock);
 
     return retval;
 }
@@ -296,7 +296,7 @@ int nl_settings_set_value_to_default(nl_settings_key_t aKey)
     nl_settings_entry_t *entry;
     int                 changed = 0;
 
-    nl_er_lock_enter(sSettings.mLock);
+    nllock_enter(&sSettings.mLock);
 
     entry = nl_settings_get_entry(aKey);
 
@@ -312,7 +312,7 @@ int nl_settings_set_value_to_default(nl_settings_key_t aKey)
         nl_settings_notify_subscribers(NULL);
     }
 
-    nl_er_lock_exit(sSettings.mLock);
+    nllock_exit(&sSettings.mLock);
 
     return retval;
 }
@@ -322,7 +322,7 @@ int nl_settings_set_value_from_value(nl_settings_key_t aKey, const nl_settings_v
     int                 retval = NLER_ERROR_BAD_INPUT;
     nl_settings_entry_t *entry;
 
-    nl_er_lock_enter(sSettings.mLock);
+    nllock_enter(&sSettings.mLock);
 
     entry = nl_settings_get_entry(aKey);
 
@@ -339,7 +339,7 @@ int nl_settings_set_value_from_value(nl_settings_key_t aKey, const nl_settings_v
         retval = NLER_SUCCESS;
     }
 
-    nl_er_lock_exit(sSettings.mLock);
+    nllock_exit(&sSettings.mLock);
 
     return retval;
 }
@@ -406,7 +406,7 @@ int nl_settings_set_value_from_int(nl_settings_key_t aKey, int32_t aValue)
     int                 retval = NLER_ERROR_BAD_INPUT;
     nl_settings_entry_t *entry;
 
-    nl_er_lock_enter(sSettings.mLock);
+    nllock_enter(&sSettings.mLock);
 
     entry = nl_settings_get_entry(aKey);
 
@@ -430,7 +430,7 @@ int nl_settings_set_value_from_int(nl_settings_key_t aKey, int32_t aValue)
         retval = NLER_SUCCESS;
     }
 
-    nl_er_lock_exit(sSettings.mLock);
+    nllock_exit(&sSettings.mLock);
 
     return retval;
 }
@@ -441,7 +441,7 @@ int nl_settings_reset_to_defaults(void)
     int idx;
     int changed = 0;
 
-    nl_er_lock_enter(sSettings.mLock);
+    nllock_enter(&sSettings.mLock);
 
     for (idx = 0; idx < nl_settings_keyMax; idx++)
     {
@@ -469,7 +469,7 @@ int nl_settings_reset_to_defaults(void)
     if (changed)
         nl_settings_notify_subscribers(NULL);
 
-    nl_er_lock_exit(sSettings.mLock);
+    nllock_exit(&sSettings.mLock);
 
     return retval;
 }
@@ -478,7 +478,7 @@ int nl_settings_write(nl_settings_writer_t aWriter, void *aClosure)
 {
     int retval = NLER_SUCCESS;
 
-    nl_er_lock_enter(sSettings.mLock);
+    nllock_enter(&sSettings.mLock);
 
     if (sSettings.mFlags & NLER_SETTINGS_FLAG_DIRTY)
     {
@@ -490,7 +490,7 @@ int nl_settings_write(nl_settings_writer_t aWriter, void *aClosure)
         }
     }
 
-    nl_er_lock_exit(sSettings.mLock);
+    nllock_exit(&sSettings.mLock);
 
     return retval;
 }
@@ -509,7 +509,7 @@ int nl_settings_subscribe_to_changes(nl_settings_change_event_t *aEvent)
 {
     int retval = NLER_ERROR_BAD_INPUT;
 
-    nl_er_lock_enter(sSettings.mLock);
+    nllock_enter(&sSettings.mLock);
 
     /* need to check for subscriber already in list */
 
@@ -562,8 +562,8 @@ int nl_settings_subscribe_to_changes(nl_settings_change_event_t *aEvent)
             retval = NLER_SUCCESS;
         }
     }
- 
-    nl_er_lock_exit(sSettings.mLock);
+
+    nllock_exit(&sSettings.mLock);
 
     return retval;
 }
@@ -586,7 +586,7 @@ int nl_settings_unsubscribe_from_changes(nl_settings_change_event_t *aEvent)
 {
     int retval = NLER_SUCCESS;
 
-    nl_er_lock_enter(sSettings.mLock);
+    nllock_enter(&sSettings.mLock);
 
     if (aEvent->mKey != nl_settings_keyInvalid)
     {
@@ -608,7 +608,7 @@ int nl_settings_unsubscribe_from_changes(nl_settings_change_event_t *aEvent)
         nl_settings_unsubscribe(&sSettings.mSubscribers, aEvent);
     }
 
-    nl_er_lock_exit(sSettings.mLock);
+    nllock_exit(&sSettings.mLock);
 
     return retval;
 }
@@ -628,7 +628,7 @@ int nl_settings_enumerate(nl_settings_enumerator_t aEnumerator, void *aClosure)
     int retval = NLER_SUCCESS;
     int idx;
 
-    nl_er_lock_enter(sSettings.mLock);
+    nllock_enter(&sSettings.mLock);
 
     for (idx = 0; idx < nl_settings_keyMax; idx++)
     {
@@ -649,7 +649,7 @@ int nl_settings_enumerate(nl_settings_enumerator_t aEnumerator, void *aClosure)
 
     (aEnumerator)(NULL, aClosure);
 
-    nl_er_lock_exit(sSettings.mLock);
+    nllock_exit(&sSettings.mLock);
 
     return retval;
 }

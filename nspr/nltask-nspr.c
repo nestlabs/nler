@@ -28,9 +28,15 @@
 #include "nlererror.h"
 #include "nlerlog.h"
 
-static PRIntn taskptridx = -1;
+/**
+ *  Global, somewhat "faked" task structure for the main, parent
+ *  thread to ensure that nltask_get_current(), etc. work correctly.
+ */
+static nltask_t sMainTask;
 
-static PRThreadPriority map_thread_pri(nl_task_priority_t aPriority)
+static PRIntn   sTaskPtrIdx = -1;
+
+static PRThreadPriority nltask_nspr_map_priority_to_native(nltask_priority_t aPriority)
 {
     PRThreadPriority    retval;
 
@@ -46,47 +52,53 @@ static PRThreadPriority map_thread_pri(nl_task_priority_t aPriority)
     return retval;
 }
 
-static void global_entry(void *aClosure)
+static void nltask_nspr_entry(void *aClosure)
 {
-    nl_task_t               *task = (nl_task_t *)aClosure;
-    nl_task_entry_point_t   entry;
+    nltask_t              *lTask = (nltask_t *)aClosure;
+    nltask_entry_point_t   lEntry = (nltask_entry_point_t)lTask->mNativeTaskObj.mEntry;
+    PRThread              *lThread = PR_GetCurrentThread();
 
-    entry = (nl_task_entry_point_t)task->mNativeTask;
+    lTask->mNativeTaskObj.mThread = lThread;
 
-    task->mNativeTask = (nl_task_entry_point_t)PR_GetCurrentThread();
+    PR_SetThreadPrivate(sTaskPtrIdx, lTask);
 
-    PR_SetThreadPrivate(taskptridx, task);
+    PR_SetCurrentThreadName(lTask->mNativeTaskObj.mName);
 
-    PR_SetCurrentThreadName(task->mName);
-
-    (*entry)(task->mParams);
+    (*lEntry)(lTask->mNativeTaskObj.mParams);
 }
 
-int nl_task_create(nl_task_entry_point_t aEntry, const char *aName, void *aStack, size_t aStackSize, nl_task_priority_t aPriority, void *aParams, nl_task_t *aOutTask)
+int nltask_create(nltask_entry_point_t aEntry, const char *aName, void *aStack, size_t aStackSize, nltask_priority_t aPriority, void *aParams, nltask_t *aOutTask)
 {
-    PRThread    *thread;
+    PRThread    *lThread;
     int         retval = NLER_SUCCESS;
 
     if ((aOutTask != NULL) && (aName != NULL))
     {
-        if (taskptridx != -1)
+        if (sTaskPtrIdx != -1)
         {
             aStackSize = (aStackSize + 0x1fff) & ~0x1fff;
 
-            aOutTask->mName = aName;
-            aOutTask->mStack = aStack;
-            aOutTask->mStackSize = aStackSize;
-            aOutTask->mPriority = aPriority;
-            aOutTask->mParams = aParams;
-            aOutTask->mNativeTask = aEntry;
+            aOutTask->mStackTop              = aStack + aStackSize;
 
-            thread = PR_CreateThread(PR_USER_THREAD, global_entry, aOutTask,
-                                     map_thread_pri(aPriority), PR_GLOBAL_BOUND_THREAD,
-                                     PR_JOINABLE_THREAD, aStackSize);
+            aOutTask->mNativeTaskObj.mName   = aName;
+            aOutTask->mNativeTaskObj.mEntry  = aEntry;
+            aOutTask->mNativeTaskObj.mParams = aParams;
 
-            if (thread == NULL)
+            lThread = PR_CreateThread(PR_USER_THREAD,
+                                      nltask_nspr_entry,
+                                      aOutTask,
+                                      nltask_nspr_map_priority_to_native(aPriority),
+                                      PR_GLOBAL_BOUND_THREAD,
+                                      PR_UNJOINABLE_THREAD,
+                                      aStackSize);
+
+            if (lThread == NULL)
             {
                 retval = NLER_ERROR_NO_RESOURCE;
+            }
+            else
+            {
+
             }
         }
         else
@@ -103,45 +115,117 @@ int nl_task_create(nl_task_entry_point_t aEntry, const char *aName, void *aStack
     return retval;
 }
 
-void nl_task_suspend(nl_task_t *aTask)
+void nltask_suspend(nltask_t *aTask)
 {
 }
 
-void nl_task_resume(nl_task_t *aTask)
+void nltask_resume(nltask_t *aTask)
 {
 }
 
-void nl_task_set_priority(nl_task_t *aTask, int aPriority)
+void nltask_set_priority(nltask_t *aTask, int aPriority)
 {
     if (aTask != NULL)
     {
-        aTask->mPriority = aPriority;
-        PR_SetThreadPriority((PRThread *)aTask->mNativeTask, map_thread_pri(aPriority));
+        PR_SetThreadPriority((PRThread *)aTask->mNativeTaskObj.mThread, nltask_nspr_map_priority_to_native(aPriority));
     }
 }
 
-nl_task_t *nl_task_get_current(void)
+nltask_t *nltask_get_current(void)
 {
-    nl_task_t   *retval;
+    nltask_t   *retval;
 
-    retval = (nl_task_t *)PR_GetThreadPrivate(taskptridx);
+    retval = (nltask_t *)PR_GetThreadPrivate(sTaskPtrIdx);
 
     return retval;
 }
 
-void nl_task_sleep_ms(nl_time_ms_t aDurationMS)
+void nltask_sleep_ms(nl_time_ms_t aDurationMS)
 {
     PR_Sleep(PR_MillisecondsToInterval(aDurationMS));
 }
 
-void nl_task_yield(void)
+void nltask_yield(void)
 {
     PR_Sleep(PR_INTERVAL_NO_WAIT);
 }
 
-PRIntn *nl_er_nspr_get_taskptridx(void)
+const char *nltask_get_name(const nltask_t *aTask)
 {
-    return &taskptridx;
+    return ((aTask != NULL) ? aTask->mNativeTaskObj.mName : NULL);
+}
+
+/**
+ *  Estabish a "faked" but sane task structure for the main thread
+ *  such that functions such as nltask_get_current() work correctly
+ *  when called from it.
+ *
+ *  @param[out]  aOutTask  A pointer to the task structure to populate
+ *                         for use with the main thread.
+ *
+ *  @retval  #NLER_SUCCESS          on success.
+ *  @retval  #NLER_ERROR_FAILURE    on all other errors.
+ */
+static int nltask_nspr_main_init(nltask_t *aOutTask)
+{
+    PRThread          *lThread = PR_GetCurrentThread();
+    int                retval = NLER_SUCCESS;
+
+    aOutTask->mStackTop              = 0;
+
+    aOutTask->mNativeTaskObj.mEntry  = NULL;
+    aOutTask->mNativeTaskObj.mParams = NULL;
+    aOutTask->mNativeTaskObj.mName   = NULL;
+    aOutTask->mNativeTaskObj.mThread = lThread;
+
+    PR_SetThreadPrivate(sTaskPtrIdx, aOutTask);
+
+    return (retval);
+}
+
+/**
+ *  Initialize Netscape Portable Runtime (NSPR) task support.
+ *
+ *  @retval  #NLER_SUCCESS          on success.
+ *  @retval  #NLER_ERROR_FAILURE    on all other errors.
+ *
+ */
+int nltask_nspr_init(void)
+{
+    int retval = NLER_SUCCESS;
+
+    if (sTaskPtrIdx == -1)
+    {
+        PRUintn     newptridx;
+        PRStatus    status;
+
+        status = PR_NewThreadPrivateIndex(&newptridx, NULL);
+
+        if (status == PR_SUCCESS)
+        {
+            sTaskPtrIdx = (PRIntn)newptridx;
+        }
+        else
+        {
+            NL_LOG_CRIT(lrERINIT, "failed to get thread private index for task ptr\n");
+            retval = NLER_ERROR_NO_RESOURCE;
+        }
+    }
+
+    if (retval == NLER_SUCCESS)
+    {
+        /* Initialize the "faked" main thread task structure
+         */
+
+        retval = nltask_nspr_main_init(&sMainTask);
+        if (retval != NLER_SUCCESS)
+        {
+            goto done;
+        }
+    }
+
+ done:
+    return retval;
 }
 
 

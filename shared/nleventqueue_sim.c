@@ -31,17 +31,17 @@
 
 int32_t sCount = 0;
 
-int32_t nl_eventqueue_sim_count(void)
+int32_t nleventqueue_sim_count(void)
 {
     return sCount;
 }
 
-void nl_eventqueue_sim_count_inc(void)
+void nleventqueue_sim_count_inc(void)
 {
     nl_er_atomic_inc(&sCount);
 }
 
-void nl_eventqueue_sim_count_dec(void)
+void nleventqueue_sim_count_dec(void)
 {
     nl_er_atomic_dec(&sCount);
 }

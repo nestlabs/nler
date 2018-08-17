@@ -23,74 +23,92 @@
  *
  */
 
-#include "nlerlog.h"
-#include "nlereventpooled.h"
-#include <nspr/prlock.h>
 #include <stdlib.h>
 
-typedef struct nl_event_pool_nspr_s
+#include <nlererror.h>
+#include <nlerlog.h>
+#include <nlereventpooled.h>
+
+#include <nspr/prlock.h>
+
+typedef struct nlevent_pool_nspr_s
 {
     PRLock  *mLock;
-    int     mFreeEvents;
-} nl_event_pool_nspr_t;
+    int      mFreeEvents;
+} nlevent_pool_nspr_t;
 
-nl_event_pool_t nl_event_pool_create(void *aPoolMemory, int32_t aPoolMemorySize)
+int nlevent_pool_create(void *aPoolMemory, int32_t aPoolMemorySize, nlevent_pool_t *aPoolObj)
 {
-    nl_event_pool_nspr_t    *retval;
+    nlevent_pool_nspr_t         *lPool;
+    int                          retval = NLER_SUCCESS;
 
-    retval = (nl_event_pool_t)calloc(1, sizeof(nl_event_pool_nspr_t));
-
-    if (retval != NULL)
+    if ((aPoolMemory == NULL) || (aPoolMemorySize == 0) || (aPoolObj == NULL))
     {
-        retval->mLock = PR_NewLock();
+        retval = NLER_ERROR_BAD_INPUT;
+        goto done;
+    }
 
-        if (retval->mLock != NULL)
+    lPool = (nlevent_pool_nspr_t *)calloc(1, sizeof(nlevent_pool_nspr_t));
+
+    if (lPool != NULL)
+    {
+        lPool->mLock = PR_NewLock();
+
+        if (lPool->mLock != NULL)
         {
-            retval->mFreeEvents = aPoolMemorySize / sizeof(nl_event_pooled_t);
+            lPool->mFreeEvents = aPoolMemorySize / sizeof(nlevent_pooled_t);
+
+            *aPoolObj = (nlevent_pool_t)lPool;
         }
         else
         {
             NL_LOG_CRIT(lrERPOOLED, "failed to allocate event pool lock\n");
 
-            free(retval);
-            retval = NULL;
+            free(lPool);
+
+            retval = NLER_ERROR_NO_RESOURCE;
         }
     }
+	else
+	{
+        retval = NLER_ERROR_NO_MEMORY;
+	}
 
-    return (nl_event_pool_t)retval;
+done:
+    return (nlevent_pool_t)retval;
 }
 
-void nl_event_pool_destroy(nl_event_pool_t aPool)
+void nlevent_pool_destroy(nlevent_pool_t *aPool)
 {
-    nl_event_pool_nspr_t    *pool = (nl_event_pool_nspr_t *)aPool;
+    nlevent_pool_nspr_t         *lPool = *(nlevent_pool_nspr_t **)aPool;
 
-    if (pool != NULL)
+    if (lPool != NULL)
     {
-        if (pool->mLock != NULL)
+        if (lPool->mLock != NULL)
         {
-            PR_DestroyLock(pool->mLock);
-            pool->mLock = NULL;
+            PR_DestroyLock(lPool->mLock);
+            lPool->mLock = NULL;
         }
 
-        free(pool);
+        free(lPool);
     }
 }
 
-nl_event_pooled_t *nl_event_pool_get_event(nl_event_pool_t aPool)
+nlevent_pooled_t *nlevent_pool_get_event(nlevent_pool_t *aPool)
 {
-    nl_event_pooled_t       *retval = NULL;
-    nl_event_pool_nspr_t    *pool = (nl_event_pool_nspr_t *)aPool;
-    int                     freeevs;
+    nlevent_pooled_t            *retval = NULL;
+    nlevent_pool_nspr_t         *lPool = *(nlevent_pool_nspr_t **)aPool;
+    int                          freeevs;
 
-    PR_Lock(pool->mLock);
+    PR_Lock(lPool->mLock);
 
-    freeevs = --pool->mFreeEvents;
+    freeevs = --lPool->mFreeEvents;
 
-    PR_Unlock(pool->mLock);
+    PR_Unlock(lPool->mLock);
 
     if (freeevs >= 0)
     {
-        retval = (nl_event_pooled_t *)malloc(sizeof(nl_event_pooled_t));
+        retval = (nlevent_pooled_t *)malloc(sizeof(nlevent_pooled_t));
     }
     else
     {
@@ -100,16 +118,15 @@ nl_event_pooled_t *nl_event_pool_get_event(nl_event_pool_t aPool)
     return retval;
 }
 
-void nl_event_pool_recycle_event(nl_event_pool_t aPool, nl_event_pooled_t *aEvent)
+void nlevent_pool_recycle_event(nlevent_pool_t *aPool, nlevent_pooled_t *aEvent)
 {
-    nl_event_pool_nspr_t    *pool = (nl_event_pool_nspr_t *)aPool;
+    nlevent_pool_nspr_t *lPool = *(nlevent_pool_nspr_t **)aPool;
 
-    PR_Lock(pool->mLock);
+    PR_Lock(lPool->mLock);
 
-    pool->mFreeEvents++;
+    lPool->mFreeEvents++;
 
-    PR_Unlock(pool->mLock);
+    PR_Unlock(lPool->mLock);
 
     free(aEvent);
 }
-

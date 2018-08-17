@@ -28,48 +28,71 @@
 #include "nlererror.h"
 #include <nspr/prlock.h>
 
-nl_lock_t nl_er_lock_create(void)
+int nllock_create(nllock_t *aLock)
 {
-    nl_lock_t   retval = NULL;
+    int      retval = NLER_SUCCESS;
+    PRLock  *lLock;
 
-    retval = (nl_lock_t)PR_NewLock();
+    if (aLock == NULL)
+    {
+        retval = NLER_ERROR_BAD_INPUT;
+        goto done;
+    }
 
+    lLock = PR_NewLock();
+    if (lLock == NULL)
+    {
+        retval = NLER_ERROR_NO_RESOURCE;
+        goto done;
+    }
+
+    *aLock = (nllock_t)lLock;
+
+ done:
     return retval;
 }
 
-void nl_er_lock_destroy(nl_lock_t aLock)
+void nllock_destroy(nllock_t *aLock)
 {
-    PR_DestroyLock((PRLock *)aLock);
+    PRLock *lLock = *(PRLock **)aLock;
+
+    PR_DestroyLock(lLock);
 }
 
-int nl_er_lock_enter(nl_lock_t aLock)
+int nllock_enter(nllock_t *aLock)
 {
-    PR_Lock((PRLock *)aLock);
+    PRLock *lLock = *(PRLock **)aLock;
+
+    PR_Lock(lLock);
+
     return NLER_SUCCESS;
 }
 
-int nl_er_lock_exit(nl_lock_t aLock)
+int nllock_exit(nllock_t *aLock)
 {
-    PR_Unlock((nl_lock_t)aLock);
+    PRLock *lLock = *(PRLock **)aLock;
+
+    PR_Unlock(lLock);
+
     return NLER_SUCCESS;
 }
 
-nl_recursive_lock_t nl_er_recursive_lock_create(void)
-{
-    return NULL;
-}
-
-void nl_er_recursive_lock_destroy(nl_recursive_lock_t aLock)
-{
-    return;
-}
-
-int nl_er_recursive_lock_enter(nl_recursive_lock_t aLock)
+int nlrecursive_lock_create(nlrecursive_lock_t *aLock)
 {
     return NLER_ERROR_NOT_IMPLEMENTED;
 }
 
-int nl_er_recursive_lock_exit(nl_recursive_lock_t aLock)
+void nlrecursive_lock_destroy(nlrecursive_lock_t *aLock)
+{
+    return;
+}
+
+int nlrecursive_lock_enter(nlrecursive_lock_t *aLock)
+{
+    return NLER_ERROR_NOT_IMPLEMENTED;
+}
+
+int nlrecursive_lock_exit(nlrecursive_lock_t *aLock)
 {
     return NLER_ERROR_NOT_IMPLEMENTED;
 }

@@ -25,10 +25,10 @@ Here is the state diagram for simluated time in embedded-runtime:
 Time advancement is implemented in the system timer and in the event system.
 Time can only be advanced from the paused state, and is advanced by the amount
 to the next soonest timer timeout event. A count of the number of pending
-events is maintained (by tracking the calls to nl_eventqueue_post_event() /
-nl_eventqueue_post_event_from_isr()). Time is advanced only when this count is
+events is maintained (by tracking the calls to nleventqueue_post_event() /
+nleventqueue_post_event_from_isr()). Time is advanced only when this count is
 less than 1 (indicating all tasks are blocked on
-nl_eventqueue_get_event_with_timeout() / nl_eventqueue_get_event()), *and* all
+nleventqueue_get_event_with_timeout() / nleventqueue_get_event()), *and* all
 expired timer events have been processed. This guarantees that all event
 handlers have been processed, including any events that those handlers may post
 to any other queue in the system (e.g. posting to the timer event queue).

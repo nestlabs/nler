@@ -31,39 +31,40 @@
 #include "nlererror.h"
 #include <string.h>
 
-nl_event_pool_t nl_event_pool_create(void *aPoolMemory, int32_t aPoolMemorySize)
+int nlevent_pool_create(void *aPoolMemory, int32_t aPoolMemorySize, nlevent_pool_t *aPoolObj)
 {
-    xQueueHandle    retval = NULL;
-    int             qsize = aPoolMemorySize / (sizeof(nl_event_pooled_t) + sizeof(nl_event_pooled_t *));
+    int retval = NLER_SUCCESS;
+    int qsize = aPoolMemorySize / (sizeof(nlevent_pooled_t) + sizeof(nlevent_pooled_t *));
 
-    if ((aPoolMemory != NULL) && (qsize > 0))
+    if ((aPoolMemory != NULL) && (qsize > 0) && (aPoolObj != NULL))
     {
-        retval = xQueueCreate(aPoolMemory, qsize, sizeof(nl_event_pooled_t *));
+        void *queue = xQueueCreateStatic(qsize, sizeof(nlevent_pooled_t *), aPoolMemory, aPoolObj);
 
-        if (retval == NULL)
+        if (queue == NULL)
         {
             NL_LOG_CRIT(lrERPOOLED, "failed to create freertos pooled event queue (%p, %d)\n", aPoolMemory, aPoolMemorySize);
+            retval = NLER_ERROR_BAD_INPUT;
         }
         else
         {
             int             idx;
-            uint8_t         *events = (uint8_t *)aPoolMemory + (qsize * sizeof(nl_event_pooled_t *));
+            uint8_t         *events = (uint8_t *)aPoolMemory + (qsize * sizeof(nlevent_pooled_t *));
             portBASE_TYPE   err;
 
             for (idx = 0; idx < qsize; idx++)
             {
-                err = xQueueSendToBack(retval, &events, 0);
+                err = xQueueSendToBack(queue, &events, 0);
 
                 if (err != pdTRUE)
                 {
                     NL_LOG_CRIT(lrERPOOLED, "filling pooled event queue failed at %d of %d (%p)\n", idx, qsize, retval);
 
-                    retval = NULL;
+                    retval = NLER_ERROR_BAD_INPUT;
                     break;
                 }
                 else
                 {
-                    events += sizeof(nl_event_pooled_t);
+                    events += sizeof(nlevent_pooled_t);
                 }
             }
         }
@@ -71,20 +72,21 @@ nl_event_pool_t nl_event_pool_create(void *aPoolMemory, int32_t aPoolMemorySize)
     else
     {
         NL_LOG_CRIT(lrERPOOLED, "invalid event pool memory %p with size %d specified\n", aPoolMemory, aPoolMemorySize);
+        retval = NLER_ERROR_BAD_INPUT;
     }
 
-    return (nl_event_pool_t)retval;
+    return retval;
 }
 
-void nl_event_pool_destroy(nl_event_pool_t aPool)
+void nlevent_pool_destroy(nlevent_pool_t *aPool)
 {
 }
 
-nl_event_pooled_t *nl_event_pool_get_event(nl_event_pool_t aPool)
+nlevent_pooled_t *nlevent_pool_get_event(nlevent_pool_t *aPool)
 {
-    nl_event_pooled_t       *retval = NULL;
+    nlevent_pooled_t       *retval = NULL;
 
-    if (xQueueReceive((xQueueHandle)aPool, &retval, portMAX_DELAY) != pdTRUE)
+    if (xQueueReceive((QueueHandle_t)aPool, &retval, portMAX_DELAY) != pdTRUE)
     {
         NL_LOG_CRIT(lrERPOOLED, "event pool (%p) exhausted\n", aPool);
         retval = NULL;
@@ -93,11 +95,11 @@ nl_event_pooled_t *nl_event_pool_get_event(nl_event_pool_t aPool)
     return retval;
 }
 
-void nl_event_pool_recycle_event(nl_event_pool_t aPool, nl_event_pooled_t *aEvent)
+void nlevent_pool_recycle_event(nlevent_pool_t *aPool, nlevent_pooled_t *aEvent)
 {
     portBASE_TYPE   err;
 
-    err = xQueueSendToBack((xQueueHandle)aPool, &aEvent, 0);
+    err = xQueueSendToBack((QueueHandle_t)aPool, &aEvent, 0);
 
     if (err != pdTRUE)
     {

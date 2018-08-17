@@ -40,7 +40,7 @@ extern "C" {
 struct nl_trace_entry_t
 {
     nl_time_native_t timestamp;
-    nl_trace_event_t event;
+    nltrace_event_t event;
     uint32_t data;
 };
 
@@ -63,13 +63,13 @@ void nl_flowtracer_init(void);
  * and will overwrite previous entries if full. FLOW_TRACE_QUEUE_SIZE is configuredabove.
  * Note: This functon ensures thread safety by disabling all interrupts while accessing the queue
  */
-void nl_flowtracer_add_trace(nl_trace_event_t event, uint32_t data);
+void nl_flowtracer_add_trace(nltrace_event_t event, uint32_t data);
 
 /*
  * Similar to nl_flowtracer_add_trace, this function provides the ability
  * to trace output from an ISR context.
  */
-void nl_flowtracer_add_trace_from_isr(nl_trace_event_t event, uint32_t data);
+void nl_flowtracer_add_trace_from_isr(nltrace_event_t event, uint32_t data);
 
 /*
  * This function outputs (to console) the contents of the flow tracer queue.

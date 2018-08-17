@@ -26,11 +26,11 @@
 #ifndef NL_ER_TASK_PRIORITY_H
 #define NL_ER_TASK_PRIORITY_H
 
-typedef int nl_task_priority_t;
+typedef int nltask_priority_t;
 
 #define NLER_TASK_PRIORITY_HIGHEST  100  /**< Highest task priority */
-#define NLER_TASK_PRIORITY_HIGH     50   /**< High task priority */
-#define NLER_TASK_PRIORITY_NORMAL   20   /**< Normal task priority */
-#define NLER_TASK_PRIORITY_LOW      10   /**< Low task priority */
+#define NLER_TASK_PRIORITY_HIGH      83  /**< High task priority */
+#define NLER_TASK_PRIORITY_NORMAL    50  /**< Normal task priority */
+#define NLER_TASK_PRIORITY_LOW       17  /**< Low task priority */
 
 #endif /* NL_ER_TASK_PRIORITY_H */
