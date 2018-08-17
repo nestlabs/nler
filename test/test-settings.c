@@ -22,6 +22,11 @@
  *      interfaces.
  */
 
+#ifdef nlLOG_PRIORITY
+#undef nlLOG_PRIORITY
+#endif
+#define nlLOG_PRIORITY 1
+
 #include "nlertask.h"
 #include "nlerinit.h"
 #include <stdio.h>
@@ -30,8 +35,8 @@
 #include "nlsettings.h"
 #include "nlererror.h"
 
-nl_task_t taskA;
-nl_task_t taskB;
+nltask_t taskA;
+nltask_t taskB;
 uint8_t stackA[NLER_TASK_STACK_BASE + 96];
 uint8_t stackB[NLER_TASK_STACK_BASE + 96];
 
@@ -40,12 +45,12 @@ nl_settings_value_t defaults[nl_settings_keyMax] = { "1", "2", "3", "4", "5", "6
 
 void taskEntryA(void *aParams)
 {
-    nl_task_t   *curtask = nl_task_get_current();
+    nltask_t    *curtask = nltask_get_current();
     int         idx = 0;
 
     (void)curtask;
 
-    NL_LOG_CRIT(lrTEST, "from the task: '%s' (%08x, %d)\n", curtask->mName);
+    NL_LOG_CRIT(lrTEST, "from the task: '%s' (%08x, %p)\n", nltask_get_name(curtask), aParams);
 
     while (1)
     {
@@ -128,15 +133,15 @@ void enumerator(nl_settings_entry_t *aEntry, void *aClosure)
 
 void taskEntryB(void *aParams)
 {
-    nl_task_t       *curtask = nl_task_get_current();
-    int             idx = 0;
-    nl_eventqueue_t queue = (nl_eventqueue_t)aParams;
-    int             err;
+    nltask_t        *curtask = nltask_get_current();
+    int              idx = 0;
+    nleventqueue_t  *queue = (nleventqueue_t *)aParams;
+    int              err;
 
     (void)curtask;
     (void)err;
 
-    NL_LOG_CRIT(lrTEST, "from the task: '%s' (%08x, %d)\n", curtask->mName);
+    NL_LOG_CRIT(lrTEST, "from the task: '%s' (%08x, %p)\n", nltask_get_name(curtask), aParams);
 
     changekey.mReturnQueue = queue;
     changeall.mReturnQueue = queue;
@@ -154,7 +159,7 @@ void taskEntryB(void *aParams)
         nl_event_t          *ev;
         nl_settings_value_t value;
 
-        ev = nl_eventqueue_get_event(queue);
+        ev = nleventqueue_get_event(queue);
 
         /* supplying NULL for the default event handler
          * is generally a pretty bold move because if there
@@ -188,9 +193,10 @@ void taskEntryB(void *aParams)
 int main(int argc, char **argv)
 {
     int             idx;
+    int             status;
     int             retval;
     nl_event_t      *queuemem[50];
-    nl_eventqueue_t queue;
+    nleventqueue_t  queue;
 
     NL_LOG_CRIT(lrTEST, "start main\n");
 
@@ -198,7 +204,8 @@ int main(int argc, char **argv)
 
     NL_LOG_CRIT(lrTEST, "start main (after initializing runtime)\n");
 
-    queue = nl_eventqueue_create(queuemem, sizeof(queuemem));
+    status = nleventqueue_create(queuemem, sizeof(queuemem), &queue);
+    NLER_ASSERT(status == NLER_SUCCESS);
 
     NL_LOG_CRIT(lrTEST, "event queue: %p\n", queue);
 
@@ -230,8 +237,8 @@ int main(int argc, char **argv)
 
     if (retval == NLER_SUCCESS)
     {
-        nl_task_create(taskEntryA, "A", stackA, sizeof(stackA), 10, NULL, &taskA);
-        nl_task_create(taskEntryB, "B", stackB, sizeof(stackB), 10, queue, &taskB);
+        nltask_create(taskEntryA, "A", stackA, sizeof(stackA), 10, NULL, &taskA);
+        nltask_create(taskEntryB, "B", stackB, sizeof(stackB), 10, &queue, &taskB);
 
         nl_er_start_running();
     }
@@ -242,4 +249,3 @@ int main(int argc, char **argv)
 
     return 0;
 }
-

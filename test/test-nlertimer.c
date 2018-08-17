@@ -24,10 +24,10 @@
 
 #include "nlerinit.h"
 
-#define nl_eventqueue_create                  ut_nl_eventqueue_create
+#define nleventqueue_create                   ut_nl_eventqueue_create
 #define nl_task_create                        ut_nl_task_create
-#define nl_eventqueue_get_event_with_timeout  ut_nl_eventqueue_get_event_with_timeout
-#define nl_eventqueue_post_event              ut_nl_eventqueue_post_event
+#define nleventqueue_get_event_with_timeout   ut_nl_eventqueue_get_event_with_timeout
+#define nleventqueue_post_event               ut_nl_eventqueue_post_event
 
 #include "../shared/nlertimer.c"
 #include "../shared/nlerlog.c"
@@ -125,7 +125,7 @@ nl_time_native_t nl_time_ms_to_delay_time_native(nl_time_ms_t aTime)
     return aTime;
 }
 
-int ut_nl_eventqueue_post_event(nl_eventqueue_t aEventQueue, const nl_event_t *aEvent)
+int ut_nl_eventqueue_post_event(nleventqueue_t aEventQueue, const nl_event_t *aEvent)
 {
     TRACE();
     if(!_sSkipPost)
@@ -147,7 +147,7 @@ int ut_nl_eventqueue_post_event(nl_eventqueue_t aEventQueue, const nl_event_t *a
     return 0;
 }
 
-nl_event_t *ut_nl_eventqueue_get_event_with_timeout(nl_eventqueue_t aEventQueue, nl_time_ms_t aTimeoutMS)
+nl_event_t *ut_nl_eventqueue_get_event_with_timeout(nleventqueue_t aEventQueue, nl_time_ms_t aTimeoutMS)
 {
     nl_event_t *retval = NULL;
     TRACE();
@@ -197,7 +197,7 @@ nl_event_t *ut_nl_eventqueue_get_event_with_timeout(nl_eventqueue_t aEventQueue,
     return retval;
 }
 
-nl_eventqueue_t ut_nl_eventqueue_create(void *aQueueMemory, size_t aQueueMemorySize)
+nleventqueue_t ut_nl_eventqueue_create(void *aQueueMemory, size_t aQueueMemorySize)
 {
     TRACE();
     return NULL;
@@ -209,7 +209,7 @@ int ut_nl_task_create(nl_task_entry_point_t aEntry,
                    size_t aStackSize,
                    nl_task_priority_t aPriority,
                    void *aParams,
-                   nl_task_t *aOutTask)
+                   nltask_t *aOutTask)
 {
     TRACE();
     return 0;
@@ -679,11 +679,11 @@ int main(int argc, char **argv)
     sRunning = 1;
     retval = nl_start_event_timer(&dummyEvent);
     assert_test(retval == NLER_ERROR_INIT);
-    sQueue = (nl_eventqueue_t) 0xdeadbeef;
+    sQueue = (nleventqueue_t) 0xdeadbeef;
     sRunning = 0;
     retval = nl_start_event_timer(&dummyEvent);
     assert_test(retval == NLER_ERROR_INIT);
-    sQueue = (nl_eventqueue_t) 0xdeadbeef;
+    sQueue = (nleventqueue_t) 0xdeadbeef;
     sRunning = 1;
     retval = nl_start_event_timer(&dummyEvent);
     assert_test(retval == NLER_SUCCESS);
@@ -780,4 +780,3 @@ int main(int argc, char **argv)
 
     return 0;
 }
-

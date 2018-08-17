@@ -28,8 +28,12 @@
 
 #include <nlertimer.h>
 #include <nlmacros.h>
+#if NLER_FEATURE_TIMER_USING_SWTIMER
+#if NLER_BUILD_PLATFORM_FREERTOS
 #include <nlplatform.h>
 #include <nlplatform/nlwatchdog.h>
+#endif
+#endif
 #if NLER_BUILD_PLATFORM_FREERTOS
 #include <FreeRTOS.h>
 #include <task.h>
@@ -912,7 +916,7 @@ int nler_timer_test(void)
     uint8_t dummy_stack[512];
 
     /* Align the dummy_stack_ptr to required alignment */
-    uint8_t *dummy_stack_ptr = ALIGN_POINTER(dummy_stack, NLER_FEATURE_STACK_ALIGNMENT);
+    uint8_t *dummy_stack_ptr = ALIGN_POINTER(dummy_stack, NLER_REQUIRED_STACK_ALIGNMENT);
 
     /* To allow our timer functions to test timer accuracy,
      * we spawn a thread that just spins at low (but not lowest

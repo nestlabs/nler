@@ -33,8 +33,8 @@
 #include <nlerassert.h>
 #include <nleratomicops.h>
 
-static nl_task_t taskA;
-static nl_task_t taskB;
+static nltask_t taskA;
+static nltask_t taskB;
 static uint8_t stackA[NLER_TASK_STACK_BASE + 96];
 static uint8_t stackB[NLER_TASK_STACK_BASE + 96];
 
@@ -47,11 +47,14 @@ struct taskData
 
 static void taskEntry(void *aParams)
 {
-    nl_task_t       *curtask = nl_task_get_current();
+    nltask_t        *curtask = nltask_get_current();
+    const char      *name = nltask_get_name(curtask);
     struct taskData *data = (struct taskData *)aParams;
     int             idx;
 
-    NL_LOG_CRIT(lrTEST, "from the task: '%s' entry: (%d)\n", curtask->mName, data->value);
+    (void)name;
+
+    NL_LOG_CRIT(lrTEST, "from the task: '%s' entry: (%d)\n", name, data->value);
 
     for (idx = 0; idx < NUM_ATOM_ITERS; idx++)
     {
@@ -60,7 +63,7 @@ static void taskEntry(void *aParams)
 
         if ((idx % 100000) == 0)
         {
-            NL_LOG_DEBUG(lrTEST, "'%s' inc/dec: %d\n", curtask->mName, idx);
+            NL_LOG_DEBUG(lrTEST, "'%s' inc/dec: %d\n", nltask_get_name(curtask), idx);
         }
     }
 
@@ -71,13 +74,13 @@ static void taskEntry(void *aParams)
 
         if ((idx % 100000) == 0)
         {
-            NL_LOG_DEBUG(lrTEST, "'%s' add/-add: %d\n", curtask->mName, idx);
+            NL_LOG_DEBUG(lrTEST, "'%s' add/-add: %d\n", name, idx);
         }
     }
 
-    NL_LOG_CRIT(lrTEST, "from the task: '%s' exit: (%d)\n", curtask->mName, data->value);
+    NL_LOG_CRIT(lrTEST, "from the task: '%s' exit: (%d)\n", name, data->value);
 
-    nl_task_suspend(curtask);
+    nltask_suspend(curtask);
 }
 
 void test_unthreaded(void)
@@ -464,8 +467,8 @@ void test_threaded(void)
 
     data.value = 0;
 
-    nl_task_create(taskEntry, "A", stackA, sizeof(stackA), NLER_TASK_PRIORITY_NORMAL, &data, &taskA);
-    nl_task_create(taskEntry, "B", stackB, sizeof(stackB), NLER_TASK_PRIORITY_NORMAL, &data, &taskB);
+    nltask_create(taskEntry, "A", stackA, sizeof(stackA), NLER_TASK_PRIORITY_NORMAL, &data, &taskA);
+    nltask_create(taskEntry, "B", stackB, sizeof(stackB), NLER_TASK_PRIORITY_NORMAL, &data, &taskB);
 
     nl_er_start_running();
 }
@@ -495,4 +498,3 @@ int main(int argc, char **argv)
 
     return 0;
 }
-

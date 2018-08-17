@@ -22,97 +22,172 @@
  *      lock interfaces.
  */
 
-#include "nlertask.h"
-#include "nlerinit.h"
+#include <nlerlock.h>
+
+#include <stdbool.h>
 #include <stdio.h>
-#include "nlerlog.h"
-#include "nlerassert.h"
-#include "nlerlock.h"
+#include <stdlib.h>
 
-nl_task_t taskA;
-nl_task_t taskB;
-uint8_t stackA[NLER_TASK_STACK_BASE + 96];
-uint8_t stackB[NLER_TASK_STACK_BASE + 96];
+#ifdef nlLOG_PRIORITY
+#undef nlLOG_PRIORITY
+#endif
+#define nlLOG_PRIORITY 1
 
-#define NUM_ATOM_ITERS  1000000
+#include <nlerassert.h>
+#include <nlererror.h>
+#include <nlerinit.h>
+#include <nlerlog.h>
+#include <nlertask.h>
 
-struct taskData
+/*
+ * Preprocessor Defitions
+ */
+
+#define kTHREAD_MAIN_SLEEP_MS      1001
+
+#define kNUM_LOCK_ITERS         1000000
+
+#define kSENTINEL_DATA_VALUE          0
+
+/*
+ * Type Definitions
+ */
+
+typedef struct globalData_s
 {
-    nl_lock_t   lock;
-    int32_t     value;
-};
+    nllock_t    mLock;
+    int32_t     mValue;
+} globalData_t;
 
-void taskEntry(void *aParams)
+typedef struct taskData_s
 {
-    nl_task_t       *curtask = nl_task_get_current();
-    struct taskData *data = (struct taskData *)aParams;
-    int             idx;
+    globalData_t          *mGlobals;
+    bool                   mFinished;
+} taskData_t;
 
-    NL_LOG_CRIT(lrTEST, "from the task: '%s' entry: (%d)\n", curtask->mName, data->value);
+/*
+ * Global Variables
+ */
 
-    for (idx = 0; idx < NUM_ATOM_ITERS; idx++)
+static nltask_t taskA;
+static nltask_t taskB;
+static DEFINE_STACK(stackA, NLER_TASK_STACK_BASE + 96);
+static DEFINE_STACK(stackB, NLER_TASK_STACK_BASE + 96);
+
+static void taskEntry(void *aParams)
+{
+    nltask_t                 *curtask = nltask_get_current();
+    taskData_t               *taskData = (taskData_t *)aParams;
+    globalData_t             *data = taskData->mGlobals;
+    int                       idx;
+
+    NL_LOG_CRIT(lrTEST, "from the task: '%s' entry: (%d)\n", nltask_get_name(curtask), data->mValue);
+
+    for (idx = 0; idx < kNUM_LOCK_ITERS; idx++)
     {
-        nl_er_lock_enter(data->lock);
-        data->value++;
-        nl_er_lock_exit(data->lock);
+        nllock_enter(&data->mLock);
+        data->mValue++;
+        nllock_exit(&data->mLock);
 
-        nl_er_lock_enter(data->lock);
-        data->value--;
-        nl_er_lock_exit(data->lock);
+        nllock_enter(&data->mLock);
+        data->mValue--;
+        nllock_exit(&data->mLock);
 
         if ((idx % 100000) == 0)
         {
-            NL_LOG_DEBUG(lrTEST, "'%s' inc/dec: %d\n", curtask->mName, idx);
+            NL_LOG_DEBUG(lrTEST, "'%s' inc/dec: %d\n", nltask_get_name(curtask), idx);
         }
     }
 
-    for (idx = 0; idx < NUM_ATOM_ITERS; idx++)
+    for (idx = 0; idx < kNUM_LOCK_ITERS; idx++)
     {
-        nl_er_lock_enter(data->lock);
-        data->value += 12;
-        nl_er_lock_exit(data->lock);
+        const int32_t kDelta = 12;
 
-        nl_er_lock_enter(data->lock);
-        data->value -= 12;
-        nl_er_lock_exit(data->lock);
+        nllock_enter(&data->mLock);
+        data->mValue += kDelta;
+        nllock_exit(&data->mLock);
+
+        nllock_enter(&data->mLock);
+        data->mValue -= kDelta;
+        nllock_exit(&data->mLock);
 
         if ((idx % 100000) == 0)
         {
-            NL_LOG_DEBUG(lrTEST, "'%s' add/-add: %d\n", curtask->mName, idx);
+            NL_LOG_DEBUG(lrTEST, "'%s' add/sub: %d\n", nltask_get_name(curtask), idx);
         }
     }
 
-    NL_LOG_CRIT(lrTEST, "from the task: '%s' exit: (%d)\n", curtask->mName, data->value);
+    taskData->mFinished = true;
 
-    nl_task_suspend(curtask);
+    NL_LOG_CRIT(lrTEST, "from the task: '%s' exit: (%d)\n", nltask_get_name(curtask), data->mValue);
+
+    nltask_suspend(curtask);
+}
+
+static bool is_testing(volatile taskData_t *aTaskDataA,
+                       volatile taskData_t *aTaskDataB)
+{
+    return (!aTaskDataA->mFinished || !aTaskDataB->mFinished);
+}
+
+static bool was_successful(volatile globalData_t *aGlobalData,
+                           volatile taskData_t *aTaskDataA,
+                           volatile taskData_t *aTaskDataB)
+{
+    return (aTaskDataA->mFinished &&
+            aTaskDataB->mFinished &&
+            aGlobalData->mValue == kSENTINEL_DATA_VALUE);
+}
+
+bool nler_lock_test(void)
+{
+    globalData_t          globalData;
+    taskData_t            taskDataA;
+    taskData_t            taskDataB;
+    int                   status;
+    bool                  retval;
+
+    status = nllock_create(&globalData.mLock);
+    NLER_ASSERT(status == NLER_SUCCESS);
+
+    globalData.mValue = kSENTINEL_DATA_VALUE;
+
+    taskDataA.mGlobals = &globalData;
+    taskDataA.mFinished = false;
+
+    taskDataB.mGlobals = &globalData;
+    taskDataB.mFinished = false;
+
+    nltask_create(taskEntry, "A", stackA, sizeof (stackA), NLER_TASK_PRIORITY_NORMAL, (void *)&taskDataA, &taskA);
+    nltask_create(taskEntry, "B", stackB, sizeof (stackB), NLER_TASK_PRIORITY_NORMAL, (void *)&taskDataB, &taskB);
+
+    while (is_testing(&taskDataA, &taskDataB))
+    {
+        nltask_sleep_ms(kTHREAD_MAIN_SLEEP_MS);
+    }
+
+    nllock_destroy(&globalData.mLock);
+
+    retval = was_successful(&globalData, &taskDataA, &taskDataB);
+
+    return retval;
 }
 
 int main(int argc, char **argv)
 {
-    struct taskData data;
-    int             err;
+    bool  status = true;
+
+    nl_er_init();
 
     NL_LOG_CRIT(lrTEST, "start main\n");
 
-    err = nl_er_init();
-    (void)err;
-
-    data.lock = nl_er_lock_create();
-    data.value = 0;
-
-    NL_LOG_CRIT(lrTEST, "start main (after initializing runtime: %d)\n", err);
-
-    NLER_ASSERT(data.lock != NULL);
-
-    nl_task_create(taskEntry, "A", stackA, sizeof(stackA), NLER_TASK_PRIORITY_NORMAL, &data, &taskA);
-    nl_task_create(taskEntry, "B", stackB, sizeof(stackB), NLER_TASK_PRIORITY_NORMAL, &data, &taskB);
-
     nl_er_start_running();
+
+    status = nler_lock_test();
 
     nl_er_cleanup();
 
     NL_LOG_CRIT(lrTEST, "end main\n");
 
-    return 0;
+    return (status ? EXIT_SUCCESS : EXIT_FAILURE);
 }
-

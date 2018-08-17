@@ -23,93 +23,192 @@
  *
  */
 
-#include "nlertask.h"
-#include "nlerinit.h"
+#include <nlertask.h>
+
+#include <stdbool.h>
 #include <stdio.h>
-#include "nlerlog.h"
-#include "nlerassert.h"
+#include <stdlib.h>
+#include <string.h>
 
-nl_task_t taskA;
-nl_task_t taskB;
-uint8_t stackA[NLER_TASK_STACK_BASE + 96];
-uint8_t stackB[NLER_TASK_STACK_BASE + 96];
+#ifdef nlLOG_PRIORITY
+#undef nlLOG_PRIORITY
+#endif
+#define nlLOG_PRIORITY 3
 
-struct taskAData
+#include <nlerinit.h>
+#include <nlerlog.h>
+#include <nlerassert.h>
+
+/**
+ *  Preprocessor Definitions
+ */
+
+#define kTHREAD_A_SLEEP_MS       241
+#define kTHREAD_B_SLEEP_MS       491
+
+#define kTHREAD_MAIN_SLEEP_MS    997
+
+#define kTHREAD_A_LOOPS            7
+#define kTHREAD_B_LOOPS            9
+
+/**
+ *  Type Definitions
+ */
+
+typedef struct taskData_s
 {
-    int value1;
-    int argc;
-};
+    const nltask_t *mParent;
+    const nltask_t *mTask;
+    nl_time_ms_t    mSleepMS;
+    uint32_t        mLoops;
+    const char     *mName;
+    bool            mSucceeded;
+} taskData_t;
+
+/**
+ *  Global Variables
+ */
+
+static nltask_t taskA;
+static nltask_t taskB;
+static DEFINE_STACK(stackA, NLER_TASK_STACK_BASE + 96);
+static DEFINE_STACK(stackB, NLER_TASK_STACK_BASE + 96);
+
+static const char * const kTaskNameA = "A";
+static const char * const kTaskNameB = "B";
 
 static void taskEntryA(void *aParams)
 {
-    const nl_task_t           *curtask = nl_task_get_current();
-    const struct taskAData    *data = (struct taskAData *)aParams;
+    const nltask_t            *curtask = nltask_get_current();
+    const char                *name = nltask_get_name(curtask);
+    volatile taskData_t       *data = (volatile taskData_t *)aParams;
+    int                        status;
 
-    (void)curtask;
-    (void)data;
 
-    NL_LOG_CRIT(lrTEST, "from the task: '%s' (%08x, %d)\n", curtask->mName, data->value1, data->argc);
+    NL_LOG_CRIT(lrTEST, "from the task: '%s'\n", name);
 
-    while (1)
+    status = strcmp(name, data->mName);
+    NLER_ASSERT(status == 0);
+
+    NLER_ASSERT(data->mParent != curtask);
+    NLER_ASSERT(data->mTask == curtask);
+    NLER_ASSERT(data->mSucceeded == false);
+
+    nltask_sleep_ms(data->mSleepMS);
+
+    nltask_yield();
+
+    while (data->mLoops--)
     {
-        NL_LOG_CRIT(lrTEST, "from the loop: '%s'\n", curtask->mName);
-        nl_task_sleep_ms(1000);
+        NL_LOG_DEBUG(lrTEST, "from the loop: '%s'\n", nltask_get_name(curtask));
+        nltask_sleep_ms(data->mSleepMS);
     }
-}
 
-struct taskBData
-{
-    int value1;
-    int argc;
-};
+    data->mSucceeded = true;
+}
 
 static void taskEntryB(void *aParams)
 {
-    const nl_task_t           *curtask = nl_task_get_current();
-    const struct taskBData    *data = (struct taskBData *)aParams;
+    const nltask_t            *curtask = nltask_get_current();
+    const char                *name = nltask_get_name(curtask);
+    volatile taskData_t       *data = (volatile taskData_t *)aParams;
+    int                        status;
 
-    (void)curtask;
-    (void)data;
 
-    NL_LOG_CRIT(lrTEST, "from the task: '%s' (%08x, %d)\n", curtask->mName, data->value1, data->argc);
+    NL_LOG_CRIT(lrTEST, "from the task: '%s' (%08x)\n", name);
 
-    while (1)
+    status = strcmp(name, data->mName);
+    NLER_ASSERT(status == 0);
+
+    NLER_ASSERT(data->mParent != curtask);
+    NLER_ASSERT(data->mTask == curtask);
+    NLER_ASSERT(data->mSucceeded == false);
+
+    nltask_sleep_ms(data->mSleepMS);
+   
+    nltask_yield();
+
+    while (data->mLoops--)
     {
-        NL_LOG_CRIT(lrTEST, "from the loop: '%s'\n", curtask->mName);
-        nl_task_sleep_ms(1000);
+        NL_LOG_DEBUG(lrTEST, "from the loop: '%s'\n", nltask_get_name(curtask));
+        nltask_sleep_ms(data->mSleepMS);
     }
+
+    data->mSucceeded = true;
+}
+
+static bool is_testing(volatile const taskData_t *aTaskA,
+                       volatile const taskData_t *aTaskB)
+{
+    const bool retval = (!aTaskA->mSucceeded || !aTaskB->mSucceeded);
+
+    return retval;
+}
+
+static bool was_successful(volatile const taskData_t *aTaskA,
+                           volatile const taskData_t *aTaskB)
+{
+    const bool retval = (aTaskA->mSucceeded && aTaskB->mSucceeded);
+
+    return retval;
+}
+
+bool nler_task_test(void)
+{
+    const nltask_t              *curtask;
+    volatile taskData_t          taskDataA;
+    volatile taskData_t          taskDataB;
+    bool                         retval;
+
+    curtask = nltask_get_current();
+    NLER_ASSERT(curtask != NULL);
+
+    nltask_create(taskEntryA, kTaskNameA, stackA, sizeof(stackA), NLER_TASK_PRIORITY_NORMAL, (void *)&taskDataA, &taskA);
+    nltask_create(taskEntryB, kTaskNameB, stackB, sizeof(stackB), NLER_TASK_PRIORITY_HIGH, (void *)&taskDataB, &taskB);
+
+    taskDataA.mParent = curtask;
+    taskDataA.mTask = &taskA;
+    taskDataA.mSleepMS = kTHREAD_A_SLEEP_MS;
+    taskDataA.mLoops = kTHREAD_A_LOOPS;
+    taskDataA.mName = kTaskNameA;
+    taskDataA.mSucceeded = false;
+
+    taskDataB.mParent = curtask;
+    taskDataB.mTask = &taskB;
+    taskDataB.mSleepMS = kTHREAD_B_SLEEP_MS;
+    taskDataB.mLoops = kTHREAD_B_LOOPS;
+    taskDataB.mName = kTaskNameB;
+    taskDataB.mSucceeded = false;
+
+    nltask_yield();
+
+    while (is_testing(&taskDataA, &taskDataB))
+    {
+        NL_LOG_DEBUG(lrTEST, "from the loop: main\n");
+
+        nltask_sleep_ms(kTHREAD_MAIN_SLEEP_MS);
+    }
+
+    retval = was_successful(&taskDataA, &taskDataB);
+
+    return retval;
 }
 
 int main(int argc, char **argv)
 {
-    struct taskAData    dataA;
-    struct taskBData    dataB;
-
-    NL_LOG_CRIT(lrTEST, "start main\n");
-
-    dataA.value1 = 0xdeadbeef;
-    dataA.argc = argc;
-
-    dataB.value1 = 0xc0dedbad;
-    dataB.argc = argc;
+    bool status;
 
     nl_er_init();
 
-    NL_LOG_CRIT(lrTEST, "start main (after initializing runtime)\n");
-
-    /* random test of asserts -- give this an argument and it should fail */
-
-    NLER_ASSERT(argc == 1);
-
-    nl_task_create(taskEntryA, "A", stackA, sizeof(stackA), NLER_TASK_PRIORITY_NORMAL, &dataA, &taskA);
-    nl_task_create(taskEntryB, "B", stackB, sizeof(stackB), NLER_TASK_PRIORITY_HIGH, &dataB, &taskB);
+    NL_LOG_CRIT(lrTEST, "start main\n");
 
     nl_er_start_running();
+
+    status = nler_task_test();
 
     nl_er_cleanup();
 
     NL_LOG_CRIT(lrTEST, "end main\n");
 
-    return 0;
+    return (status ? EXIT_SUCCESS : EXIT_FAILURE);
 }
-
