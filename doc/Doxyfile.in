@@ -772,6 +772,7 @@ INPUT                  = @abs_top_srcdir@/arch \
                          @abs_top_srcdir@/doc \
                          @abs_top_srcdir@/include \
                          @abs_top_srcdir@/nspr \
+                         @abs_top_srcdir@/pthreads \			 
                          @abs_top_srcdir@/shared
 
 # This tag can be used to specify the character encoding of the source files
