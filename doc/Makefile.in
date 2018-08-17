@@ -604,7 +604,7 @@ docdistdir                                     ?= .
 @NLER_BUILD_DOCS_TRUE@docdist $(nler_docdist_alias): $(nler_docdist_archive)
 
 @NLER_BUILD_DOCS_TRUE@clean-local:
-@NLER_BUILD_DOCS_TRUE@	$(AM_V_at)rm -f -r html
+@NLER_BUILD_DOCS_TRUE@	$(AM_V_at)rm -f -r html latex
 
 include $(abs_top_nlbuild_autotools_dir)/automake/post.am
 

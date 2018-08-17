@@ -542,7 +542,7 @@ VERSION_FILE := $(if $(wildcard $(builddir)/.local-version),$(builddir)/.local-v
 # to manage the nlunit-test repo. Two directories need to be writable
 # to facilitate this.
 #
-DISTCHECK_CONFIGURE_FLAGS = `chmod u+w .. ../third_party`
+DISTCHECK_CONFIGURE_FLAGS = `chmod u+w ../.. ../../third_party`
 all: $(BUILT_SOURCES)
 	$(MAKE) $(AM_MAKEFLAGS) all-recursive
 
