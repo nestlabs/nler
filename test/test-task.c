@@ -115,7 +115,7 @@ static void taskEntryB(void *aParams)
     int                        status;
 
 
-    NL_LOG_CRIT(lrTEST, "from the task: '%s' (%08x)\n", name);
+    NL_LOG_CRIT(lrTEST, "from the task: '%s'\n", name);
 
     status = strcmp(name, data->mName);
     NLER_ASSERT(status == 0);
