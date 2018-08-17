@@ -478,6 +478,7 @@ MAYBE_UTILITIES_SUBDIRS = $(NULL) $(am__append_1)
 
 # Unconditionally build these subdirectories.
 SUBDIRS = \
+    third_party                             \
     include                                 \
     shared                                  \
     arch                                    \
