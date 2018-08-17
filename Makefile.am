@@ -56,6 +56,7 @@ endif # NLER_BUILD_UTILITIES
 # Unconditionally build these subdirectories.
 
 SUBDIRS                                   = \
+    third_party                             \
     include                                 \
     shared                                  \
     arch                                    \
