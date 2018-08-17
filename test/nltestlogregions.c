@@ -1,6 +1,6 @@
 /*
  *
- *    Copyright (c) 2014 Nest Labs, Inc.
+ *    Copyright (c) 2014-2018 Nest Labs, Inc.
  *    All rights reserved.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,8 +18,8 @@
 
 /**
  *    @file
- *      This file implements shared test infrastructure for all NLER
- *      unit tests that exercise logging.
+ *      This file implements application-specific log regions used by
+ *      NLER unit tests.
  */
 
 #include <stdint.h>

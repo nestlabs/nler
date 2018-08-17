@@ -43,6 +43,7 @@ lib_LIBRARIES                                  = \
 # makefile.
 
 AM_CPPFLAGS                                    = \
+    -DNLER_APPLICATION_LOG_REGION_FILE=\"nltestlogregions.h\" \
     -I$(top_srcdir)/include                      \
     $(NULL)
 
@@ -69,12 +70,11 @@ check_PROGRAMS                                 = \
     test-atomic                                  \
     test-earlyevent                              \
     test-event                                   \
+    test-eventqueue                              \
     test-lock                                    \
     test-nlmathutil                              \
     test-pooledevent                             \
-    test-subpub                                  \
     test-task                                    \
-    test-timer                                   \
     $(NULL)
 
 if NLER_BUILD_FLOW_TRACER
@@ -88,6 +88,13 @@ check_PROGRAMS                                += \
     test-settings                                \
     $(NULL)
 endif # NLER_BUILD_UTILITIES
+
+if !NLER_BUILD_EVENT_TIMER
+check_PROGRAMS                                += \
+    test-subpub                                  \
+    test-timer                                   \
+    $(NULL)
+endif # !NLER_BUILD_EVENT_TIMER
 
 # Test applications and scripts that should be built and run when the
 # 'check' target is run.
@@ -104,38 +111,41 @@ TESTS_ENVIRONMENT                              = \
 
 # Source, compiler, and linker options for test programs.
 
-test_atomic_SOURCES                      = test-atomic.c
+test_atomic_SOURCES                      = test-atomic.c nltestlogregions.c
 test_atomic_LDADD                        = $(COMMON_LDADD)
 
-test_earlyevent_SOURCES                  = test-earlyevent.c
+test_earlyevent_SOURCES                  = test-earlyevent.c nltestlogregions.c
 test_earlyevent_LDADD                    = $(COMMON_LDADD)
 
-test_event_SOURCES                       = test-event.c test-log.c
+test_event_SOURCES                       = test-event.c nltestlogregions.c
 test_event_LDADD                         = $(COMMON_LDADD)
 
-test_lock_SOURCES                        = test-lock.c
+test_eventqueue_SOURCES                  = test-eventqueue.c nltestlogregions.c
+test_eventqueue_LDADD                    = $(COMMON_LDADD)
+
+test_lock_SOURCES                        = test-lock.c nltestlogregions.c
 test_lock_LDADD                          = $(COMMON_LDADD)
 
-test_nlerflowtracer_SOURCES              = test-nlerflowtracer.c
+test_nlerflowtracer_SOURCES              = test-nlerflowtracer.c nltestlogregions.c
 test_nlerflowtracer_LDADD                = $(COMMON_LDADD)
 
-test_nlmathutil_SOURCES                  = test-nlmathutil.c
+test_nlmathutil_SOURCES                  = test-nlmathutil.c nltestlogregions.c
 test_nlmathutil_LDADD                    = $(COMMON_LDADD)
 
-test_pooledevent_SOURCES                 = test-pooledevent.c
+test_pooledevent_SOURCES                 = test-pooledevent.c nltestlogregions.c
 test_pooledevent_LDADD                   = $(COMMON_LDADD)
 
-test_settings_SOURCES                    = test-settings.c
+test_settings_SOURCES                    = test-settings.c nltestlogregions.c
 test_settings_CPPFLAGS                   = $(AM_CPPFLAGS) -DHAVE_NLER_SETTINGS_APPLICATION_SETTINGS_KEYS -DNLER_SETTINGS_APPLICATION_SETTINGS_KEYS=\"test-settings.h\"
 test_settings_LDADD                      = -L$(top_builddir)/utilities -lnlerutilities $(COMMON_LDADD)
 
-test_subpub_SOURCES                      = test-subpub.c
+test_subpub_SOURCES                      = test-subpub.c nltestlogregions.c
 test_subpub_LDADD                        = $(COMMON_LDADD)
 
-test_task_SOURCES                        = test-task.c
+test_task_SOURCES                        = test-task.c nltestlogregions.c
 test_task_LDADD                          = $(COMMON_LDADD)
 
-test_timer_SOURCES                       = test-timer.c
+test_timer_SOURCES                       = test-timer.c nltestlogregions.c
 test_timer_LDADD                         = $(COMMON_LDADD)
 
 if NLER_BUILD_COVERAGE

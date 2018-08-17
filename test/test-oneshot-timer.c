@@ -37,18 +37,18 @@
 #include "nlertimer_sim.h"
 #endif
 
-nl_task_t taskA;
+nltask_t taskA;
 uint8_t stackA[NLER_TASK_STACK_BASE + 128];
 
 struct taskAData
 {
-    nl_eventqueue_t mTimer;
-    nl_eventqueue_t mQueue;
+    nleventqueue_t mTimer;
+    nleventqueue_t mQueue;
 };
 
 #if NLER_FEATURE_SIMULATEABLE_TIME
 
-nl_task_t taskB;
+nltask_t taskB;
 uint8_t stackB[NLER_TASK_STACK_BASE + 128];
 
 void taskEntryB(void *aParams)
@@ -71,14 +71,14 @@ void taskEntryB(void *aParams)
             nl_unpause_time();
             now = nl_get_time_native();
             NL_LOG_CRIT(lrTEST, "[%c, B, %u] about to sleep for %ums\n", nl_is_time_paused() ? 'P' : 'U', now, sleep_time_ms);
-            nl_task_sleep_ms(sleep_time_ms);
+            nltask_sleep_ms(sleep_time_ms);
         } else {
             now = nl_get_time_native();
             NL_LOG_CRIT(lrTEST, "[%c, B, %u] about to pause\n", nl_is_time_paused() ? 'P' : 'U', now);
             nl_pause_time();
             now = nl_get_time_native();
             NL_LOG_CRIT(lrTEST, "[%c, B, %u] about to sleep for %ums\n", nl_is_time_paused() ? 'P' : 'U', now, sleep_time_ms);
-            nl_task_sleep_ms(sleep_time_ms);
+            nltask_sleep_ms(sleep_time_ms);
         }
     }
 }
@@ -98,11 +98,11 @@ int nl_test_timer_eventhandler(nl_event_t *aEvent, void *aClosure)
 {
     (void)aEvent;
     struct taskAData *data = (struct taskAData *)aClosure;
-    NL_LOG_CRIT(lrTEST, "[%c, %s, %u] timeout\n", nl_is_time_paused() ? 'P' : 'U', nl_task_get_current()->mName, nl_get_time_native());
+    NL_LOG_CRIT(lrTEST, "[%c, %s, %u] timeout\n", nl_is_time_paused() ? 'P' : 'U', nltask_get_current()->mName, nl_get_time_native());
 
     // Repost same timer event
     nl_init_event_timer(&timerev1, 500);
-    nl_eventqueue_post_event(data->mTimer, (nl_event_t *)&timerev1);
+    nleventqueue_post_event(data->mTimer, (nl_event_t *)&timerev1);
 
     return 0;
 }
@@ -111,14 +111,14 @@ int nl_test_default_handler(nl_event_t *aEvent, void *aClosure)
 {
     (void)aClosure;
     NL_LOG_CRIT(lrTEST, "'%s' got event type: %d -- unexpected\n",
-            nl_task_get_current()->mName, aEvent->mType);
+                nltask_get_current()->mName, aEvent->mType);
 
     return 0;
 }
 
 void taskEntryA(void *aParams)
 {
-    nl_task_t *curtask = nl_task_get_current();
+    nltask_t *curtask = nltask_get_current();
     struct taskAData *data = (struct taskAData *)aParams;
 
     NL_LOG_CRIT(lrTEST, "from the task: %s (queue: %08x)\n",
@@ -128,17 +128,17 @@ void taskEntryA(void *aParams)
     timerev1.mReturnQueue = data->mQueue;
 
     nl_init_event_timer(&timerev1, 500);
-    nl_eventqueue_post_event(data->mTimer, (nl_event_t *)&timerev1);
+    nleventqueue_post_event(data->mTimer, (nl_event_t *)&timerev1);
 
 #if NLER_FEATURE_SIMULATEABLE_TIME
-    nl_task_create(taskEntryB, "B", stackB, sizeof(stackB), NLER_TASK_PRIORITY_NORMAL, NULL, &taskB);
+    nltask_create(taskEntryB, "B", stackB, sizeof(stackB), NLER_TASK_PRIORITY_NORMAL, NULL, &taskB);
 #endif
 
     while (1)
     {
         nl_event_t  *ev;
 
-        ev = nl_eventqueue_get_event(data->mQueue);
+        ev = nleventqueue_get_event(data->mQueue);
 
         nl_dispatch_event(ev, nl_test_default_handler, NULL);
     }
@@ -168,9 +168,10 @@ int main(int argc, char **argv)
     NL_LOG_CRIT(lrTEST, "start main (after initializing runtime)\n");
 
     dataA.mTimer = nl_timer_start(NLER_TASK_PRIORITY_HIGH + 1);
-    dataA.mQueue = nl_eventqueue_create(queuememA, sizeof(queuememA));
+    status = nleventqueue_create(queuememA, sizeof(queuememA), &dataA.mQueue);
+    NLER_ASSERT(status == NLER_SUCCESS);
 
-    nl_task_create(taskEntryA, "A", stackA, sizeof(stackA), NLER_TASK_PRIORITY_NORMAL, &dataA, &taskA);
+    nltask_create(taskEntryA, "A", stackA, sizeof(stackA), NLER_TASK_PRIORITY_NORMAL, &dataA, &taskA);
 
     nl_er_start_running();
 
@@ -180,4 +181,3 @@ int main(int argc, char **argv)
 
     return 0;
 }
-

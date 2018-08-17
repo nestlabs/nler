@@ -21,30 +21,115 @@
  *      This file implements a unit test for the NLER event
  *      publish/subscribe interfaces.
  *
+ *      In theory, this test could run forever, with the
+ *      producer/publisher expiring timers and posting "sensor" events
+ *      and the consumer/subscribing getting those events. In
+ *      practice, the test is bounded with a number of expected events
+ *      produced and consumed for each "sensor" type.
+ *
+ *      The test succeeds when the actual number of events meets the
+ *      expected number for both producer and consumer.
+ *
+ *      The test fails if more events are produced or consumed than
+ *      expected or if an errant event occurs.
+ *
  */
 
-#include "nlertask.h"
-#include "nlerinit.h"
+#ifdef nlLOG_PRIORITY
+#undef nlLOG_PRIORITY
+#endif
+#define nlLOG_PRIORITY 1
+
+#include <stdbool.h>
 #include <stdio.h>
-#include "nlerlog.h"
-#include "nlereventqueue.h"
-#include "nlertimer.h"
+#include <stdlib.h>
 #include <string.h>
 
-nl_task_t taskA;
-nl_task_t taskD;
-uint8_t stackA[NLER_TASK_STACK_BASE + 128];
-uint8_t stackD[NLER_TASK_STACK_BASE + 128];
+#include <nlerassert.h>
+#include <nlereventqueue.h>
+#include <nlererror.h>
+#include <nlerinit.h>
+#include <nlerlog.h>
+#include <nlertask.h>
+#include <nlertimer.h>
+
+/*
+ * Preprocessor Defitions
+ */
+
+#define kTHREAD_PUBLISHER_SLEEP_MS 491
+#define kTHREAD_MAIN_SLEEP_MS      241
+
+/**
+ *  The "sensor" updates in this unit test are sent on two timer ticks:
+ *
+ *    - One every kSENSOR_TIMER_1_MS for instantaneous updates of
+ *      current sensor state.
+ *    - One every kSENSOR_TIMER_2_MS for buffered sensor state updates.
+ */
+#define kSENSOR_TIMER_1_MS         293
+#define kSENSOR_TIMER_2_MS         743
+
+/**
+ *  Expected number of sensor events to be produced and consumed for
+ *  each sensor type.
+ */
+#define kSENSOR_TYPE_CO_EXPECTED_EVENTS     11
+#define kSENSOR_TYPE_SMOKE_EXPECTED_EVENTS  13
+#define kSENSOR_TYPE_PIR_EXPECTED_EVENTS    17
+#define kSENSOR_TYPE_TEMP_EXPECTED_EVENTS   19
+
+/**
+ *  The types of "sensors" supported by this unit test.
+ */
+enum
+{
+    kSENSOR_TYPE_CO       = 0,
+    kSENSOR_TYPE_SMOKE    = 1,
+    kSENSOR_TYPE_PIR      = 2,
+    kSENSOR_TYPE_TEMP     = 3,
+
+    kSENSOR_TYPES_MAX
+};
+
+static nltask_t sTaskSubscriber;
+static nltask_t sTaskPublisher;
+static DEFINE_STACK(sStackSubscriber, NLER_TASK_STACK_BASE + 128);
+static DEFINE_STACK(sStackPublisher,  NLER_TASK_STACK_BASE + 128);
 
 /* data types shared across all tasks
  */
 
 typedef struct globalData_s
 {
-    nl_eventqueue_t mTimer;
-    nl_eventqueue_t mDrivers;
-    nl_eventqueue_t mQueue;
+    nleventqueue_t          *mTimerQueue;
+    nleventqueue_t           mPublisher;
+    nleventqueue_t           mSubscriber;
 } globalData_t;
+
+typedef struct sensor_stats_s
+{
+    int32_t                  mExpect;
+    int32_t                  mActual;
+} sensor_stats_t;
+
+typedef struct taskData_s
+{
+    globalData_t            *mGlobals;
+    bool                     mFailed;
+    bool                     mSucceeded;
+} taskData_t;
+
+typedef struct taskSubscriberData_s
+{
+    taskData_t               mData;
+    sensor_stats_t           mReceiveStats[kSENSOR_TYPES_MAX];
+} taskSubscriberData_t;
+
+typedef struct taskPublisherData_s
+{
+    taskData_t               mData;
+} taskPublisherData_t;
 
 #define NUM_SUBS_PER_SENSOR 2
 
@@ -58,52 +143,61 @@ typedef struct bufferState_s
 
 struct nl_sensor_event_s;
 
+typedef struct sensor_sub_stats_s
+{
+    int32_t                      mCurrent;
+    int32_t                      mMinimum;
+    int32_t                      mMaximum;
+} sensor_sub_stats_t;
+
 typedef struct sensor_sub_info_s
 {
     struct nl_sensor_event_s    *mSubs[NUM_SUBS_PER_SENSOR];
-    int                         mNumSubs;
-    int                         mEchosWaiting;
-    bufferState_t               mState;
+    sensor_sub_stats_t           mSubStats;
+    sensor_stats_t               mSendStats;
+    int                          mEchosWaiting;
+    bufferState_t                mState;
 } sensor_sub_info_t;
 
 typedef struct driverData_s
 {
-    globalData_t        *mGlobals;
-    sensor_sub_info_t   mSmoke;
-    sensor_sub_info_t   mCO;
-    sensor_sub_info_t   mPIR;
-    sensor_sub_info_t   mTemp;
-    uint8_t             mBuffer[1024];
+    sensor_sub_info_t       mSmoke;
+    sensor_sub_info_t       mCO;
+    sensor_sub_info_t       mPIR;
+    sensor_sub_info_t       mTemp;
+    uint8_t                 mBuffer[1024];
 } driverData_t;
 
 #define NL_EVENT_T_SENSOR   (NL_EVENT_T_WM_USER + 1)
 
-#define SENSOR_FLAG_CO      1
-#define SENSOR_FLAG_SMOKE   2
-#define SENSOR_FLAG_PIR     4
-#define SENSOR_FLAG_TEMP    8
+#define SENSOR_TYPE_FLAG(aType)  (1 << (aType))
 
-#define SENSOR_TYPE_FLAGS   0x000ff
+#define SENSOR_TYPE_FLAG_CO      SENSOR_TYPE_FLAG(kSENSOR_TYPE_CO)
+#define SENSOR_TYPE_FLAG_SMOKE   SENSOR_TYPE_FLAG(kSENSOR_TYPE_SMOKE)
+#define SENSOR_TYPE_FLAG_PIR     SENSOR_TYPE_FLAG(kSENSOR_TYPE_PIR)
+#define SENSOR_TYPE_FLAG_TEMP    SENSOR_TYPE_FLAG(kSENSOR_TYPE_TEMP)
+
+#define SENSOR_TYPE_MASK         0x000ff
 
 /* request for instantaneous sensor updates
  * at whatever frequency they come in for a
  * given sensor.
  */
 
-#define SENSOR_FLAG_INSTANT  0x10000
+#define SENSOR_FLAG_INSTANT      0x10000
 
 /* request for buffered sensor reports at
  * whatever occasional interval they are reported
  * from the driver layer.
  */
 
-#define SENSOR_FLAG_BUFFERED 0x20000
+#define SENSOR_FLAG_BUFFERED     0x20000
 
 /* cancel the subscription. set this flag and
  * with the next report you will be excluded.
  */
 
-#define SENSOR_FLAG_UNSUB    0x40000
+#define SENSOR_FLAG_UNSUB        0x40000
 
 union instantBuffer_u
 {
@@ -114,10 +208,19 @@ union instantBuffer_u
 typedef struct nl_sensor_event_s
 {
     NL_DECLARE_EVENT
-    nl_eventqueue_t         mReturnQueue;
+    nleventqueue_t         *mReturnQueue;
     uint32_t                mSensorFlags;
     union instantBuffer_u   mSensorUpdate;
 } nl_sensor_event_t;
+
+#define kSENSOR_TIMER_1_ID   1
+#define kSENSOR_TIMER_2_ID   2
+
+typedef struct nl_test_event_timer_s
+{
+    nl_event_timer_t    mTimerEvent;
+    int                 mID;
+} nl_test_event_timer_t;
 
 /* the application task that makes requests of the driver
  * task and responds to sensor events from the driver task
@@ -129,88 +232,140 @@ typedef struct nl_sensor_event_s
  * the event itself to be invoked directly by the event handler.
  */
 
-int nl_test_sensor_eventhandler(nl_event_t *aEvent, void *aClosure);
+static int nl_test_sensor_eventhandler(nl_event_t *aEvent, void *aClosure);
 
-int nl_test_smoke_eventhandler(nl_event_t *aEvent, void *aClosure);
-int nl_test_co_eventhandler(nl_event_t *aEvent, void *aClosure);
-int nl_test_pir_eventhandler(nl_event_t *aEvent, void *aClosure);
-int nl_test_temp_eventhandler(nl_event_t *aEvent, void *aClosure);
+static int nl_test_smoke_eventhandler(nl_event_t *aEvent, void *aClosure);
+static int nl_test_co_eventhandler(nl_event_t *aEvent, void *aClosure);
+static int nl_test_pir_eventhandler(nl_event_t *aEvent, void *aClosure);
+static int nl_test_temp_eventhandler(nl_event_t *aEvent, void *aClosure);
 
-nl_sensor_event_t smokeev =
+static nl_sensor_event_t sSmokeev =
 {
     NL_INIT_EVENT_STATIC(NL_EVENT_T_SENSOR, nl_test_smoke_eventhandler, NULL),
-    NULL, SENSOR_FLAG_SMOKE | SENSOR_FLAG_INSTANT,
+    NULL, SENSOR_TYPE_FLAG_SMOKE | SENSOR_FLAG_INSTANT,
     { 0 },
 };
 
-nl_sensor_event_t coev =
+static nl_sensor_event_t sCoev =
 {
     NL_INIT_EVENT_STATIC(NL_EVENT_T_SENSOR, nl_test_co_eventhandler, NULL),
-    NULL, SENSOR_FLAG_CO | SENSOR_FLAG_INSTANT,
+    NULL, SENSOR_TYPE_FLAG_CO | SENSOR_FLAG_INSTANT,
     { 0 },
 };
 
-nl_sensor_event_t pirev =
+static nl_sensor_event_t sPirev =
 {
     NL_INIT_EVENT_STATIC(NL_EVENT_T_SENSOR, nl_test_pir_eventhandler, NULL),
-    NULL, SENSOR_FLAG_PIR | SENSOR_FLAG_INSTANT,
+    NULL, SENSOR_TYPE_FLAG_PIR | SENSOR_FLAG_INSTANT,
     { 0 },
 };
 
-nl_sensor_event_t tempev =
+static nl_sensor_event_t sTempev =
 {
     NL_INIT_EVENT_STATIC(NL_EVENT_T_SENSOR, nl_test_temp_eventhandler, NULL),
-    NULL, SENSOR_FLAG_TEMP | SENSOR_FLAG_BUFFERED,
+    NULL, SENSOR_TYPE_FLAG_TEMP | SENSOR_FLAG_BUFFERED,
     { 0 },
 };
 
-int nl_test_sensor_eventhandler(nl_event_t *aEvent, void *aClosure)
+static nl_test_event_timer_t sSensortimer1 =
 {
-    const nl_task_t     *curtask = nl_task_get_current();
-    nl_sensor_event_t   *sensor = (nl_sensor_event_t *)aEvent;
-    globalData_t        *data = (globalData_t *)aClosure;
+    {
+        NL_INIT_EVENT_STATIC(NL_EVENT_T_TIMER, NULL, NULL),
+        NULL, 0, 0, 0, 0
+    },
+    kSENSOR_TIMER_1_ID
+};
+
+static nl_test_event_timer_t sSensortimer2 =
+{
+    {
+        NL_INIT_EVENT_STATIC(NL_EVENT_T_TIMER, NULL, NULL),
+        NULL, 0, 0, 0, 0
+    },
+    kSENSOR_TIMER_2_ID
+};
+
+static int nl_test_sensor_eventhandler(nl_event_t *aEvent, void *aClosure)
+{
+    const nltask_t                *curtask = nltask_get_current();
+    nl_sensor_event_t             *sensor = (nl_sensor_event_t *)aEvent;
+    taskSubscriberData_t          *taskData = (taskSubscriberData_t *)aClosure;
+    globalData_t                  *data = taskData->mData.mGlobals;
+    int                            status;
+    int                            retval = NLER_SUCCESS;
 
     (void)curtask;
+
+    NL_LOG_CRIT(lrTEST, "'%s' got event type: %d\n", nltask_get_name(curtask), aEvent->mType);
 
     if (sensor->mSensorFlags & SENSOR_FLAG_INSTANT)
     {
         NL_LOG_DEBUG(lrTEST, "'%s' sensor: %d, instant value: %d\n",
-                     curtask->mName, sensor->mSensorFlags & SENSOR_TYPE_FLAGS,
+                     nltask_get_name(curtask), sensor->mSensorFlags & SENSOR_TYPE_MASK,
                      sensor->mSensorUpdate.mValue);
     }
 
     if (sensor->mSensorFlags & SENSOR_FLAG_BUFFERED)
     {
-        if (pirev.mSensorFlags & SENSOR_FLAG_UNSUB)
+        if (sPirev.mSensorFlags & SENSOR_FLAG_UNSUB)
         {
-            /* the PIR sensor has been unsibscribed from, re-subscribe. */
+            /* the PIR sensor has been unsubscribed from, re-subscribe. */
 
-            pirev.mSensorFlags &= ~SENSOR_FLAG_UNSUB;
-            nl_eventqueue_post_event(data->mDrivers, (nl_event_t *)&pirev);
+            sPirev.mSensorFlags &= ~SENSOR_FLAG_UNSUB;
+            status = nleventqueue_post_event(&data->mPublisher, (nl_event_t *)&sPirev);
+            NLER_ASSERT(status == NLER_SUCCESS);
         }
 
         NL_LOG_DEBUG(lrTEST, "'%s' sensor: %d, buffered values: %d, %d, %d, %p\n",
-                     curtask->mName, sensor->mSensorFlags & SENSOR_TYPE_FLAGS,
+                     nltask_get_name(curtask), sensor->mSensorFlags & SENSOR_TYPE_MASK,
                      sensor->mSensorUpdate.mState->mReadIdx, sensor->mSensorUpdate.mState->mEndIdx,
                      sensor->mSensorUpdate.mState->mBufferEnd, sensor->mSensorUpdate.mState->mBuffer);
 
-        nl_eventqueue_post_event(data->mDrivers, aEvent);
+        status = nleventqueue_post_event(&data->mPublisher, aEvent);
+        NLER_ASSERT(status == NLER_SUCCESS);
     }
 
-    return 0;
+    switch(sensor->mSensorFlags & SENSOR_TYPE_MASK)
+    {
+
+    case SENSOR_TYPE_FLAG_CO:
+        taskData->mReceiveStats[kSENSOR_TYPE_CO].mActual++;
+        break;
+
+    case SENSOR_TYPE_FLAG_SMOKE:
+        taskData->mReceiveStats[kSENSOR_TYPE_SMOKE].mActual++;
+        break;
+
+    case SENSOR_TYPE_FLAG_PIR:
+        taskData->mReceiveStats[kSENSOR_TYPE_PIR].mActual++;
+        break;
+
+    case SENSOR_TYPE_FLAG_TEMP:
+        taskData->mReceiveStats[kSENSOR_TYPE_TEMP].mActual++;
+        break;
+
+    default:
+        taskData->mData.mFailed = true;
+
+        retval = NLER_ERROR_FAILURE;
+        break;
+
+    }
+
+    return retval;
 }
 
-int nl_test_smoke_eventhandler(nl_event_t *aEvent, void *aClosure)
+static int nl_test_smoke_eventhandler(nl_event_t *aEvent, void *aClosure)
 {
     return nl_test_sensor_eventhandler(aEvent, aClosure);
 }
 
-int nl_test_co_eventhandler(nl_event_t *aEvent, void *aClosure)
+static int nl_test_co_eventhandler(nl_event_t *aEvent, void *aClosure)
 {
     return nl_test_sensor_eventhandler(aEvent, aClosure);
 }
 
-int nl_test_pir_eventhandler(nl_event_t *aEvent, void *aClosure)
+static int nl_test_pir_eventhandler(nl_event_t *aEvent, void *aClosure)
 {
     int                 retval = 0;
     nl_sensor_event_t   *sensor = (nl_sensor_event_t *)aEvent;
@@ -224,7 +379,7 @@ int nl_test_pir_eventhandler(nl_event_t *aEvent, void *aClosure)
     return retval;
 }
 
-int nl_test_temp_eventhandler(nl_event_t *aEvent, void *aClosure)
+static int nl_test_temp_eventhandler(nl_event_t *aEvent, void *aClosure)
 {
     return nl_test_sensor_eventhandler(aEvent, aClosure);
 }
@@ -233,110 +388,201 @@ int nl_test_temp_eventhandler(nl_event_t *aEvent, void *aClosure)
  * an event comes in with no predetermined destination.
  */
 
-int nl_test_eventhandler(nl_event_t *aEvent, void *aClosure)
+static int nl_test_default_handler(nl_event_t *aEvent, void *aClosure)
 {
-    const nl_task_t   *curtask = nl_task_get_current();
+    const nltask_t                *curtask = nltask_get_current();
+    taskSubscriberData_t          *taskData = (taskSubscriberData_t *)aClosure;
 
     (void)curtask;
 
-    NL_LOG_CRIT(lrTEST, "'%s' got event type: %d -- unexpected\n", curtask->mName, aEvent->mType);
+    NL_LOG_CRIT(lrTEST, "'%s' got event type: %d -- unexpected\n", nltask_get_name(curtask), aEvent->mType);
+
+    taskData->mData.mFailed = true;
 
     return 0;
 }
 
-void taskEntryA(void *aParams)
+static void check_succeeded_or_failed(const nltask_t *aTask, uint8_t aType, const sensor_stats_t *aStats, bool *aOutSucceeded, bool *aOutFailed)
 {
-    const nl_task_t       *curtask = nl_task_get_current();
-    globalData_t          *data = (globalData_t *)aParams;
+    NL_LOG_DEBUG(lrTEST, "'%s': sensor %d: expected %d actual %d\n",
+                 nltask_get_name(aTask),
+                 SENSOR_TYPE_FLAG(aType),
+                 aStats->mExpect,
+                 aStats->mActual);
 
-    (void)curtask;
+    if (aStats->mActual > aStats->mExpect)
+        *aOutFailed = true;
+    else if (aStats->mActual < aStats->mExpect)
+        *aOutSucceeded = false;
+}
 
-    NL_LOG_CRIT(lrTEST, "from the task: %s (queue: %08x)\n", curtask->mName, data->mQueue);
+static bool subscriber_is_testing(volatile const taskData_t *aData)
+{
+    bool retval;
 
-    smokeev.mHandlerClosure = data;
-    smokeev.mReturnQueue = data->mQueue;
+    retval = (!aData->mFailed && !aData->mSucceeded);
 
-    coev.mHandlerClosure = data;
-    coev.mReturnQueue = data->mQueue;
+    return (retval);
+}
 
-    pirev.mHandlerClosure = data;
-    pirev.mReturnQueue = data->mQueue;
+/**
+ *  Subscriber (consumer) task
+ */
+static void taskEntrySubscriber(void *aParams)
+{
+    const nltask_t                   *curtask = nltask_get_current();
+    const char                       *name = nltask_get_name(curtask);
+    taskSubscriberData_t             *taskData = (taskSubscriberData_t *)aParams;
+    globalData_t                     *data = taskData->mData.mGlobals;
+    int                               status;
 
-    tempev.mHandlerClosure = data;
-    tempev.mReturnQueue = data->mQueue;
+    (void)name;
+
+    NL_LOG_CRIT(lrTEST, "from the task: %s (queue: %p)\n", name, data->mSubscriber);
+
+    sSmokeev.mHandlerClosure = (void *)taskData;
+    sSmokeev.mReturnQueue = &data->mSubscriber;
+
+    sCoev.mHandlerClosure = (void *)taskData;
+    sCoev.mReturnQueue = &data->mSubscriber;
+
+    sPirev.mHandlerClosure = (void *)taskData;
+    sPirev.mReturnQueue = &data->mSubscriber;
+
+    sTempev.mHandlerClosure = (void *)taskData;
+    sTempev.mReturnQueue = &data->mSubscriber;
 
     /* subscribe to the sensors described by the events.
      * the events used to subscribe will be echoed back
      * when sensor activity occurs.
      */
 
-    nl_eventqueue_post_event(data->mDrivers, (nl_event_t *)&smokeev);
-    nl_eventqueue_post_event(data->mDrivers, (nl_event_t *)&coev);
-    nl_eventqueue_post_event(data->mDrivers, (nl_event_t *)&pirev);
-    nl_eventqueue_post_event(data->mDrivers, (nl_event_t *)&tempev);
+    status = nleventqueue_post_event(&data->mPublisher, (nl_event_t *)&sSmokeev);
+    NLER_ASSERT(status == NLER_SUCCESS);
 
-    while (1)
+    status = nleventqueue_post_event(&data->mPublisher, (nl_event_t *)&sCoev);
+    NLER_ASSERT(status == NLER_SUCCESS);
+
+    status = nleventqueue_post_event(&data->mPublisher, (nl_event_t *)&sPirev);
+    NLER_ASSERT(status == NLER_SUCCESS);
+
+    status = nleventqueue_post_event(&data->mPublisher, (nl_event_t *)&sTempev);
+    NLER_ASSERT(status == NLER_SUCCESS);
+
+    while (subscriber_is_testing(&taskData->mData))
     {
         nl_event_t  *ev;
+        size_t       i;
+        bool         succeeded = true;
+        bool         failed = false;
 
-        ev = nl_eventqueue_get_event(data->mQueue);
+        ev = nleventqueue_get_event(&data->mSubscriber);
 
-        nl_dispatch_event(ev, nl_test_eventhandler, NULL);
+        nl_dispatch_event(ev, nl_test_default_handler, NULL);
+
+        for (i = 0; i < kSENSOR_TYPES_MAX; i++)
+        {
+            const sensor_stats_t *mStats = &taskData->mReceiveStats[i];
+
+            check_succeeded_or_failed(curtask, i, mStats, &succeeded, &failed);
+        }
+
+        NL_LOG_CRIT(lrTEST, "'%s' %s number of expected events\n", name, ((succeeded) ? "successfully received" : ((failed) ? "failed to receive" : "has not yet received")));
+
+        if (succeeded)
+            taskData->mData.mSucceeded = true;
+
+        if (failed)
+            taskData->mData.mFailed = true;
     }
+
+    NL_LOG_CRIT(lrTEST, "'%s' exiting\n", name);
 }
 
-/* the driver tasks that handles subscriptions, takes input from
- * the individual drivers (not illustrated in this example), and
- * sends updates out to the subscribers. the updates in this example
- * are sent on two timer ticks: one per-second for instantaneous
- * updates of current sensor state and one every thirty seconds for
- * buffered sensor state updates.
+/**
+ *  The driver tasks that handles subscriptions, takes input from
+ *  the individual drivers (not illustrated in this example), and
+ *  sends updates out to the subscribers. The updates in this example
+ *  are sent on two timer ticks:
+ *
+ *    - One every kSENSOR_TIMER_1_MS for instantaneous updates of
+ *      current sensor state.
+ *    - One every kSENSOR_TIMER_2_MS for buffered sensor state updates.
  */
-
-int check_for_unsubscribe(sensor_sub_info_t *aSubInfo, int aIndex)
+static bool check_for_unsubscribe(sensor_sub_info_t *aSubInfo, int aIndex)
 {
-    int               retval = 0;
-    const nl_task_t   *curtask = nl_task_get_current();
+    bool               retval = false;
+    const nltask_t    *curtask = nltask_get_current();
 
     (void)curtask;
 
     if (aSubInfo->mSubs[aIndex]->mSensorFlags & SENSOR_FLAG_UNSUB)
     {
-        NL_LOG_CRIT(lrTEST, "'%s' removing subscriber for sensor type %x (now %d)\n",
-                    curtask->mName, aSubInfo->mSubs[aIndex]->mSensorFlags, (aSubInfo->mNumSubs - 1));
+        NL_LOG_CRIT(lrTEST, "'%s' removing subscriber for sensor type %x (subscriber count now %d)\n",
+                    nltask_get_name(curtask), aSubInfo->mSubs[aIndex]->mSensorFlags & SENSOR_TYPE_MASK, (aSubInfo->mSubStats.mCurrent - 1));
 
-        if (aIndex < (aSubInfo->mNumSubs - 1))
+        if (aIndex < (aSubInfo->mSubStats.mCurrent - 1))
         {
             memmove(&aSubInfo->mSubs[aIndex], &aSubInfo->mSubs[aIndex + 1],
-                    sizeof(nl_sensor_event_t *) * ((aSubInfo->mNumSubs - 1) - aIndex));
+                    sizeof(nl_sensor_event_t *) * ((aSubInfo->mSubStats.mCurrent - 1) - aIndex));
         }
 
-        aSubInfo->mNumSubs--;
+        aSubInfo->mSubStats.mCurrent--;
 
-        retval = 1;
+        if (aSubInfo->mSubStats.mCurrent < aSubInfo->mSubStats.mMinimum)
+        {
+            aSubInfo->mSubStats.mMinimum = aSubInfo->mSubStats.mCurrent;
+        }
+
+        retval = true;
     }
 
     return retval;
 }
 
-void send_instant_sensor_events(sensor_sub_info_t *aSubInfo)
+static bool check_for_test_completion(const nltask_t *aTask, uint8_t aType, const sensor_stats_t *aStats)
+{
+    const bool retval = (aStats->mActual >= aStats->mExpect);
+
+    return retval;
+}
+
+static void send_instant_sensor_events(sensor_sub_info_t *aSubInfo)
 {
     int idx;
+    int status;
 
-    for (idx = 0; idx < aSubInfo->mNumSubs; idx++)
+    for (idx = 0; idx < aSubInfo->mSubStats.mCurrent; idx++)
     {
         if (aSubInfo->mSubs[idx] != NULL)
         {
+            /* Check for any unsubscription requests that came in and
+             * handle them.
+             */
             if (check_for_unsubscribe(aSubInfo, idx))
             {
                 idx--;
                 continue;
             }
 
+            /* Check to see whether the publisher has sent all the
+             * events required for the test. If so, skip to the next
+             * "sensor".
+             */
+            if (check_for_test_completion(nltask_get_current(), aSubInfo->mSubs[idx]->mSensorFlags & SENSOR_TYPE_MASK, &aSubInfo->mSendStats))
+            {
+                continue;
+            }
+
+            /* Send the "sensor" instant events to subscribers.
+             */
             if (aSubInfo->mSubs[idx]->mSensorFlags & SENSOR_FLAG_INSTANT)
             {
                 aSubInfo->mSubs[idx]->mSensorUpdate.mValue = nl_get_time_native() + idx;
-                nl_eventqueue_post_event(aSubInfo->mSubs[idx]->mReturnQueue, (nl_event_t *)aSubInfo->mSubs[idx]);
+                status = nleventqueue_post_event(aSubInfo->mSubs[idx]->mReturnQueue, (nl_event_t *)aSubInfo->mSubs[idx]);
+                NLER_ASSERT(status == NLER_SUCCESS);
+
+                aSubInfo->mSendStats.mActual++;
             }
         }
     }
@@ -345,71 +591,65 @@ void send_instant_sensor_events(sensor_sub_info_t *aSubInfo)
 void send_buffered_sensor_events(sensor_sub_info_t *aSubInfo)
 {
     int idx;
+    int status;
 
-    for (idx = 0; idx < aSubInfo->mNumSubs; idx++)
+    for (idx = 0; idx < aSubInfo->mSubStats.mCurrent; idx++)
     {
         if (aSubInfo->mSubs[idx] != NULL)
         {
+            /* Check for any unsubscription requests that came in and
+             * handle them.
+             */
             if (check_for_unsubscribe(aSubInfo, idx))
             {
                 idx--;
                 continue;
             }
 
+            /* Check to see whether the publisher has sent all the
+             * events required for the test. If so, skip to the next
+             * "sensor".
+             */
+            if (check_for_test_completion(nltask_get_current(), aSubInfo->mSubs[idx]->mSensorFlags & SENSOR_TYPE_MASK, &aSubInfo->mSendStats))
+            {
+                continue;
+            }
+
+            /* Send the "sensor" buffered events to subscribers.
+             */
             if (aSubInfo->mSubs[idx]->mSensorFlags & SENSOR_FLAG_BUFFERED)
             {
                 aSubInfo->mEchosWaiting++;
 
                 aSubInfo->mSubs[idx]->mSensorUpdate.mState = &aSubInfo->mState;
 
-                nl_eventqueue_post_event(aSubInfo->mSubs[idx]->mReturnQueue, (nl_event_t *)aSubInfo->mSubs[idx]);
+                status = nleventqueue_post_event(aSubInfo->mSubs[idx]->mReturnQueue, (nl_event_t *)aSubInfo->mSubs[idx]);
+                NLER_ASSERT(status == NLER_SUCCESS);
+
+                aSubInfo->mSendStats.mActual++;
             }
         }
     }
 }
 
-typedef struct nl_test_event_timer_s
+static bool nl_driver_timer_eventhandler(nl_test_event_timer_t *aEvent, driverData_t *aData)
 {
-    nl_event_timer_t    mTimerEvent;
-    int                 mID;
-} nl_test_event_timer_t;
-
-nl_test_event_timer_t sensortimer1 =
-{
-    {
-        NL_INIT_EVENT_STATIC(NL_EVENT_T_TIMER, NULL, NULL),
-        NULL, 0, 0, 0, 0
-    },
-    1
-};
-
-nl_test_event_timer_t sensortimer2 =
-{
-    {
-        NL_INIT_EVENT_STATIC(NL_EVENT_T_TIMER, NULL, NULL),
-        NULL, 0, 0, 0, 0
-    },
-    2
-};
-
-int nl_driver_timer_eventhandler(nl_test_event_timer_t *aEvent, driverData_t *aData)
-{
-    const nl_task_t   *curtask = nl_task_get_current();
+    const nltask_t    *curtask = nltask_get_current();
 
     (void)curtask;
 
-    NL_LOG_CRIT(lrTEST, "'%s' sensor timeout: %d\n", curtask->mName, aEvent->mID);
+    NL_LOG_CRIT(lrTEST, "'%s' sensor timeout: %d\n", nltask_get_name(curtask), aEvent->mID);
 
     switch (aEvent->mID)
     {
-        case 1:
+        case kSENSOR_TIMER_1_ID:
             send_instant_sensor_events(&aData->mCO);
             send_instant_sensor_events(&aData->mSmoke);
             send_instant_sensor_events(&aData->mPIR);
             send_instant_sensor_events(&aData->mTemp);
             break;
 
-        case 2:
+        case kSENSOR_TIMER_2_ID:
             send_buffered_sensor_events(&aData->mCO);
             send_buffered_sensor_events(&aData->mSmoke);
             send_buffered_sensor_events(&aData->mPIR);
@@ -420,18 +660,18 @@ int nl_driver_timer_eventhandler(nl_test_event_timer_t *aEvent, driverData_t *aD
             break;
     }
 
-    return 0;
+    return false;
 }
 
-int echo_or_add_sub(sensor_sub_info_t *aSubInfo, nl_sensor_event_t *aEvent)
+static bool echo_or_add_sub(sensor_sub_info_t *aSubInfo, nl_sensor_event_t *aEvent)
 {
-    int               retval = 0;
+    bool              retval = false;
     int               idx;
-    const nl_task_t   *curtask = nl_task_get_current();
+    const nltask_t   *curtask = nltask_get_current();
 
     (void)curtask;
 
-    for (idx = 0; idx < aSubInfo->mNumSubs; idx++)
+    for (idx = 0; idx < aSubInfo->mSubStats.mCurrent; idx++)
     {
         if (aSubInfo->mSubs[idx] == aEvent)
         {
@@ -440,76 +680,81 @@ int echo_or_add_sub(sensor_sub_info_t *aSubInfo, nl_sensor_event_t *aEvent)
                 aSubInfo->mEchosWaiting--;
 
                 if (aSubInfo->mEchosWaiting == 0)
-                    retval = 1;
+                    retval = true;
             }
             else
             {
                 NL_LOG_CRIT(lrTEST, "'%s' got echo for sensor type %x with no echos waiting\n",
-                            curtask->mName, aEvent->mSensorFlags);
+                            nltask_get_name(curtask), aEvent->mSensorFlags);
             }
 
             break;
         }
     }
 
-    if (idx == aSubInfo->mNumSubs)
+    if (idx == aSubInfo->mSubStats.mCurrent)
     {
-        if (aSubInfo->mNumSubs < NUM_SUBS_PER_SENSOR)
+        if (aSubInfo->mSubStats.mCurrent < NUM_SUBS_PER_SENSOR)
         {
-            aSubInfo->mSubs[aSubInfo->mNumSubs++] = aEvent;
+            aSubInfo->mSubs[aSubInfo->mSubStats.mCurrent++] = aEvent;
 
-            NL_LOG_CRIT(lrTEST, "'%s' added subscriber for sensor type %x (now %d)\n",
-                        curtask->mName, aEvent->mSensorFlags, aSubInfo->mNumSubs);
+            NL_LOG_CRIT(lrTEST, "'%s' added subscriber for sensor type %x (subscriber count now %d)\n",
+                        nltask_get_name(curtask), aEvent->mSensorFlags & SENSOR_TYPE_MASK, aSubInfo->mSubStats.mCurrent);
+
+            if (aSubInfo->mSubStats.mCurrent > aSubInfo->mSubStats.mMaximum)
+            {
+                aSubInfo->mSubStats.mMaximum = aSubInfo->mSubStats.mCurrent;
+            }
         }
     }
 
     return retval;
 }
 
-int nl_driver_sensor_eventhandler(nl_sensor_event_t *aEvent, driverData_t *aData)
+static bool nl_driver_sensor_eventhandler(nl_sensor_event_t *aEvent, driverData_t *aData)
 {
-    int               retval;
-    const nl_task_t   *curtask = nl_task_get_current();
+    bool               retval;
+    const nltask_t    *curtask = nltask_get_current();
 
     (void)curtask;
 
-    if (aEvent->mSensorFlags & SENSOR_FLAG_CO)
+    if (aEvent->mSensorFlags & SENSOR_TYPE_FLAG_CO)
     {
         retval = echo_or_add_sub(&aData->mCO, aEvent);
     }
 
-    if (aEvent->mSensorFlags & SENSOR_FLAG_SMOKE)
+    if (aEvent->mSensorFlags & SENSOR_TYPE_FLAG_SMOKE)
     {
         retval = echo_or_add_sub(&aData->mSmoke, aEvent);
     }
 
-    if (aEvent->mSensorFlags & SENSOR_FLAG_PIR)
+    if (aEvent->mSensorFlags & SENSOR_TYPE_FLAG_PIR)
     {
         retval = echo_or_add_sub(&aData->mPIR, aEvent);
     }
 
-    if (aEvent->mSensorFlags & SENSOR_FLAG_TEMP)
+    if (aEvent->mSensorFlags & SENSOR_TYPE_FLAG_TEMP)
     {
         retval = echo_or_add_sub(&aData->mTemp, aEvent);
     }
 
-    if (retval == 1)
+    if (retval == true)
     {
         NL_LOG_DEBUG(lrTEST, "'%s' sensor type %d has received all echos, ready to send another buffer\n",
-                     curtask->mName, aEvent->mSensorFlags & SENSOR_TYPE_FLAGS);
+                     nltask_get_name(curtask), aEvent->mSensorFlags & SENSOR_TYPE_MASK);
     }
 
-    return 0;
+    return false;
 }
 
-int nl_test_driver_eventhandler(nl_event_t *aEvent, driverData_t *aData)
+static bool nl_test_driver_eventhandler(nl_event_t *aEvent, driverData_t *aData)
 {
-    int               retval = 0;
-    const nl_task_t   *curtask = nl_task_get_current();
+    bool               retval = false;
+    const nltask_t    *curtask = nltask_get_current();
 
     (void)curtask;
 
-    NL_LOG_CRIT(lrTEST, "'%s' got event type: %d\n", curtask->mName, aEvent->mType);
+    NL_LOG_CRIT(lrTEST, "'%s' got event type: %d\n", nltask_get_name(curtask), aEvent->mType);
 
     switch (aEvent->mType)
     {
@@ -528,86 +773,240 @@ int nl_test_driver_eventhandler(nl_event_t *aEvent, driverData_t *aData)
     return retval;
 }
 
-void send_sensor_timer(nl_test_event_timer_t *aEvent, nl_eventqueue_t aQueue, nl_time_ms_t aTimeoutMS)
+static int send_sensor_timer(nleventqueue_t *aTimerQueue, nl_test_event_timer_t *aEvent, nl_time_ms_t aTimeoutMS)
 {
+    int status;
+
     nl_init_event_timer(&aEvent->mTimerEvent, aTimeoutMS);
-    nl_eventqueue_post_event(aQueue, (nl_event_t *)aEvent);
+
+    status = nleventqueue_post_event(aTimerQueue, (nl_event_t *)aEvent);
+
+    return status;
 }
 
-void taskEntryD(void *aParams)
+static bool publisher_is_testing(volatile const taskData_t *aData)
 {
-    const nl_task_t           *curtask = nl_task_get_current();
-    globalData_t              *data = (globalData_t *)aParams;
-    static driverData_t       ddata;
+    bool retval;
 
-    (void)curtask;
+    retval = (!aData->mFailed && !aData->mSucceeded);
 
-    NL_LOG_CRIT(lrTEST, "from the task: %s (queue: %08x)\n", curtask->mName, data->mQueue);
+    return (retval);
+}
+
+/**
+ *  Producer (producer) task
+ */
+static void taskEntryPublisher(void *aParams)
+{
+    const nltask_t                     *curtask = nltask_get_current();
+    const char                         *name = nltask_get_name(curtask);
+    taskPublisherData_t                *taskData = (taskPublisherData_t *)aParams;
+    globalData_t                       *data = taskData->mData.mGlobals;
+    static driverData_t                 ddata;
+    int                                 status;
+
+    (void)name;
+
+    NL_LOG_CRIT(lrTEST, "from the task: %s (queue: %p)\n", name, data->mSubscriber);
 
     memset(&ddata, 0, sizeof(ddata));
 
     ddata.mSmoke.mState.mBuffer = ddata.mBuffer;
     ddata.mSmoke.mState.mBufferEnd = sizeof(ddata.mBuffer);
+    ddata.mSmoke.mSendStats.mActual = 0;
+    ddata.mSmoke.mSendStats.mExpect = kSENSOR_TYPE_SMOKE_EXPECTED_EVENTS;
 
     ddata.mCO.mState.mBuffer = ddata.mBuffer;
     ddata.mCO.mState.mBufferEnd = sizeof(ddata.mBuffer);
+    ddata.mCO.mSendStats.mActual = 0;
+    ddata.mCO.mSendStats.mExpect = kSENSOR_TYPE_CO_EXPECTED_EVENTS;
 
     ddata.mPIR.mState.mBuffer = ddata.mBuffer;
     ddata.mPIR.mState.mBufferEnd = sizeof(ddata.mBuffer);
+    ddata.mPIR.mSendStats.mActual = 0;
+    ddata.mPIR.mSendStats.mExpect = kSENSOR_TYPE_PIR_EXPECTED_EVENTS;
 
     ddata.mTemp.mState.mBuffer = ddata.mBuffer;
     ddata.mTemp.mState.mBufferEnd = sizeof(ddata.mBuffer);
+    ddata.mTemp.mSendStats.mActual = 0;
+    ddata.mTemp.mSendStats.mExpect = kSENSOR_TYPE_TEMP_EXPECTED_EVENTS;
 
-    sensortimer1.mTimerEvent.mFlags = NLER_TIMER_FLAG_REPEAT;
-    sensortimer1.mTimerEvent.mHandlerClosure = data;
-    sensortimer1.mTimerEvent.mReturnQueue = data->mDrivers;
+    sSensortimer1.mTimerEvent.mFlags = NLER_TIMER_FLAG_REPEAT;
+    sSensortimer1.mTimerEvent.mHandlerClosure = (void *)data;
+    sSensortimer1.mTimerEvent.mReturnQueue = &data->mPublisher;
 
-    sensortimer2.mTimerEvent.mFlags = NLER_TIMER_FLAG_REPEAT;
-    sensortimer2.mTimerEvent.mHandlerClosure = data;
-    sensortimer2.mTimerEvent.mReturnQueue = data->mDrivers;
+    sSensortimer2.mTimerEvent.mFlags = NLER_TIMER_FLAG_REPEAT;
+    sSensortimer2.mTimerEvent.mHandlerClosure = (void *)data;
+    sSensortimer2.mTimerEvent.mReturnQueue = &data->mPublisher;
 
-    send_sensor_timer(&sensortimer1, data->mTimer, 1000);
-    send_sensor_timer(&sensortimer2, data->mTimer, 30000);
+    status = send_sensor_timer(data->mTimerQueue, &sSensortimer1, kSENSOR_TIMER_1_MS);
+    NLER_ASSERT(status == NLER_SUCCESS);
 
-    while (1)
+    status = send_sensor_timer(data->mTimerQueue, &sSensortimer2, kSENSOR_TIMER_2_MS);
+    NLER_ASSERT(status == NLER_SUCCESS);
+
+    while (publisher_is_testing(&taskData->mData))
     {
         nl_event_t  *ev;
+        bool         succeeded = true;
+        bool         failed = false;
 
-        ev = nl_eventqueue_get_event(data->mDrivers);
+        ev = nleventqueue_get_event(&data->mPublisher);
 
         nl_test_driver_eventhandler(ev, &ddata);
+
+        check_succeeded_or_failed(curtask, kSENSOR_TYPE_CO, &ddata.mCO.mSendStats, &succeeded, &failed);
+        check_succeeded_or_failed(curtask, kSENSOR_TYPE_SMOKE, &ddata.mSmoke.mSendStats, &succeeded, &failed);
+        check_succeeded_or_failed(curtask, kSENSOR_TYPE_PIR, &ddata.mPIR.mSendStats, &succeeded, &failed);
+        check_succeeded_or_failed(curtask, kSENSOR_TYPE_TEMP, &ddata.mTemp.mSendStats, &succeeded, &failed);
+
+        NL_LOG_CRIT(lrTEST, "'%s' %s number of expected events\n", name, ((succeeded) ? "successfully sent" : ((failed) ? "failed to send" : "has not yet sent")));
+
+        if (succeeded || failed)
+        {
+            /* The test is done (success or failure), the publisher
+             * may now shut down the timers.
+             */
+            sSensortimer1.mTimerEvent.mFlags |= NLER_TIMER_FLAG_CANCELLED;
+            sSensortimer2.mTimerEvent.mFlags |= NLER_TIMER_FLAG_CANCELLED;
+
+            if (succeeded)
+                taskData->mData.mSucceeded = true;
+
+            if (failed)
+                taskData->mData.mFailed = true;
+
+            nltask_sleep_ms(kTHREAD_PUBLISHER_SLEEP_MS);
+        }
     }
+
+    NL_LOG_CRIT(lrTEST, "'%s' exiting\n", name);
 }
 
-int main(int argc, char **argv)
+static bool is_testing(volatile const taskData_t *aSubscriber,
+                       volatile const taskData_t *aPublisher)
 {
-    globalData_t    globals;
-    nl_event_t      *queuememA[50];
-    nl_event_t      *queuememD[50];
+    bool retval = false;
 
-    NL_LOG_CRIT(lrTEST, "start main\n");
+    if ((!aSubscriber->mFailed && !aPublisher->mFailed) &&
+        (!aSubscriber->mSucceeded && !aPublisher->mSucceeded))
+    {
+        retval = true;
+    }
 
-    nl_er_init();
+    return retval;
+}
 
-    NL_LOG_CRIT(lrTEST, "start main (after initializing runtime)\n");
+static bool was_successful(volatile const taskData_t *aSubscriber,
+                           volatile const taskData_t *aPublisher)
+{
+    bool retval = false;
+
+    if (aSubscriber->mFailed || aPublisher->mFailed)
+        retval = false;
+    else if (aSubscriber->mSucceeded && aPublisher->mSucceeded)
+        retval = true;
+
+    return retval;
+}
+
+bool nler_subpub_test(nleventqueue_t *aTimerQueue)
+{
+    globalData_t                      globals;
+    taskSubscriberData_t              taskDataSubscriber;
+    taskPublisherData_t               taskDataPublisher;
+    nl_event_t                       *queuememSubscriber[50];
+    nl_event_t                       *queuememPublisher[50];
+    int                               status;
+    bool                              retval;
+
 
     /* the global data contains all of the event queues used for task
      * to task communication (timer, driver and application).
      */
 
-    globals.mTimer = nl_timer_start(NLER_TASK_PRIORITY_HIGH);
-    globals.mDrivers = nl_eventqueue_create(queuememD, sizeof(queuememD));
-    globals.mQueue = nl_eventqueue_create(queuememA, sizeof(queuememA));
+    globals.mTimerQueue = aTimerQueue;
+    NLER_ASSERT(globals.mTimerQueue != NULL);
 
-    nl_task_create(taskEntryA, "A", stackA, sizeof(stackA), NLER_TASK_PRIORITY_LOW, &globals, &taskA);
-    nl_task_create(taskEntryD, "D", stackD, sizeof(stackD), NLER_TASK_PRIORITY_NORMAL, &globals, &taskD);
+    status = nleventqueue_create(queuememPublisher, sizeof(queuememPublisher), &globals.mPublisher);
+    NLER_ASSERT(status == NLER_SUCCESS);
 
+    status = nleventqueue_create(queuememSubscriber, sizeof(queuememSubscriber), &globals.mSubscriber);
+    NLER_ASSERT(status == NLER_SUCCESS);
+
+    taskDataSubscriber.mData.mGlobals = &globals;
+    taskDataSubscriber.mData.mFailed = false;
+    taskDataSubscriber.mData.mSucceeded = false;
+    taskDataSubscriber.mReceiveStats[kSENSOR_TYPE_CO].mActual    = 0;
+    taskDataSubscriber.mReceiveStats[kSENSOR_TYPE_CO].mExpect    = kSENSOR_TYPE_CO_EXPECTED_EVENTS;
+    taskDataSubscriber.mReceiveStats[kSENSOR_TYPE_SMOKE].mActual = 0;
+    taskDataSubscriber.mReceiveStats[kSENSOR_TYPE_SMOKE].mExpect = kSENSOR_TYPE_SMOKE_EXPECTED_EVENTS;
+    taskDataSubscriber.mReceiveStats[kSENSOR_TYPE_PIR].mActual   = 0;
+
+    taskDataSubscriber.mReceiveStats[kSENSOR_TYPE_PIR].mExpect   = kSENSOR_TYPE_PIR_EXPECTED_EVENTS;
+    taskDataSubscriber.mReceiveStats[kSENSOR_TYPE_TEMP].mActual  = 0;
+    taskDataSubscriber.mReceiveStats[kSENSOR_TYPE_TEMP].mExpect  = kSENSOR_TYPE_TEMP_EXPECTED_EVENTS;
+
+    taskDataPublisher.mData.mGlobals = &globals;
+    taskDataPublisher.mData.mFailed = false;
+    taskDataPublisher.mData.mSucceeded = false;
+
+    nltask_create(taskEntrySubscriber,
+                  "Subscriber",
+                  sStackSubscriber,
+                  sizeof (sStackSubscriber),
+                  NLER_TASK_PRIORITY_LOW,
+                  (void *)&taskDataSubscriber,
+                  &sTaskSubscriber);
+    nltask_create(taskEntryPublisher,
+                  "Publisher",
+                  sStackPublisher,
+                  sizeof(sStackPublisher),
+                  NLER_TASK_PRIORITY_NORMAL,
+                  (void *)&taskDataPublisher,
+                  &sTaskPublisher);
+
+    while (is_testing(&taskDataSubscriber.mData, &taskDataPublisher.mData))
+    {
+        nltask_sleep_ms(kTHREAD_MAIN_SLEEP_MS);
+    }
+
+    retval = was_successful(&taskDataSubscriber.mData, &taskDataPublisher.mData);
+
+    return retval;
+}
+
+static void nler_test_timer_stop(nleventqueue_t *aTimerQueue)
+{
+    static const nl_event_timer_t sTimerStopEvent = { NL_INIT_EVENT_STATIC(NL_EVENT_T_EXIT, 0, 0) };
+
+    int status;
+
+    status = nleventqueue_post_event(aTimerQueue, (nl_event_t *)&sTimerStopEvent);
+    NLER_ASSERT(status == NLER_SUCCESS);
+}
+
+int main(int argc, char **argv)
+{
+    nleventqueue_t *queue;
+    bool            status;
+
+    nl_er_init();
+
+    NL_LOG_CRIT(lrTEST, "start main\n");
+
+    queue = nl_timer_start(NLER_TASK_PRIORITY_HIGH);
+    NLER_ASSERT(queue != NULL);
+ 
     nl_er_start_running();
+
+    status = nler_subpub_test(queue);
+
+    nler_test_timer_stop(queue);
 
     nl_er_cleanup();
 
     NL_LOG_CRIT(lrTEST, "end main\n");
 
-    return 0;
+    return (status ? EXIT_SUCCESS : EXIT_FAILURE);
 }
-
