@@ -290,6 +290,7 @@ NLER_BUILD_PLATFORM_PTHREADS = @NLER_BUILD_PLATFORM_PTHREADS@
 NLUNIT_TEST_CPPFLAGS = @NLUNIT_TEST_CPPFLAGS@
 NLUNIT_TEST_LDFLAGS = @NLUNIT_TEST_LDFLAGS@
 NLUNIT_TEST_LIBS = @NLUNIT_TEST_LIBS@
+NLUNIT_TEST_SUBDIRS = @NLUNIT_TEST_SUBDIRS@
 NLUTILITIES_CPPFLAGS = @NLUTILITIES_CPPFLAGS@
 NLUTILITIES_LDFLAGS = @NLUTILITIES_LDFLAGS@
 NLUTILITIES_LIBS = @NLUTILITIES_LIBS@
@@ -372,6 +373,7 @@ psdir = @psdir@
 sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 srcdir = @srcdir@
+subdirs = @subdirs@
 sysconfdir = @sysconfdir@
 target = @target@
 target_alias = @target_alias@
@@ -388,7 +390,11 @@ DIST_SUBDIRS = \
 
 
 # Always build (e.g. for 'make all') these subdirectories.
+#
+# The value of NLUNIT_TEST_SUBDIRS will be populated by configure if
+# --with-nlunit_test=internal
 SUBDIRS = \
+    $(NLUNIT_TEST_SUBDIRS)          \
     $(NULL)
 
 all: all-recursive
@@ -707,6 +713,14 @@ uninstall-am:
 
 
 include $(abs_top_nlbuild_autotools_dir)/automake/pre.am
+
+# NLUNIT_TEST_SUBDIRS is not a permanent part of DIST_SUBDIRS since we do not
+# ever want to include it in a distribution archive; however, when it's been
+# pulled as a 'repo' module, we do want to remove it on invocation of the
+# 'distclean' target. Consequently, we conditionally include it in DIST_SUBDIRS
+# on invocation of 'distclean-recursive'
+
+distclean-recursive: DIST_SUBDIRS += $(NLUNIT_TEST_SUBDIRS)
 
 include $(abs_top_nlbuild_autotools_dir)/automake/post.am
 
