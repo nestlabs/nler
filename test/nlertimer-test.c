@@ -24,7 +24,7 @@
  */
 
 #if NLER_FEATURE_EVENT_TIMER
-#include <nltest.h>
+#include <nlunit-test.h>
 
 #include <nlertimer.h>
 #include <nlmacros.h>
