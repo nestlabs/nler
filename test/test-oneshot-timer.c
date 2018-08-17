@@ -98,7 +98,8 @@ int nl_test_timer_eventhandler(nl_event_t *aEvent, void *aClosure)
 {
     (void)aEvent;
     struct taskAData *data = (struct taskAData *)aClosure;
-    NL_LOG_CRIT(lrTEST, "[%c, %s, %u] timeout\n", nl_is_time_paused() ? 'P' : 'U', nltask_get_current()->mName, nl_get_time_native());
+    NL_LOG_CRIT(lrTEST, "[%c, %s, %u] timeout\n", nl_is_time_paused() ? 'P' : 'U',
+                nltask_get_name(nltask_get_current()), nl_get_time_native());
 
     // Repost same timer event
     nl_init_event_timer(&timerev1, 500);
@@ -111,7 +112,7 @@ int nl_test_default_handler(nl_event_t *aEvent, void *aClosure)
 {
     (void)aClosure;
     NL_LOG_CRIT(lrTEST, "'%s' got event type: %d -- unexpected\n",
-                nltask_get_current()->mName, aEvent->mType);
+                nltask_get_name(nltask_get_current()), aEvent->mType);
 
     return 0;
 }
@@ -122,7 +123,7 @@ void taskEntryA(void *aParams)
     struct taskAData *data = (struct taskAData *)aParams;
 
     NL_LOG_CRIT(lrTEST, "from the task: %s (queue: %08x)\n",
-            curtask->mName, data->mQueue);
+            nltask_get_name(curtask), data->mQueue);
 
     timerev1.mHandlerClosure = data;
     timerev1.mReturnQueue = data->mQueue;
