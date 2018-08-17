@@ -106,7 +106,7 @@ $(nler_docdist_archive): $(nler_docdist_name)
 docdist $(nler_docdist_alias): $(nler_docdist_archive)
 
 clean-local:
-	$(AM_V_at)rm -f -r html
+	$(AM_V_at)rm -f -r html latex
 
 endif # NLER_BUILD_DOCS
 
