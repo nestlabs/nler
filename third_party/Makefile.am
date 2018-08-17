@@ -24,12 +24,24 @@ include $(abs_top_nlbuild_autotools_dir)/automake/pre.am
 
 # Always package (e.g. for 'make dist') these subdirectories.
 
-DIST_SUBDIRS             = \
+DIST_SUBDIRS                      = \
     $(NULL)
 
-# Always build (e.g. for 'make all') these subdirectories.
+# NLUNIT_TEST_SUBDIRS is not a permanent part of DIST_SUBDIRS since we do not
+# ever want to include it in a distribution archive; however, when it's been
+# pulled as a 'repo' module, we do want to remove it on invocation of the
+# 'distclean' target. Consequently, we conditionally include it in DIST_SUBDIRS
+# on invocation of 'distclean-recursive'
 
-SUBDIRS                  = \
+distclean-recursive: DIST_SUBDIRS += $(NLUNIT_TEST_SUBDIRS)
+
+# Always build (e.g. for 'make all') these subdirectories.
+#
+# The value of NLUNIT_TEST_SUBDIRS will be populated by configure if
+# --with-nlunit_test=internal
+
+SUBDIRS                           = \
+    $(NLUNIT_TEST_SUBDIRS)          \
     $(NULL)
 
 include $(abs_top_nlbuild_autotools_dir)/automake/post.am

@@ -69,11 +69,13 @@ EXTRA_DIST                                = \
     CHANGES                                 \
     CONTRIBUTING.md                         \
     LICENSE                                 \
+    Makefile-bootstrap                      \
     README.md                               \
     .default-version                        \
     .travis.yml                             \
     bootstrap                               \
     bootstrap-configure                     \
+    repos.conf                              \
     $(srcdir)/third_party/nlbuild-autotools \
     $(srcdir)/third_party/nlcompiler        \
     $(NULL)
@@ -136,12 +138,12 @@ VERSION                            = $(PACKAGE_VERSION)
 # This is called from $(call check-file,.local-version).
 #
 define check-file-.local-version
-if [ "$(origin NLER_VERSION)" != "file" ]; then \
-    echo "$(NLER_VERSION)" > "$(2)";            \
-else                                                             \
-    $(abs_top_nlbuild_autotools_dir)/scripts/mkversion           \
-        -b "$(NLER_VERSION)" "$(top_srcdir)"    \
-        > "$(2)";                                                \
+if [ "$(origin NLER_VERSION)" != "file" ]; then        \
+    echo "$(NLER_VERSION)" > "$(2)";                   \
+else                                                   \
+    $(abs_top_nlbuild_autotools_dir)/scripts/mkversion \
+        -b "$(NLER_VERSION)" "$(top_srcdir)"           \
+        > "$(2)";                                      \
 fi
 endef
 
@@ -177,9 +179,24 @@ $(distdir)/.dist-version: $(builddir)/.local-version force
 $(distdir)/.dist-version $(builddir)/.local-version:
 	$(call check-file,$(@F))
 
+#
+# When we run 'distcheck' and --with-nlunit_test defaults to 'internal',
+# the nlbuild-autotools infrastructure will attempt to create git paths
+# to manage the nlunit-test repo. Two directories need to be writable
+# to facilitate this.
+#
+DISTCHECK_CONFIGURE_FLAGS=`chmod u+w .. ../third_party`
+
 dist distcheck: $(BUILT_SOURCES)
 
 dist-hook: $(distdir)/.dist-version
+
+#
+# Ensure any locally synchronized repositories defined by 'repos.conf'
+# are cleaned up.
+#
+distclean-local:
+	$(MAKE) -C $(srcdir) -f Makefile-bootstrap clean-repos
 
 #
 # Top-level convenience target for making a documentation-only
