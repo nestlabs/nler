@@ -23,13 +23,48 @@
 
 language: generic
 
-sudo: false
+sudo: required
+
 compiler:
   - clang
   - gcc
 
+before_install:
+  - .travis/before_install.sh
+
 script:
-  - ./configure --enable-coverage && make && make distcheck
+  - .travis/script.sh
 
 after_success:
   - bash <(curl -s https://codecov.io/bash)
+
+matrix:
+  include:
+    - name: "Linux with Automatic Platform Detection against GCC Distribution Sanity Check"
+      env: BUILD_TARGET="linux-auto-gcc-distcheck" CC="gcc"
+      os: linux
+      compiler: gcc
+    - name: "Linux with Automatic Platform Detection against clang/LLVM"
+      env: BUILD_TARGET="linux-auto-clang" CC="clang"
+      os: linux
+      compiler: clang
+    - name: "Linux with Automatic Platform Detection against GCC"
+      env: BUILD_TARGET="linux-auto-gcc" CC="gcc"
+      os: linux
+      compiler: gcc
+    - name: "Linux with Netscape Portable Runtime against clang/LLVM"
+      env: BUILD_TARGET="linux-nspr-clang" CC="clang"
+      os: linux
+      compiler: clang
+    - name: "Linux with Netscape Portable Runtime against GCC"
+      env: BUILD_TARGET="linux-nspr-gcc" CC="gcc"
+      os: linux
+      compiler: gcc
+    - name: "Linux with POSIX Threads against clang/LLVM"
+      env: BUILD_TARGET="linux-pthreads-clang" CC="clang"
+      os: linux
+      compiler: clang
+    - name: "Linux with POSIX Threads against GCC"
+      env: BUILD_TARGET="linux-pthreads-gcc" CC="gcc"
+      os: linux
+      compiler: gcc
