@@ -35,18 +35,15 @@ case "${BUILD_TARGET}" in
 	./configure && make && make distcheck
 	;;
 
-    linux-auto-clang)
-    linux-auto-gcc)
+    linux-auto-clang|linux-auto-gcc)
 	./configure --with-build-platform=auto --enable-coverage && make && make check
 	;;
 
-    linux-nspr-clang)
-    linux-nspr-gcc)
+    linux-nspr-clang|linux-nspr-gcc)
 	./configure --with-build-platform=nspr --enable-coverage && make && make check
 	;;
 
-    linux-pthreads-clang)
-    linux-pthreads-gcc)
+    linux-pthreads-clang|linux-pthreads-gcc)
 	./configure --with-build-platform=pthreads --enable-coverage && make && make check
 	;;
 
