@@ -32,23 +32,35 @@ die()
 case "${BUILD_TARGET}" in
 
     linux-auto-gcc-distcheck)
-	./configure && make && make distcheck
-	;;
+        ./configure && make && make distcheck
+        ;;
 
-    linux-auto-clang|linux-auto-gcc)
-	./configure --with-build-platform=auto --enable-coverage && make && make check
-	;;
+    linux-auto-clang)
+        ./configure --with-build-platform=auto && make && make check
+        ;;
 
-    linux-nspr-clang|linux-nspr-gcc)
-	./configure --with-build-platform=nspr --enable-coverage && make && make check
-	;;
+    linux-auto-gcc)
+        ./configure --with-build-platform=auto --enable-coverage && make && make check
+        ;;
 
-    linux-pthreads-clang|linux-pthreads-gcc)
-	./configure --with-build-platform=pthreads --enable-coverage && make && make check
-	;;
+    linux-nspr-clang)
+        ./configure --with-build-platform=nspr && make && make check
+        ;;
+
+    linux-nspr-gcc)
+        ./configure --with-build-platform=nspr --enable-coverage && make && make check
+        ;;
+
+    linux-pthreads-clang)
+        ./configure --with-build-platform=pthreads && make && make check
+        ;;
+
+    linux-pthreads-gcc)
+        ./configure --with-build-platform=pthreads --enable-coverage && make && make check
+        ;;
 
     *)
-	die "Unknown build target \"${BUILD_TARGET}\"."
-	;;
-	
+        die "Unknown build target \"${BUILD_TARGET}\"."
+        ;;
+        
 esac
