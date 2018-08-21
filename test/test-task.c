@@ -163,9 +163,6 @@ bool nler_task_test(void)
     curtask = nltask_get_current();
     NLER_ASSERT(curtask != NULL);
 
-    nltask_create(taskEntryA, kTaskNameA, stackA, sizeof(stackA), NLER_TASK_PRIORITY_NORMAL, (void *)&taskDataA, &taskA);
-    nltask_create(taskEntryB, kTaskNameB, stackB, sizeof(stackB), NLER_TASK_PRIORITY_HIGH, (void *)&taskDataB, &taskB);
-
     taskDataA.mParent = curtask;
     taskDataA.mTask = &taskA;
     taskDataA.mSleepMS = kTHREAD_A_SLEEP_MS;
@@ -179,6 +176,9 @@ bool nler_task_test(void)
     taskDataB.mLoops = kTHREAD_B_LOOPS;
     taskDataB.mName = kTaskNameB;
     taskDataB.mSucceeded = false;
+
+    nltask_create(taskEntryA, kTaskNameA, stackA, sizeof(stackA), NLER_TASK_PRIORITY_NORMAL, (void *)&taskDataA, &taskA);
+    nltask_create(taskEntryB, kTaskNameB, stackB, sizeof(stackB), NLER_TASK_PRIORITY_HIGH, (void *)&taskDataB, &taskB);
 
     nltask_yield();
 
