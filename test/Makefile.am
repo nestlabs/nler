@@ -45,6 +45,7 @@ lib_LIBRARIES                                  = \
 AM_CPPFLAGS                                    = \
     -DNLER_APPLICATION_LOG_REGION_FILE=\"nltestlogregions.h\" \
     -DNLER_FEATURE_ASSERTS                       \
+    -DNLER_PLATFORM_ASSERT_DELEGATE=nler_test_assert \
     -I$(top_srcdir)/include                      \
     $(NULL)
 
@@ -112,41 +113,41 @@ TESTS_ENVIRONMENT                              = \
 
 # Source, compiler, and linker options for test programs.
 
-test_atomic_SOURCES                      = test-atomic.c nltestlogregions.c
+test_atomic_SOURCES                      = test-atomic.c nltestassert.c nltestlogregions.c
 test_atomic_LDADD                        = $(COMMON_LDADD)
 
-test_earlyevent_SOURCES                  = test-earlyevent.c nltestlogregions.c
+test_earlyevent_SOURCES                  = test-earlyevent.c nltestassert.c nltestlogregions.c
 test_earlyevent_LDADD                    = $(COMMON_LDADD)
 
-test_event_SOURCES                       = test-event.c nltestlogregions.c
+test_event_SOURCES                       = test-event.c nltestassert.c nltestlogregions.c
 test_event_LDADD                         = $(COMMON_LDADD)
 
-test_eventqueue_SOURCES                  = test-eventqueue.c nltestlogregions.c
+test_eventqueue_SOURCES                  = test-eventqueue.c nltestassert.c nltestlogregions.c
 test_eventqueue_LDADD                    = $(COMMON_LDADD)
 
-test_lock_SOURCES                        = test-lock.c nltestlogregions.c
+test_lock_SOURCES                        = test-lock.c nltestassert.c nltestlogregions.c
 test_lock_LDADD                          = $(COMMON_LDADD)
 
-test_nlerflowtracer_SOURCES              = test-nlerflowtracer.c nltestlogregions.c
+test_nlerflowtracer_SOURCES              = test-nlerflowtracer.c nltestassert.c nltestlogregions.c
 test_nlerflowtracer_LDADD                = $(COMMON_LDADD)
 
-test_nlmathutil_SOURCES                  = test-nlmathutil.c nltestlogregions.c
+test_nlmathutil_SOURCES                  = test-nlmathutil.c nltestassert.c nltestlogregions.c
 test_nlmathutil_LDADD                    = $(COMMON_LDADD)
 
-test_pooledevent_SOURCES                 = test-pooledevent.c nltestlogregions.c
+test_pooledevent_SOURCES                 = test-pooledevent.c nltestassert.c nltestlogregions.c
 test_pooledevent_LDADD                   = $(COMMON_LDADD)
 
-test_settings_SOURCES                    = test-settings.c nltestlogregions.c
+test_settings_SOURCES                    = test-settings.c nltestassert.c nltestlogregions.c
 test_settings_CPPFLAGS                   = $(AM_CPPFLAGS) -DHAVE_NLER_SETTINGS_APPLICATION_SETTINGS_KEYS -DNLER_SETTINGS_APPLICATION_SETTINGS_KEYS=\"test-settings.h\"
 test_settings_LDADD                      = -L$(top_builddir)/utilities -lnlerutilities $(COMMON_LDADD)
 
-test_subpub_SOURCES                      = test-subpub.c nltestlogregions.c
+test_subpub_SOURCES                      = test-subpub.c nltestassert.c nltestlogregions.c
 test_subpub_LDADD                        = $(COMMON_LDADD)
 
-test_task_SOURCES                        = test-task.c nltestlogregions.c
+test_task_SOURCES                        = test-task.c nltestassert.c nltestlogregions.c
 test_task_LDADD                          = $(COMMON_LDADD)
 
-test_timer_SOURCES                       = test-timer.c nltestlogregions.c
+test_timer_SOURCES                       = test-timer.c nltestassert.c nltestlogregions.c
 test_timer_LDADD                         = $(COMMON_LDADD)
 
 if NLER_BUILD_COVERAGE
