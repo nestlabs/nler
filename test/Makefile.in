@@ -766,7 +766,6 @@ noinst_HEADERS = \
 @NLER_BUILD_TESTS_TRUE@AM_CPPFLAGS = \
 @NLER_BUILD_TESTS_TRUE@    -DNLER_APPLICATION_LOG_REGION_FILE=\"nltestlogregions.h\" \
 @NLER_BUILD_TESTS_TRUE@    -DNLER_FEATURE_ASSERTS                       \
-@NLER_BUILD_TESTS_TRUE@    -DNLER_PLATFORM_ASSERT_DELEGATE=nler_test_assert \
 @NLER_BUILD_TESTS_TRUE@    -I$(top_srcdir)/include                      \
 @NLER_BUILD_TESTS_TRUE@    $(NULL)
 
