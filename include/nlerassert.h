@@ -46,7 +46,7 @@
     NLER_BEGIN_MACRO                                                \
         if (!(condition))                                           \
         {                                                           \
-            NLER_PLATFORM_ASSERT_DELEGATE(condition, FILE_NAME, __FUNCTION__, __LINE__); \
+            NLER_PLATFORM_ASSERT_DELEGATE(#condition, FILE_NAME, __FUNCTION__, __LINE__); \
         }                                                           \
     NLER_END_MACRO
 
