@@ -77,7 +77,7 @@ static DEFINE_STACK(stackB, NLER_TASK_STACK_BASE + 96);
 static const char * const kTaskNameA = "A";
 static const char * const kTaskNameB = "B";
 
-static void taskEntryA(void *aParams)
+static void taskEntry(void *aParams)
 {
     const nltask_t            *curtask = nltask_get_current();
     const char                *name = nltask_get_name(curtask);
@@ -105,36 +105,8 @@ static void taskEntryA(void *aParams)
     }
 
     data->mSucceeded = true;
-}
 
-static void taskEntryB(void *aParams)
-{
-    const nltask_t            *curtask = nltask_get_current();
-    const char                *name = nltask_get_name(curtask);
-    volatile taskData_t       *data = (volatile taskData_t *)aParams;
-    int                        status;
-
-
-    NL_LOG_CRIT(lrTEST, "from the task: '%s'\n", name);
-
-    status = strcmp(name, data->mName);
-    NLER_ASSERT(status == 0);
-
-    NLER_ASSERT(data->mParent != curtask);
-    NLER_ASSERT(data->mTask == curtask);
-    NLER_ASSERT(data->mSucceeded == false);
-
-    nltask_sleep_ms(data->mSleepMS);
-   
-    nltask_yield();
-
-    while (data->mLoops--)
-    {
-        NL_LOG_DEBUG(lrTEST, "from the loop: '%s'\n", nltask_get_name(curtask));
-        nltask_sleep_ms(data->mSleepMS);
-    }
-
-    data->mSucceeded = true;
+    NL_LOG_CRIT(lrTEST, "'%s' exiting\n", name);
 }
 
 static bool is_testing(volatile const taskData_t *aTaskA,
@@ -177,8 +149,8 @@ bool nler_task_test(void)
     taskDataB.mName = kTaskNameB;
     taskDataB.mSucceeded = false;
 
-    nltask_create(taskEntryA, kTaskNameA, stackA, sizeof(stackA), NLER_TASK_PRIORITY_NORMAL, (void *)&taskDataA, &taskA);
-    nltask_create(taskEntryB, kTaskNameB, stackB, sizeof(stackB), NLER_TASK_PRIORITY_HIGH, (void *)&taskDataB, &taskB);
+    nltask_create(taskEntry, kTaskNameA, stackA, sizeof(stackA), NLER_TASK_PRIORITY_NORMAL, (void *)&taskDataA, &taskA);
+    nltask_create(taskEntry, kTaskNameB, stackB, sizeof(stackB), NLER_TASK_PRIORITY_HIGH, (void *)&taskDataB, &taskB);
 
     nltask_yield();
 
