@@ -85,18 +85,32 @@ check_PROGRAMS                                += \
     $(NULL)
 endif # NLER_BUILD_FLOW_TRACER
 
-if NLER_BUILD_UTILITIES
-check_PROGRAMS                                += \
-    test-settings                                \
-    $(NULL)
-endif # NLER_BUILD_UTILITIES
-
 if !NLER_BUILD_EVENT_TIMER
 check_PROGRAMS                                += \
     test-subpub                                  \
     test-timer                                   \
     $(NULL)
 endif # !NLER_BUILD_EVENT_TIMER
+
+# Test applications that should be built but not installed and not run
+# when the 'check' target is run but should always be built to ensure
+# overall "build sanity".
+
+noinst_PROGRAMS                                = \
+    $(NULL)
+
+# There is presently an issue with the nlersettings API in which the
+# maximum number of settings keys must be fixed at compile time and
+# must be invariant across all uses of the API. This makes it
+# impossible for the run time code and unit test code to support
+# different numbers of settings keys for unit and functional test
+# purposes.
+
+if NLER_BUILD_UTILITIES
+noinst_PROGRAMS                               += \
+    test-settings                                \
+    $(NULL)
+endif # NLER_BUILD_UTILITIES
 
 # Test applications and scripts that should be built and run when the
 # 'check' target is run.
