@@ -1,6 +1,6 @@
 /*
  *
- *    Copyright (c) 2015 Nest Labs, Inc.
+ *    Copyright (c) 2015-2018 Nest Labs, Inc.
  *    All rights reserved.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,8 +22,14 @@
  *      interfaces.
  */
 
+#ifdef nlLOG_PRIORITY
+#undef nlLOG_PRIORITY
+#endif
+#define nlLOG_PRIORITY 4
+
 #include <stdio.h>
 #include <string.h>
+
 #include "nlertask.h"
 #include "nlerinit.h"
 #include "nlerlog.h"
@@ -33,8 +39,11 @@
 #include "nlertimer_sim.h"
 #endif
 
-nltask_t taskA;
-uint8_t stackA[NLER_TASK_STACK_BASE + 128];
+#include <nlerassert.h>
+#include <nlererror.h>
+
+static nltask_t taskA;
+static DEFINE_STACK(stackA,  NLER_TASK_STACK_BASE + 128);
 
 struct taskAData
 {
@@ -44,8 +53,8 @@ struct taskAData
 
 #if NLER_FEATURE_SIMULATEABLE_TIME
 
-nltask_t taskB;
-uint8_t stackB[NLER_TASK_STACK_BASE + 128];
+static nltask_t taskB;
+static DEFINE_STACK(stackB,  NLER_TASK_STACK_BASE + 128);
 
 void taskEntryB(void *aParams)
 {

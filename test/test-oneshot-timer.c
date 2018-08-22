@@ -22,14 +22,16 @@
  *      interfaces.
  */
 
-#include <stdio.h>
-#include <string.h>
-#include "nlertask.h"
-#include "nlerinit.h"
 #ifdef nlLOG_PRIORITY
 #undef nlLOG_PRIORITY
 #endif
 #define nlLOG_PRIORITY 4
+
+#include <stdio.h>
+#include <string.h>
+
+#include "nlertask.h"
+#include "nlerinit.h"
 #include "nlerlog.h"
 #include "nlereventqueue.h"
 #include "nlertimer.h"
@@ -37,8 +39,11 @@
 #include "nlertimer_sim.h"
 #endif
 
-nltask_t taskA;
-uint8_t stackA[NLER_TASK_STACK_BASE + 128];
+#include <nlerassert.h>
+#include <nlererror.h>
+
+static nltask_t taskA;
+static DEFINE_STACK(stackA,  NLER_TASK_STACK_BASE + 128);
 
 struct taskAData
 {
@@ -48,8 +53,8 @@ struct taskAData
 
 #if NLER_FEATURE_SIMULATEABLE_TIME
 
-nltask_t taskB;
-uint8_t stackB[NLER_TASK_STACK_BASE + 128];
+static nltask_t taskB;
+static DEFINE_STACK(stackB,  NLER_TASK_STACK_BASE + 128);
 
 void taskEntryB(void *aParams)
 {
@@ -167,7 +172,7 @@ int main(int argc, char **argv)
 #endif
 
     NL_LOG_CRIT(lrTEST, "start main (after initializing runtime)\n");
-
+]
     dataA.mTimer = nl_timer_start(NLER_TASK_PRIORITY_HIGH + 1);
     status = nleventqueue_create(queuememA, sizeof(queuememA), &dataA.mQueue);
     NLER_ASSERT(status == NLER_SUCCESS);
