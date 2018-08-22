@@ -45,7 +45,6 @@ lib_LIBRARIES                                  = \
 AM_CPPFLAGS                                    = \
     -DNLER_APPLICATION_LOG_REGION_FILE=\"nltestlogregions.h\" \
     -DNLER_FEATURE_ASSERTS                       \
-    -DNLER_PLATFORM_ASSERT_DELEGATE=nler_test_assert \
     -I$(top_srcdir)/include                      \
     $(NULL)
 
