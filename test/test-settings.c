@@ -25,104 +25,152 @@
 #ifdef nlLOG_PRIORITY
 #undef nlLOG_PRIORITY
 #endif
-#define nlLOG_PRIORITY 1
+#define nlLOG_PRIORITY 3
 
-#include "nlertask.h"
-#include "nlerinit.h"
+#include <nlsettings.h>
+
+#include <stdbool.h>
 #include <stdio.h>
-#include "nlerlog.h"
-#include "nlerassert.h"
-#include "nlsettings.h"
-#include "nlererror.h"
+#include <stdlib.h>
+#include <string.h>
 
-nltask_t taskA;
-nltask_t taskB;
-uint8_t stackA[NLER_TASK_STACK_BASE + 96];
-uint8_t stackB[NLER_TASK_STACK_BASE + 96];
+#include <nlerassert.h>
+#include <nlereventqueue.h>
+#include <nlererror.h>
+#include <nlerinit.h>
+#include <nlerlog.h>
+#include <nlertask.h>
 
-nl_settings_value_t values[nl_settings_keyMax];
-nl_settings_value_t defaults[nl_settings_keyMax] = { "1", "2", "3", "4", "5", "6" };
+/*
+ * Preprocessor Defitions
+ */
 
-void taskEntryA(void *aParams)
+#define kTHREAD_MAIN_SLEEP_MS      241
+
+/*
+ * Type Definitions
+ */
+
+typedef struct taskData_s
 {
-    nltask_t    *curtask = nltask_get_current();
-    int         idx = 0;
+    nleventqueue_t          *mQueue;
+    bool                     mFailed;
+    bool                     mSucceeded;
+} taskData_t;
 
-    (void)curtask;
+/*
+ * Forward Declarations
+ */
 
-    NL_LOG_CRIT(lrTEST, "from the task: '%s' (%08x, %p)\n", nltask_get_name(curtask), aParams);
+static int nl_settings_change_eventhandler(nl_event_t *aEvent, void *aClosure);
 
-    while (1)
+/*
+ * Global Variables
+ */
+
+static const char * const kTaskNameA = "A";
+static const char * const kTaskNameB = "B";
+
+static nltask_t sTaskA;
+static nltask_t sTaskB;
+static DEFINE_STACK(sStackA, NLER_TASK_STACK_BASE + 96);
+static DEFINE_STACK(sStackB, NLER_TASK_STACK_BASE + 96);
+
+static nl_settings_value_t sValues[nl_settings_keyMax];
+static nl_settings_value_t sDefaults[nl_settings_keyMax] = { "1", "2", "3", "4", "5", "6" };
+
+static nl_settings_change_event_t sChangeKey =
+{
+    NL_INIT_SETTINGS_CHANGE_EVENT_STATIC(0, nl_settings_change_eventhandler, NULL, NULL, nl_settings_keyTest3)
+};
+
+static nl_settings_change_event_t sChangeAll =
+{
+    NL_INIT_SETTINGS_CHANGE_EVENT_STATIC(0, nl_settings_change_eventhandler, NULL, NULL, nl_settings_keyInvalid)
+};
+
+static bool task_is_testing(volatile const taskData_t *aData)
+{
+    bool retval;
+
+    retval = (!aData->mFailed && !aData->mSucceeded);
+
+    return (retval);
+}
+
+static void taskEntryA(void *aParams)
+{
+    nltask_t                 *curtask = nltask_get_current();
+    const char               *name = nltask_get_name(curtask);
+    volatile taskData_t      *data = (volatile taskData_t *)aParams;
+    int                       idx = 0;
+
+    (void)name;
+
+    NL_LOG_CRIT(lrTEST, "from the task: '%s' (%p)\n", name, aParams);
+
+    while (task_is_testing(data))
     {
         int oldvalue;
-        int err;
+        int status;
 
-        err = nl_settings_get_value_as_int(idx % nl_settings_keyMax, &oldvalue);
+        status = nl_settings_get_value_as_int(idx % nl_settings_keyMax, &oldvalue);
+        NL_LOG_CRIT(lrTEST, "get value result: %d\n", status);
+        NLER_ASSERT(status == NLER_SUCCESS);
 
-        if (err == NLER_SUCCESS)
+        if (status == NLER_SUCCESS)
         {
-            err = nl_settings_set_value_from_int(idx % nl_settings_keyMax, (idx % nl_settings_keyMax) + oldvalue);
+            status = nl_settings_set_value_from_int(idx % nl_settings_keyMax, (idx % nl_settings_keyMax) + oldvalue);
+            NLER_ASSERT(status == NLER_SUCCESS);
 
-            if (err == NLER_SUCCESS)
+            if (status == NLER_SUCCESS)
             {
                 NL_LOG_CRIT(lrTEST, "key: %d, oldvalue: %d\n", idx % nl_settings_keyMax, oldvalue);
             }
             else
             {
-                NL_LOG_CRIT(lrTEST, "failed to update value for key: %d (err %d), to %d\n",
-                            idx % nl_settings_keyMax, err, (idx % nl_settings_keyMax) + oldvalue);
+                NL_LOG_CRIT(lrTEST, "failed to update value for key: %d (status %d), to %d\n",
+                            idx % nl_settings_keyMax, status, (idx % nl_settings_keyMax) + oldvalue);
             }
         }
         else
         {
-            NL_LOG_CRIT(lrTEST, "failed to get value for key: %d (%d)\n", idx % nl_settings_keyMax, err);
+            NL_LOG_CRIT(lrTEST, "failed to get value for key: %d (%d)\n", idx % nl_settings_keyMax, status);
         }
 
         idx++;
     }
+
+    NL_LOG_CRIT(lrTEST, "'%s' exiting\n", name);
 }
 
-int nl_settings_change_eventhandler(nl_event_t *aEvent, void *aClosure);
-
-static nl_settings_change_event_t changekey =
-{
-    NL_INIT_SETTINGS_CHANGE_EVENT_STATIC(0, nl_settings_change_eventhandler, NULL, NULL, nl_settings_keyTest3)
-};
-
-static nl_settings_change_event_t changeall =
-{
-    NL_INIT_SETTINGS_CHANGE_EVENT_STATIC(0, nl_settings_change_eventhandler, NULL, NULL, nl_settings_keyInvalid)
-};
-
-int nl_settings_change_eventhandler(nl_event_t *aEvent, void *aClosure)
+static int nl_settings_change_eventhandler(nl_event_t *aEvent, void *aClosure)
 {
     nl_settings_change_event_t  *event = (nl_settings_change_event_t *)aEvent;
-    int                         err;
-
-    (void)err;
+    int                         retval = NLER_SUCCESS;
 
     NL_LOG_CRIT(lrTEST, "got settings_change_event: key: %d, value: '%s', change count: %d\n", event->mKey, event->mNewValue, event->mChangeCount);
 
     if (event->mKey == nl_settings_keyInvalid)
     {
-        err = nl_settings_subscribe_to_changes(&changeall);
+        retval = nl_settings_subscribe_to_changes(&sChangeAll);
     }
     else
     {
-        err = nl_settings_subscribe_to_changes(&changekey);
+        retval = nl_settings_subscribe_to_changes(&sChangeKey);
     }
 
-    return NLER_SUCCESS;
+    return (retval);
 }
 
-int writer(void *aData, int aDataLength, void *aClosure)
+static int writer(void *aData, int aDataLength, void *aClosure)
 {
     NL_LOG_CRIT(lrTEST, "data: %p, length: %d, closure: %p\n", aData, aDataLength, aClosure);
 
     return NLER_SUCCESS;
 }
 
-void enumerator(nl_settings_entry_t *aEntry, void *aClosure)
+static void enumerator(nl_settings_entry_t *aEntry, void *aClosure)
 {
     if (aEntry != NULL)
     {
@@ -131,35 +179,36 @@ void enumerator(nl_settings_entry_t *aEntry, void *aClosure)
     }
 }
 
-void taskEntryB(void *aParams)
+static void taskEntryB(void *aParams)
 {
-    nltask_t        *curtask = nltask_get_current();
-    int              idx = 0;
-    nleventqueue_t  *queue = (nleventqueue_t *)aParams;
-    int              err;
+    nltask_t                 *curtask = nltask_get_current();
+    const char               *name = nltask_get_name(curtask);
+    volatile taskData_t      *data = (volatile taskData_t *)aParams;
+    int                       idx = 0;
+    int                       err;
 
-    (void)curtask;
+    (void)name;
     (void)err;
 
-    NL_LOG_CRIT(lrTEST, "from the task: '%s' (%08x, %p)\n", nltask_get_name(curtask), aParams);
+    NL_LOG_CRIT(lrTEST, "from the task: '%s' (%p)\n", name, aParams);
 
-    changekey.mReturnQueue = queue;
-    changeall.mReturnQueue = queue;
+    sChangeKey.mReturnQueue = data->mQueue;
+    sChangeAll.mReturnQueue = data->mQueue;
 
-    err = nl_settings_subscribe_to_changes(&changekey);
+    err = nl_settings_subscribe_to_changes(&sChangeKey);
+    NL_LOG_DEBUG(lrTEST, "subscribe to key changes result: %d\n", err);
+    NLER_ASSERT(err == NLER_SUCCESS);
 
-    NL_LOG_CRIT(lrTEST, "subscribe to key changes result: %d\n", err);
+    err = nl_settings_subscribe_to_changes(&sChangeAll);
+    NL_LOG_DEBUG(lrTEST, "subscribe to all changes result: %d\n", err);
+    NLER_ASSERT(err == NLER_SUCCESS);
 
-    err = nl_settings_subscribe_to_changes(&changeall);
-
-    NL_LOG_CRIT(lrTEST, "subscribe to all changes result: %d\n", err);
-
-    while (1)
+    while (task_is_testing(data))
     {
         nl_event_t          *ev;
         nl_settings_value_t value;
 
-        ev = nleventqueue_get_event(queue);
+        ev = nleventqueue_get_event(data->mQueue);
 
         /* supplying NULL for the default event handler
          * is generally a pretty bold move because if there
@@ -188,64 +237,145 @@ void taskEntryB(void *aParams)
 
         idx++;
     }
+
+    NL_LOG_CRIT(lrTEST, "'%s' exiting\n", name);
+}
+
+static bool is_testing(volatile const taskData_t *aSubscriber,
+                       volatile const taskData_t *aPublisher)
+{
+    bool retval = false;
+
+    if ((!aSubscriber->mFailed && !aPublisher->mFailed) &&
+        (!aSubscriber->mSucceeded && !aPublisher->mSucceeded))
+    {
+        retval = true;
+    }
+
+    return retval;
+}
+
+static bool was_successful(volatile const taskData_t *aSubscriber,
+                           volatile const taskData_t *aPublisher)
+{
+    bool retval = false;
+
+    if (aSubscriber->mFailed || aPublisher->mFailed)
+        retval = false;
+    else if (aSubscriber->mSucceeded && aPublisher->mSucceeded)
+        retval = true;
+
+    return retval;
+}
+
+static bool test_unthreaded(void)
+{
+    int   idx;
+    int   status;
+    bool  retval = true;
+
+    NLER_STATIC_ASSERT(sizeof (sDefaults) == nl_settings_keyMax * sizeof (nl_settings_value_t), "unexpected default settings size");
+    NLER_STATIC_ASSERT(sizeof (sValues) == nl_settings_keyMax * sizeof (nl_settings_value_t), "unexpected value settings size");
+
+    NL_LOG_DEBUG(lrTEST, "sizeof (sValues): %d, sizeof (sDefaults): %d\n",
+                 sizeof (sValues),
+                 sizeof (sDefaults));
+
+    for (idx = 0; idx < nl_settings_keyMax; idx++)
+    {
+        const char buffer[2] = { idx + 0x31, '\0' };
+
+        status = strcmp(sDefaults[idx], buffer);
+        NL_LOG_CRIT(lrTEST, "sDefaults[%d]: '%s'\n", idx, sDefaults[idx]);
+        NLER_ASSERT(status == 0);
+    }
+
+    status = nl_settings_init(sDefaults, nl_settings_keyMax, sValues, nl_settings_keyMax);
+    NL_LOG_CRIT(lrTEST, "settings initialized: %d\n", retval);
+    NLER_ASSERT(status == NLER_SUCCESS);
+
+    status = nl_settings_reset_to_defaults();
+    NL_LOG_CRIT(lrTEST, "settings reset to defaults: %d\n", retval);
+    NLER_ASSERT(status == NLER_SUCCESS);
+
+    for (idx = 0; idx < nl_settings_keyMax; idx++)
+    {
+        const char buffer[1] = { '\0' };
+
+        status = strcmp(sValues[idx], buffer);
+        NL_LOG_CRIT(lrTEST, "sValues[%d]: '%s'\n", idx, sValues[idx]);
+        NLER_ASSERT(status == 0);
+    }
+
+    return (retval);
+}
+
+static bool test_threaded(void)
+{
+    nl_event_t      *lQueueMem[50];
+    nleventqueue_t   lQueue;
+    taskData_t       taskDataA;
+    taskData_t       taskDataB;
+    int              status;
+    bool             retval;
+
+    status = nleventqueue_create(lQueueMem, sizeof(lQueueMem), &lQueue);
+    NLER_ASSERT(status == NLER_SUCCESS);
+
+    NL_LOG_DEBUG(lrTEST, "event queue: %p\n", lQueue);
+
+    taskDataA.mQueue     = NULL;
+    taskDataA.mFailed    = false;
+    taskDataA.mSucceeded = false;
+
+    taskDataB.mQueue     = &lQueue;
+    taskDataB.mFailed    = false;
+    taskDataB.mSucceeded = false;
+
+    nltask_create(taskEntryA, kTaskNameA, sStackA, sizeof(sStackA), 10, &taskDataA, &sTaskA);
+    nltask_create(taskEntryB, kTaskNameB, sStackB, sizeof(sStackB), 10, &taskDataB, &sTaskB);
+
+    while (is_testing(&taskDataA, &taskDataB))
+    {
+        nltask_sleep_ms(kTHREAD_MAIN_SLEEP_MS);
+    }
+
+    retval = was_successful(&taskDataA, &taskDataB);
+
+    nleventqueue_destroy(&lQueue);
+
+    return (retval);
+}
+
+bool nler_settings_test(void)
+{
+    bool  retval;
+
+    retval = test_unthreaded();
+
+    if (retval == true)
+    {
+        retval = test_threaded();
+    }
+
+    return (retval);
 }
 
 int main(int argc, char **argv)
 {
-    int             idx;
-    int             status;
-    int             retval;
-    nl_event_t      *queuemem[50];
-    nleventqueue_t  queue;
-
-    NL_LOG_CRIT(lrTEST, "start main\n");
+    bool status;
 
     nl_er_init();
 
-    NL_LOG_CRIT(lrTEST, "start main (after initializing runtime)\n");
+    NL_LOG_CRIT(lrTEST, "start main\n");
 
-    status = nleventqueue_create(queuemem, sizeof(queuemem), &queue);
-    NLER_ASSERT(status == NLER_SUCCESS);
+    nl_er_start_running();
 
-    NL_LOG_CRIT(lrTEST, "event queue: %p\n", queue);
-
-    NL_LOG_CRIT(lrTEST, "sizeof(values): %d, sizeof(defaults): %d\n", sizeof(values), sizeof(defaults));
-
-    for (idx = 0; idx < nl_settings_keyMax; idx++)
-    {
-        NL_LOG_CRIT(lrTEST, "default[%d]: '%s'\n", idx, defaults[idx]);
-    }
-
-    retval = nl_settings_init(defaults, nl_settings_keyMax, values, nl_settings_keyMax);
-
-    NL_LOG_CRIT(lrTEST, "settings initialized: %d\n", retval);
-
-    if (retval == NLER_SUCCESS)
-    {
-        retval = nl_settings_reset_to_defaults();
-    }
-
-    NL_LOG_CRIT(lrTEST, "settings reset to defaults: %d\n", retval);
-
-    if (retval == NLER_SUCCESS)
-    {
-        for (idx = 0; idx < nl_settings_keyMax; idx++)
-        {
-            NL_LOG_CRIT(lrTEST, "value[%d]: '%s'\n", idx, values[idx]);
-        }
-    }
-
-    if (retval == NLER_SUCCESS)
-    {
-        nltask_create(taskEntryA, "A", stackA, sizeof(stackA), 10, NULL, &taskA);
-        nltask_create(taskEntryB, "B", stackB, sizeof(stackB), 10, &queue, &taskB);
-
-        nl_er_start_running();
-    }
+    status = nler_settings_test();
 
     nl_er_cleanup();
 
     NL_LOG_CRIT(lrTEST, "end main\n");
 
-    return 0;
+    return (status ? EXIT_SUCCESS : EXIT_FAILURE);
 }
