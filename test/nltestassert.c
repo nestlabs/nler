@@ -22,34 +22,32 @@
  *      assertion delegate handler.
  */
 
+#include "nltestassert.h"
+
 #include <stdio.h>
+#include <stdlib.h>
 
 #include <nlerassert.h>
-
-/*
- * Forward Declarations
- */
-
-#if defined(NLER_SMALL_ASSERTS) || NLER_SMALL_ASSERTS
-extern void nler_test_assert(const char *aFile, unsigned int aLine);
-#else
-extern void nler_test_assert(const char *aCondition, const char *aFile, const char *aFunction, unsigned int aLine);
-#endif /* defined(NLER_SMALL_ASSERTS) || NLER_SMALL_ASSERTS */
+#include <nlerlog.h>
 
 #if defined(NLER_SMALL_ASSERTS) || NLER_SMALL_ASSERTS
 void nler_test_assert(const char *aFile, unsigned int aLine)
 {
-        fprintf(stderr, "ASSERT: file: %s, line: %u\n",
-                aFile,
-                aLine);
+    NL_LOG(lrTEST, "ASSERT: file: %s, line: %u\n",
+           aFile,
+           aLine);
+
+    exit(EXIT_FAILURE);
 }
 #else
 void nler_test_assert(const char *aCondition, const char *aFile, const char *aFunction, unsigned int aLine)
 {
-    fprintf(stderr, "ASSERT: %s, file: %s, line: %u\n",
-            aCondition,
-            aFile,
-            aLine);
+    NL_LOG(lrTEST, "ASSERT: %s, file: %s, line: %u\n",
+           aCondition,
+           aFile,
+           aLine);
+
+    exit(EXIT_FAILURE);
 }
 #endif /* defined(NLER_SMALL_ASSERTS) || NLER_SMALL_ASSERTS */
 
