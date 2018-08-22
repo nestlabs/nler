@@ -38,6 +38,7 @@
 #
 
 
+
 VPATH = @srcdir@
 am__is_gnu_make = { \
   if test -z '$(MAKELEVEL)'; then \
@@ -121,19 +122,27 @@ target_triplet = @target@
 @NLER_BUILD_TESTS_TRUE@	test-nlmathutil$(EXEEXT) \
 @NLER_BUILD_TESTS_TRUE@	test-pooledevent$(EXEEXT) \
 @NLER_BUILD_TESTS_TRUE@	test-task$(EXEEXT) $(am__EXEEXT_1) \
-@NLER_BUILD_TESTS_TRUE@	$(am__EXEEXT_2) $(am__EXEEXT_3)
+@NLER_BUILD_TESTS_TRUE@	$(am__EXEEXT_2)
 @NLER_BUILD_FLOW_TRACER_TRUE@@NLER_BUILD_TESTS_TRUE@am__append_1 = \
 @NLER_BUILD_FLOW_TRACER_TRUE@@NLER_BUILD_TESTS_TRUE@    test-nlerflowtracer                          \
 @NLER_BUILD_FLOW_TRACER_TRUE@@NLER_BUILD_TESTS_TRUE@    $(NULL)
 
-@NLER_BUILD_TESTS_TRUE@@NLER_BUILD_UTILITIES_TRUE@am__append_2 = \
-@NLER_BUILD_TESTS_TRUE@@NLER_BUILD_UTILITIES_TRUE@    test-settings                                \
-@NLER_BUILD_TESTS_TRUE@@NLER_BUILD_UTILITIES_TRUE@    $(NULL)
-
-@NLER_BUILD_EVENT_TIMER_FALSE@@NLER_BUILD_TESTS_TRUE@am__append_3 = \
+@NLER_BUILD_EVENT_TIMER_FALSE@@NLER_BUILD_TESTS_TRUE@am__append_2 = \
 @NLER_BUILD_EVENT_TIMER_FALSE@@NLER_BUILD_TESTS_TRUE@    test-subpub                                  \
 @NLER_BUILD_EVENT_TIMER_FALSE@@NLER_BUILD_TESTS_TRUE@    test-timer                                   \
 @NLER_BUILD_EVENT_TIMER_FALSE@@NLER_BUILD_TESTS_TRUE@    $(NULL)
+
+@NLER_BUILD_TESTS_TRUE@noinst_PROGRAMS = $(am__EXEEXT_3)
+
+# There is presently an issue with the nlersettings API in which the
+# maximum number of settings keys must be fixed at compile time and
+# must be invariant across all uses of the API. This makes it
+# impossible for the run time code and unit test code to support
+# different numbers of settings keys for unit and functional test
+# purposes.
+@NLER_BUILD_TESTS_TRUE@@NLER_BUILD_UTILITIES_TRUE@am__append_3 = \
+@NLER_BUILD_TESTS_TRUE@@NLER_BUILD_UTILITIES_TRUE@    test-settings                                \
+@NLER_BUILD_TESTS_TRUE@@NLER_BUILD_UTILITIES_TRUE@    $(NULL)
 
 @NLER_BUILD_TESTS_TRUE@TESTS = $(check_PROGRAMS)
 subdir = test
@@ -165,9 +174,10 @@ CONFIG_HEADER = $(top_builddir)/include/nler-config.h
 CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
 @NLER_BUILD_FLOW_TRACER_TRUE@@NLER_BUILD_TESTS_TRUE@am__EXEEXT_1 = test-nlerflowtracer$(EXEEXT)
-@NLER_BUILD_TESTS_TRUE@@NLER_BUILD_UTILITIES_TRUE@am__EXEEXT_2 = test-settings$(EXEEXT)
-@NLER_BUILD_EVENT_TIMER_FALSE@@NLER_BUILD_TESTS_TRUE@am__EXEEXT_3 = test-subpub$(EXEEXT) \
+@NLER_BUILD_EVENT_TIMER_FALSE@@NLER_BUILD_TESTS_TRUE@am__EXEEXT_2 = test-subpub$(EXEEXT) \
 @NLER_BUILD_EVENT_TIMER_FALSE@@NLER_BUILD_TESTS_TRUE@	test-timer$(EXEEXT)
+@NLER_BUILD_TESTS_TRUE@@NLER_BUILD_UTILITIES_TRUE@am__EXEEXT_3 = test-settings$(EXEEXT)
+PROGRAMS = $(noinst_PROGRAMS)
 am__vpath_adj_setup = srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`;
 am__vpath_adj = case $$p in \
     $(srcdir)/*) f=`echo "$$p" | sed "s|^$$srcdirstrip/||"`;; \
@@ -879,6 +889,15 @@ clean-checkPROGRAMS:
 	list=`for p in $$list; do echo "$$p"; done | sed 's/$(EXEEXT)$$//'`; \
 	echo " rm -f" $$list; \
 	rm -f $$list
+
+clean-noinstPROGRAMS:
+	@list='$(noinst_PROGRAMS)'; test -n "$$list" || exit 0; \
+	echo " rm -f" $$list; \
+	rm -f $$list || exit $$?; \
+	test -n "$(EXEEXT)" || exit 0; \
+	list=`for p in $$list; do echo "$$p"; done | sed 's/$(EXEEXT)$$//'`; \
+	echo " rm -f" $$list; \
+	rm -f $$list
 install-libLIBRARIES: $(lib_LIBRARIES)
 	@$(NORMAL_INSTALL)
 	@list='$(lib_LIBRARIES)'; test -n "$(libdir)" || list=; \
@@ -1322,13 +1341,6 @@ test-nlerflowtracer.log: test-nlerflowtracer$(EXEEXT)
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
 	"$$tst" $(AM_TESTS_FD_REDIRECT)
-test-settings.log: test-settings$(EXEEXT)
-	@p='test-settings$(EXEEXT)'; \
-	b='test-settings'; \
-	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
-	--log-file $$b.log --trs-file $$b.trs \
-	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
-	"$$tst" $(AM_TESTS_FD_REDIRECT)
 test-subpub.log: test-subpub$(EXEEXT)
 	@p='test-subpub$(EXEEXT)'; \
 	b='test-subpub'; \
@@ -1395,7 +1407,7 @@ check-am: all-am
 	$(MAKE) $(AM_MAKEFLAGS) $(check_PROGRAMS)
 	$(MAKE) $(AM_MAKEFLAGS) check-TESTS
 check: check-am
-all-am: Makefile $(LIBRARIES) $(HEADERS)
+all-am: Makefile $(PROGRAMS) $(LIBRARIES) $(HEADERS)
 installdirs:
 	for dir in "$(DESTDIR)$(libdir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
@@ -1440,7 +1452,7 @@ maintainer-clean-generic:
 clean: clean-am
 
 clean-am: clean-checkPROGRAMS clean-generic clean-libLIBRARIES \
-	clean-libtool clean-local mostlyclean-am
+	clean-libtool clean-local clean-noinstPROGRAMS mostlyclean-am
 
 distclean: distclean-am
 		-rm -f ./$(DEPDIR)/nlertimer-test.Po
@@ -1544,15 +1556,16 @@ uninstall-am: uninstall-libLIBRARIES
 
 .PHONY: CTAGS GTAGS TAGS all all-am am--depfiles check check-TESTS \
 	check-am clean clean-checkPROGRAMS clean-generic \
-	clean-libLIBRARIES clean-libtool clean-local cscopelist-am \
-	ctags ctags-am distclean distclean-compile distclean-generic \
-	distclean-libtool distclean-tags distdir dvi dvi-am html \
-	html-am info info-am install install-am install-data \
-	install-data-am install-dvi install-dvi-am install-exec \
-	install-exec-am install-html install-html-am install-info \
-	install-info-am install-libLIBRARIES install-man install-pdf \
-	install-pdf-am install-ps install-ps-am install-strip \
-	installcheck installcheck-am installdirs maintainer-clean \
+	clean-libLIBRARIES clean-libtool clean-local \
+	clean-noinstPROGRAMS cscopelist-am ctags ctags-am distclean \
+	distclean-compile distclean-generic distclean-libtool \
+	distclean-tags distdir dvi dvi-am html html-am info info-am \
+	install install-am install-data install-data-am install-dvi \
+	install-dvi-am install-exec install-exec-am install-html \
+	install-html-am install-info install-info-am \
+	install-libLIBRARIES install-man install-pdf install-pdf-am \
+	install-ps install-ps-am install-strip installcheck \
+	installcheck-am installdirs maintainer-clean \
 	maintainer-clean-generic mostlyclean mostlyclean-compile \
 	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
 	recheck tags tags-am uninstall uninstall-am \
