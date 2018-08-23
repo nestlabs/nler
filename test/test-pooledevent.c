@@ -235,15 +235,25 @@ static void taskEntry(void *aParams)
     }
 }
 
+/**
+ *  Determine whether or not the main thread should continue to wait
+ *  for the test to complete.
+ *
+ *  The main thread should wait for testing until:
+ *
+ *    * Either thread failed (mFailed == true).
+ *    * Both threads succeeded (mSucceeded == true).
+ *
+ */
 static bool is_testing(volatile const taskData_t *aTaskA,
                        volatile const taskData_t *aTaskB)
 {
-    bool retval = false;
+    bool retval = true;
 
-    if ((!aTaskA->mFailed && !aTaskB->mFailed) &&
-        (!aTaskA->mSucceeded && !aTaskB->mSucceeded))
+    if ((aTaskA->mFailed || aTaskB->mFailed) ||
+        (aTaskA->mSucceeded && aTaskB->mSucceeded))
     {
-        retval = true;
+        retval = false;
     }
 
     return retval;

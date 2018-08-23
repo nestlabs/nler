@@ -225,15 +225,25 @@ static void taskEntryB(void *aParams)
     NL_LOG_CRIT(lrTEST, "'%s' exiting\n", name);
 }
 
+/**
+ *  Determine whether or not the main thread should continue to wait
+ *  for the test to complete.
+ *
+ *  The main thread should wait for testing until:
+ *
+ *    * Either thread failed (mFailed == true).
+ *    * Both threads succeeded (mSucceeded == true).
+ *
+ */
 static bool is_testing(volatile const taskData_t *aSubscriber,
                        volatile const taskData_t *aPublisher)
 {
-    bool retval = false;
+    bool retval = true;
 
-    if ((!aSubscriber->mFailed && !aPublisher->mFailed) &&
-        (!aSubscriber->mSucceeded && !aPublisher->mSucceeded))
+    if ((aSubscriber->mFailed || aPublisher->mFailed) ||
+        (aSubscriber->mSucceeded && aPublisher->mSucceeded))
     {
-        retval = true;
+        retval = false;
     }
 
     return retval;

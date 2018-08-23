@@ -63,12 +63,16 @@
 /**
  *  The "sensor" updates in this unit test are sent on two timer ticks:
  *
- *    - One every kSENSOR_TIMER_1_MS for instantaneous updates of
+ *    - One every kSENSOR_TIMER_INSTANT_MS for instantaneous updates of
  *      current sensor state.
- *    - One every kSENSOR_TIMER_2_MS for buffered sensor state updates.
+ *    - One every kSENSOR_TIMER_BUFFERED_MS for buffered sensor state
+ *      updates.
  */
-#define kSENSOR_TIMER_1_MS         293
-#define kSENSOR_TIMER_2_MS         743
+#define kSENSOR_TIMER_INSTANT_ID             1
+#define kSENSOR_TIMER_BUFFERED_ID            2
+
+#define kSENSOR_TIMER_INSTANT_MS           293
+#define kSENSOR_TIMER_BUFFERED_MS          743
 
 /**
  *  Expected number of sensor events to be produced and consumed for
@@ -213,9 +217,6 @@ typedef struct nl_sensor_event_s
     union instantBuffer_u   mSensorUpdate;
 } nl_sensor_event_t;
 
-#define kSENSOR_TIMER_1_ID   1
-#define kSENSOR_TIMER_2_ID   2
-
 typedef struct nl_test_event_timer_s
 {
     nl_event_timer_t    mTimerEvent;
@@ -273,7 +274,7 @@ static nl_test_event_timer_t sSensortimer1 =
         NL_INIT_EVENT_STATIC(NL_EVENT_T_TIMER, NULL, NULL),
         NULL, 0, 0, 0, 0
     },
-    kSENSOR_TIMER_1_ID
+    kSENSOR_TIMER_INSTANT_ID
 };
 
 static nl_test_event_timer_t sSensortimer2 =
@@ -282,7 +283,7 @@ static nl_test_event_timer_t sSensortimer2 =
         NL_INIT_EVENT_STATIC(NL_EVENT_T_TIMER, NULL, NULL),
         NULL, 0, 0, 0, 0
     },
-    kSENSOR_TIMER_2_ID
+    kSENSOR_TIMER_BUFFERED_ID
 };
 
 static int nl_test_sensor_eventhandler(nl_event_t *aEvent, void *aClosure)
@@ -505,9 +506,10 @@ static void taskEntrySubscriber(void *aParams)
  *  sends updates out to the subscribers. The updates in this example
  *  are sent on two timer ticks:
  *
- *    - One every kSENSOR_TIMER_1_MS for instantaneous updates of
+ *    - One every kSENSOR_TIMER_INSTANT_MS for instantaneous updates of
  *      current sensor state.
- *    - One every kSENSOR_TIMER_2_MS for buffered sensor state updates.
+ *    - One every kSENSOR_TIMER_BUFFERED_MS for buffered sensor state
+ *      updates.
  */
 static bool check_for_unsubscribe(sensor_sub_info_t *aSubInfo, int aIndex)
 {
@@ -642,14 +644,14 @@ static bool nl_driver_timer_eventhandler(nl_test_event_timer_t *aEvent, driverDa
 
     switch (aEvent->mID)
     {
-        case kSENSOR_TIMER_1_ID:
+        case kSENSOR_TIMER_INSTANT_ID:
             send_instant_sensor_events(&aData->mCO);
             send_instant_sensor_events(&aData->mSmoke);
             send_instant_sensor_events(&aData->mPIR);
             send_instant_sensor_events(&aData->mTemp);
             break;
 
-        case kSENSOR_TIMER_2_ID:
+        case kSENSOR_TIMER_BUFFERED_ID:
             send_buffered_sensor_events(&aData->mCO);
             send_buffered_sensor_events(&aData->mSmoke);
             send_buffered_sensor_events(&aData->mPIR);
@@ -839,10 +841,10 @@ static void taskEntryPublisher(void *aParams)
     sSensortimer2.mTimerEvent.mHandlerClosure = (void *)data;
     sSensortimer2.mTimerEvent.mReturnQueue = &data->mPublisher;
 
-    status = send_sensor_timer(data->mTimerQueue, &sSensortimer1, kSENSOR_TIMER_1_MS);
+    status = send_sensor_timer(data->mTimerQueue, &sSensortimer1, kSENSOR_TIMER_INSTANT_MS);
     NLER_ASSERT(status == NLER_SUCCESS);
 
-    status = send_sensor_timer(data->mTimerQueue, &sSensortimer2, kSENSOR_TIMER_2_MS);
+    status = send_sensor_timer(data->mTimerQueue, &sSensortimer2, kSENSOR_TIMER_BUFFERED_MS);
     NLER_ASSERT(status == NLER_SUCCESS);
 
     while (publisher_is_testing(&taskData->mData))
@@ -883,15 +885,25 @@ static void taskEntryPublisher(void *aParams)
     NL_LOG_CRIT(lrTEST, "'%s' exiting\n", name);
 }
 
+/**
+ *  Determine whether or not the main thread should continue to wait
+ *  for the test to complete.
+ *
+ *  The main thread should wait for testing until:
+ *
+ *    * Either thread failed (mFailed == true).
+ *    * Both threads succeeded (mSucceeded == true).
+ *
+ */
 static bool is_testing(volatile const taskData_t *aSubscriber,
                        volatile const taskData_t *aPublisher)
 {
-    bool retval = false;
+    bool retval = true;
 
-    if ((!aSubscriber->mFailed && !aPublisher->mFailed) &&
-        (!aSubscriber->mSucceeded && !aPublisher->mSucceeded))
+    if ((aSubscriber->mFailed || aPublisher->mFailed) ||
+        (aSubscriber->mSucceeded && aPublisher->mSucceeded))
     {
-        retval = true;
+        retval = false;
     }
 
     return retval;
