@@ -91,9 +91,9 @@ check_PROGRAMS                                += \
     $(NULL)
 endif # !NLER_BUILD_EVENT_TIMER
 
-# Test applications that should be built but not installed and not run
-# when the 'check' target is run but should always be built to ensure
-# overall "build sanity".
+# Test applications that should be neither installed against the
+# 'install' target nor run against the 'check' target but should
+# always be built to ensure overall "build sanity".
 
 noinst_PROGRAMS                                = \
     $(NULL)
