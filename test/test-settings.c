@@ -118,25 +118,9 @@ static void taskEntryA(void *aParams)
         NL_LOG_CRIT(lrTEST, "get value result: %d\n", status);
         NLER_ASSERT(status == NLER_SUCCESS);
 
-        if (status == NLER_SUCCESS)
-        {
-            status = nl_settings_set_value_from_int(idx % nl_settings_keyMax, (idx % nl_settings_keyMax) + oldvalue);
-            NLER_ASSERT(status == NLER_SUCCESS);
-
-            if (status == NLER_SUCCESS)
-            {
-                NL_LOG_CRIT(lrTEST, "key: %d, oldvalue: %d\n", idx % nl_settings_keyMax, oldvalue);
-            }
-            else
-            {
-                NL_LOG_CRIT(lrTEST, "failed to update value for key: %d (status %d), to %d\n",
-                            idx % nl_settings_keyMax, status, (idx % nl_settings_keyMax) + oldvalue);
-            }
-        }
-        else
-        {
-            NL_LOG_CRIT(lrTEST, "failed to get value for key: %d (%d)\n", idx % nl_settings_keyMax, status);
-        }
+        status = nl_settings_set_value_from_int(idx % nl_settings_keyMax, (idx % nl_settings_keyMax) + oldvalue);
+        NL_LOG_CRIT(lrTEST, "set value result: %d\n", status);
+        NLER_ASSERT(status == NLER_SUCCESS);
 
         idx++;
     }
