@@ -131,6 +131,7 @@ AM_MAINTAINER_MODE
 # Check for the target build platform
 #
 NLER_BUILD_PLATFORM=
+NLER_BUILD_PLATFORM_APR=0
 NLER_BUILD_PLATFORM_FREERTOS=0
 NLER_BUILD_PLATFORM_NSPR=0
 NLER_BUILD_PLATFORM_PTHREADS=0
@@ -142,11 +143,11 @@ AC_MSG_CHECKING([for build platform])
 
 AC_ARG_WITH(build-platform,
     [AS_HELP_STRING([--with-build-platform=TARGET],
-        [Specify the build platform from one of: auto, freertos, nspr, or pthreads @<:@default=auto@:>@.])],
+        [Specify the build platform from one of: auto, apr, freertos, nspr, or pthreads @<:@default=auto@:>@.])],
     [
         case "${with_build_platform}" in
 
-        auto|freertos|nspr|pthreads)
+        auto|apr|freertos|nspr|pthreads)
             ;;
 
         *)
@@ -183,6 +184,10 @@ NLER_BUILD_PLATFORM=${with_build_platform}
 
 case ${with_build_platform} in
 
+    apr)
+        NLER_BUILD_PLATFORM_APR=1
+        ;;
+
     freertos)
         NLER_BUILD_PLATFORM_FREERTOS=1
         ;;
@@ -201,6 +206,10 @@ AC_MSG_RESULT(${NLER_BUILD_PLATFORM})
 
 AC_SUBST(NLER_BUILD_PLATFORM)
 AC_DEFINE_UNQUOTED([NLER_BUILD_PLATFORM],[${NLER_BUILD_PLATFORM}],[Embedded Runtime build platform])
+
+AC_SUBST(NLER_BUILD_PLATFORM_APR)
+AM_CONDITIONAL([NLER_BUILD_PLATFORM_APR], [test "${NLER_BUILD_PLATFORM}" = "apr"])
+AC_DEFINE_UNQUOTED([NLER_BUILD_PLATFORM_APR],[${NLER_BUILD_PLATFORM_APR}],[Define to 1 if you want to use Embedded Runtime with Netscape Portable Runtime (i.e., apr)])
 
 AC_SUBST(NLER_BUILD_PLATFORM_FREERTOS)
 AM_CONDITIONAL([NLER_BUILD_PLATFORM_FREERTOS], [test "${NLER_BUILD_PLATFORM}" = "freertos"])
@@ -889,6 +898,7 @@ AC_PATH_PROG([PKG_CONFIG],[pkg-config])
 # At minimum, the following packages are optional, depending on
 # configuration:
 #
+#   * apr
 #   * freertos
 #   * nlunit-test
 #   * nlutilities
@@ -896,6 +906,26 @@ AC_PATH_PROG([PKG_CONFIG],[pkg-config])
 #
 
 AC_MSG_NOTICE([checking required and optional package dependencies])
+
+if test "${NLER_BUILD_PLATFORM}" == "apr"; then
+    NL_WITH_OPTIONAL_EXTERNAL_PACKAGE([Netscape Portable Runtime],
+	[APR],
+	[apr],
+	[-lapr4],
+	[
+	    # Check for required APR headers
+
+	    AC_CHECK_HEADERS([apr/prinit.h apr/prinrval.h apr/prio.h apr/prlock.h apr/prthread.h],
+		[],
+		[
+                    AC_MSG_NOTICE(The APR header "$ac_header" is required but cannot be found.)
+	        ]
+            )
+	]
+    )
+fi
+
+AM_CONDITIONAL([NLER_WITH_APR], [test "${nl_with_apr}" != ""])
 
 #
 # Nlcompiler
@@ -1177,7 +1207,11 @@ fi
 
 # Accumulate any build platform-specific CPPFLAGS, LDFLAGS, and LIBS
 
-if test "${NLER_BUILD_PLATFORM}" == "frertos"; then
+if test "${NLER_BUILD_PLATFORM}" == "apr"; then
+    NLER_CPPFLAGS="${NLER_CPPFLAGS} ${APR_CPPFLAGS}"
+    NLER_LDFLAGS="${NLER_LDFLAGS} ${APR_LDFLAGS}"
+    NLER_LIBS="${NLER_LIBS} ${APR_LIBS}"
+elif test "${NLER_BUILD_PLATFORM}" == "frertos"; then
     NLER_CPPFLAGS="${NLER_CPPFLAGS} ${FREERTOS_CPPFLAGS}"
     NLER_LDFLAGS="${NLER_LDFLAGS} ${FREERTOS_LDFLAGS}"
     NLER_LIBS="${NLER_LIBS} ${FREERTOS_LIBS}"
@@ -1241,6 +1275,7 @@ third_party/Makefile
 include/Makefile
 shared/Makefile
 arch/Makefile
+apr/Makefile
 freertos/Makefile
 nspr/Makefile
 pthreads/Makefile
@@ -1298,6 +1333,10 @@ AC_MSG_NOTICE([
   Doxygen                                   : ${DOXYGEN:--}
   GraphViz dot                              : ${DOT:--}
   PERL                                      : ${PERL:--}
+  APR source                                : ${nl_with_apr:--}
+  APR compile flags                         : ${APR_CPPFLAGS:--}
+  APR link flags                            : ${APR_LDFLAGS:--}
+  APR link libraries                        : ${APR_LIBS:--}
   FreeRTOS source                           : ${nl_with_freertos:--}
   FreeRTOS compile flags                    : ${FREERTOS_CPPFLAGS:--}
   FreeRTOS link flags                       : ${FREERTOS_LDFLAGS:--}
