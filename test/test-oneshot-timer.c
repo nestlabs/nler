@@ -172,7 +172,7 @@ int main(int argc, char **argv)
 #endif
 
     NL_LOG_CRIT(lrTEST, "start main (after initializing runtime)\n");
-]
+
     dataA.mTimer = nl_timer_start(NLER_TASK_PRIORITY_HIGH + 1);
     status = nleventqueue_create(queuememA, sizeof(queuememA), &dataA.mQueue);
     NLER_ASSERT(status == NLER_SUCCESS);
