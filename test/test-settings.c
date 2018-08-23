@@ -245,9 +245,13 @@ static bool was_successful(volatile const taskData_t *aSubscriber,
     bool retval = false;
 
     if (aSubscriber->mFailed || aPublisher->mFailed)
+    {
         retval = false;
+    }
     else if (aSubscriber->mSucceeded && aPublisher->mSucceeded)
+    {
         retval = true;
+    }
 
     return retval;
 }
