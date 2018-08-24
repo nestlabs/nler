@@ -22,7 +22,7 @@ NLER currently supports the above abstractions against the following build platf
 
 * FreeRTOS
 * Netscape Portable Runtime (NSPR)
-* POSIX Threads (pthreads) [Work in Progress]
+* POSIX Threads (pthreads)
 
 [nler-travis]: https://travis-ci.org/nestlabs/nler
 [nler-travis-svg]: https://travis-ci.org/nestlabs/nler.svg?branch=master
