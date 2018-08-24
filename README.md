@@ -40,10 +40,10 @@ There are numerous avenues for nler support:
 
 # Versioning
 
-nlfsm follows the [Semantic Versioning guidelines](http://semver.org/) 
+nler follows the [Semantic Versioning guidelines](http://semver.org/) 
 for release cycle transparency and to maintain backwards compatibility.
 
 # License
 
-nlfsm is released under the [Apache License, Version 2.0 license](https://opensource.org/licenses/Apache-2.0). 
+nler is released under the [Apache License, Version 2.0 license](https://opensource.org/licenses/Apache-2.0). 
 See the `LICENSE` file for more information.
