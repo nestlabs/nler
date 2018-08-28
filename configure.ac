@@ -908,10 +908,10 @@ AC_PATH_PROG([PKG_CONFIG],[pkg-config])
 AC_MSG_NOTICE([checking required and optional package dependencies])
 
 if test "${NLER_BUILD_PLATFORM}" == "apr"; then
-    NL_WITH_OPTIONAL_EXTERNAL_PACKAGE([Netscape Portable Runtime],
+    NL_WITH_OPTIONAL_EXTERNAL_PACKAGE([Apache Portable Runtime],
 	[APR],
 	[apr],
-	[-lapr4],
+	[-lapr-1],
 	[
 	    # Check for required APR headers
 
