@@ -1,5 +1,20 @@
 /* include/nler-config.h.in.  Generated from configure.ac by autoheader.  */
 
+/* Define to 1 if you have the <apr/prinit.h> header file. */
+#undef HAVE_APR_PRINIT_H
+
+/* Define to 1 if you have the <apr/prinrval.h> header file. */
+#undef HAVE_APR_PRINRVAL_H
+
+/* Define to 1 if you have the <apr/prio.h> header file. */
+#undef HAVE_APR_PRIO_H
+
+/* Define to 1 if you have the <apr/prlock.h> header file. */
+#undef HAVE_APR_PRLOCK_H
+
+/* Define to 1 if you have the <apr/prthread.h> header file. */
+#undef HAVE_APR_PRTHREAD_H
+
 /* Define to 1 if the system has the type `clockid_t'. */
 #undef HAVE_CLOCKID_T
 
@@ -165,6 +180,10 @@
 
 /* Embedded Runtime build platform */
 #undef NLER_BUILD_PLATFORM
+
+/* Define to 1 if you want to use Embedded Runtime with Netscape Portable
+   Runtime (i.e., apr) */
+#undef NLER_BUILD_PLATFORM_APR
 
 /* Define to 1 if you want to use Embedded Runtime with FreeRTOS */
 #undef NLER_BUILD_PLATFORM_FREERTOS

@@ -15,7 +15,7 @@
 @SET_MAKE@
 
 #
-#    Copyright (c) 2018 Nest Labs, Inc.
+#    Copyright (c) 2018 Google LLC
 #    All rights reserved.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License");
@@ -34,7 +34,7 @@
 #
 #    Description:
 #      This file is the GNU automake template for the Nest Labs
-#      Embedded Runtime POSIX threads-specific library.
+#      Embedded Runtime Apache Portable Runtime-specific library.
 #
 
 
@@ -113,7 +113,7 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 target_triplet = @target@
-subdir = pthreads
+subdir = apr
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/third_party/nlbuild-autotools/repo/autoconf/m4/ax_check_compiler.m4 \
 	$(top_srcdir)/third_party/nlbuild-autotools/repo/autoconf/m4/nl_enable_coverage.m4 \
@@ -175,16 +175,15 @@ AM_V_AR = $(am__v_AR_@AM_V@)
 am__v_AR_ = $(am__v_AR_@AM_DEFAULT_V@)
 am__v_AR_0 = @echo "  AR      " $@;
 am__v_AR_1 = 
-libnlerpthreads_a_AR = $(AR) $(ARFLAGS)
-libnlerpthreads_a_LIBADD =
-am_libnlerpthreads_a_OBJECTS =  \
-	libnlerpthreads_a-nlerinit-pthreads.$(OBJEXT) \
-	libnlerpthreads_a-nlertime-pthreads.$(OBJEXT) \
-	libnlerpthreads_a-nleventpooled-pthreads.$(OBJEXT) \
-	libnlerpthreads_a-nleventqueue-pthreads.$(OBJEXT) \
-	libnlerpthreads_a-nllock-pthreads.$(OBJEXT) \
-	libnlerpthreads_a-nltask-pthreads.$(OBJEXT)
-libnlerpthreads_a_OBJECTS = $(am_libnlerpthreads_a_OBJECTS)
+libnlerapr_a_AR = $(AR) $(ARFLAGS)
+libnlerapr_a_LIBADD =
+am_libnlerapr_a_OBJECTS = libnlerapr_a-nlerinit-apr.$(OBJEXT) \
+	libnlerapr_a-nlertime-apr.$(OBJEXT) \
+	libnlerapr_a-nleventpooled-apr.$(OBJEXT) \
+	libnlerapr_a-nleventqueue-apr.$(OBJEXT) \
+	libnlerapr_a-nllock-apr.$(OBJEXT) \
+	libnlerapr_a-nltask-apr.$(OBJEXT)
+libnlerapr_a_OBJECTS = $(am_libnlerapr_a_OBJECTS)
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
 am__v_P_0 = false
@@ -201,13 +200,12 @@ DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)/include
 depcomp = $(SHELL) \
 	$(top_srcdir)/third_party/nlbuild-autotools/repo/third_party/autoconf/depcomp
 am__maybe_remake_depfiles = depfiles
-am__depfiles_remade =  \
-	./$(DEPDIR)/libnlerpthreads_a-nlerinit-pthreads.Po \
-	./$(DEPDIR)/libnlerpthreads_a-nlertime-pthreads.Po \
-	./$(DEPDIR)/libnlerpthreads_a-nleventpooled-pthreads.Po \
-	./$(DEPDIR)/libnlerpthreads_a-nleventqueue-pthreads.Po \
-	./$(DEPDIR)/libnlerpthreads_a-nllock-pthreads.Po \
-	./$(DEPDIR)/libnlerpthreads_a-nltask-pthreads.Po
+am__depfiles_remade = ./$(DEPDIR)/libnlerapr_a-nlerinit-apr.Po \
+	./$(DEPDIR)/libnlerapr_a-nlertime-apr.Po \
+	./$(DEPDIR)/libnlerapr_a-nleventpooled-apr.Po \
+	./$(DEPDIR)/libnlerapr_a-nleventqueue-apr.Po \
+	./$(DEPDIR)/libnlerapr_a-nllock-apr.Po \
+	./$(DEPDIR)/libnlerapr_a-nltask-apr.Po
 am__mv = mv -f
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
@@ -231,8 +229,8 @@ AM_V_CCLD = $(am__v_CCLD_@AM_V@)
 am__v_CCLD_ = $(am__v_CCLD_@AM_DEFAULT_V@)
 am__v_CCLD_0 = @echo "  CCLD    " $@;
 am__v_CCLD_1 = 
-SOURCES = $(libnlerpthreads_a_SOURCES)
-DIST_SOURCES = $(libnlerpthreads_a_SOURCES)
+SOURCES = $(libnlerapr_a_SOURCES)
+DIST_SOURCES = $(libnlerapr_a_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -431,20 +429,20 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 lib_LIBRARIES = \
-    libnlerpthreads.a             \
+    libnlerapr.a                  \
     $(NULL)
 
-libnlerpthreads_a_CPPFLAGS = \
+libnlerapr_a_CPPFLAGS = \
     -I$(top_srcdir)/include       \
     $(NULL)
 
-libnlerpthreads_a_SOURCES = \
-    nlerinit-pthreads.c           \
-    nlertime-pthreads.c           \
-    nleventpooled-pthreads.c      \
-    nleventqueue-pthreads.c       \
-    nllock-pthreads.c             \
-    nltask-pthreads.c             \
+libnlerapr_a_SOURCES = \
+    nlerinit-apr.c                \
+    nlertime-apr.c                \
+    nleventpooled-apr.c           \
+    nleventqueue-apr.c            \
+    nllock-apr.c                  \
+    nltask-apr.c                  \
     $(NULL)
 
 include_HEADERS = \
@@ -466,9 +464,9 @@ $(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.am  $(am__confi
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign pthreads/Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign apr/Makefile'; \
 	$(am__cd) $(top_srcdir) && \
-	  $(AUTOMAKE) --foreign pthreads/Makefile
+	  $(AUTOMAKE) --foreign apr/Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \
 	  *config.status*) \
@@ -518,10 +516,10 @@ uninstall-libLIBRARIES:
 clean-libLIBRARIES:
 	-test -z "$(lib_LIBRARIES)" || rm -f $(lib_LIBRARIES)
 
-libnlerpthreads.a: $(libnlerpthreads_a_OBJECTS) $(libnlerpthreads_a_DEPENDENCIES) $(EXTRA_libnlerpthreads_a_DEPENDENCIES) 
-	$(AM_V_at)-rm -f libnlerpthreads.a
-	$(AM_V_AR)$(libnlerpthreads_a_AR) libnlerpthreads.a $(libnlerpthreads_a_OBJECTS) $(libnlerpthreads_a_LIBADD)
-	$(AM_V_at)$(RANLIB) libnlerpthreads.a
+libnlerapr.a: $(libnlerapr_a_OBJECTS) $(libnlerapr_a_DEPENDENCIES) $(EXTRA_libnlerapr_a_DEPENDENCIES) 
+	$(AM_V_at)-rm -f libnlerapr.a
+	$(AM_V_AR)$(libnlerapr_a_AR) libnlerapr.a $(libnlerapr_a_OBJECTS) $(libnlerapr_a_LIBADD)
+	$(AM_V_at)$(RANLIB) libnlerapr.a
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -529,12 +527,12 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libnlerpthreads_a-nlerinit-pthreads.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libnlerpthreads_a-nlertime-pthreads.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libnlerpthreads_a-nleventpooled-pthreads.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libnlerpthreads_a-nleventqueue-pthreads.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libnlerpthreads_a-nllock-pthreads.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libnlerpthreads_a-nltask-pthreads.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libnlerapr_a-nlerinit-apr.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libnlerapr_a-nlertime-apr.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libnlerapr_a-nleventpooled-apr.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libnlerapr_a-nleventqueue-apr.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libnlerapr_a-nllock-apr.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libnlerapr_a-nltask-apr.Po@am__quote@ # am--include-marker
 
 $(am__depfiles_remade):
 	@$(MKDIR_P) $(@D)
@@ -566,89 +564,89 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LTCOMPILE) -c -o $@ $<
 
-libnlerpthreads_a-nlerinit-pthreads.o: nlerinit-pthreads.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libnlerpthreads_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libnlerpthreads_a-nlerinit-pthreads.o -MD -MP -MF $(DEPDIR)/libnlerpthreads_a-nlerinit-pthreads.Tpo -c -o libnlerpthreads_a-nlerinit-pthreads.o `test -f 'nlerinit-pthreads.c' || echo '$(srcdir)/'`nlerinit-pthreads.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libnlerpthreads_a-nlerinit-pthreads.Tpo $(DEPDIR)/libnlerpthreads_a-nlerinit-pthreads.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='nlerinit-pthreads.c' object='libnlerpthreads_a-nlerinit-pthreads.o' libtool=no @AMDEPBACKSLASH@
+libnlerapr_a-nlerinit-apr.o: nlerinit-apr.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libnlerapr_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libnlerapr_a-nlerinit-apr.o -MD -MP -MF $(DEPDIR)/libnlerapr_a-nlerinit-apr.Tpo -c -o libnlerapr_a-nlerinit-apr.o `test -f 'nlerinit-apr.c' || echo '$(srcdir)/'`nlerinit-apr.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libnlerapr_a-nlerinit-apr.Tpo $(DEPDIR)/libnlerapr_a-nlerinit-apr.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='nlerinit-apr.c' object='libnlerapr_a-nlerinit-apr.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libnlerpthreads_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libnlerpthreads_a-nlerinit-pthreads.o `test -f 'nlerinit-pthreads.c' || echo '$(srcdir)/'`nlerinit-pthreads.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libnlerapr_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libnlerapr_a-nlerinit-apr.o `test -f 'nlerinit-apr.c' || echo '$(srcdir)/'`nlerinit-apr.c
 
-libnlerpthreads_a-nlerinit-pthreads.obj: nlerinit-pthreads.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libnlerpthreads_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libnlerpthreads_a-nlerinit-pthreads.obj -MD -MP -MF $(DEPDIR)/libnlerpthreads_a-nlerinit-pthreads.Tpo -c -o libnlerpthreads_a-nlerinit-pthreads.obj `if test -f 'nlerinit-pthreads.c'; then $(CYGPATH_W) 'nlerinit-pthreads.c'; else $(CYGPATH_W) '$(srcdir)/nlerinit-pthreads.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libnlerpthreads_a-nlerinit-pthreads.Tpo $(DEPDIR)/libnlerpthreads_a-nlerinit-pthreads.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='nlerinit-pthreads.c' object='libnlerpthreads_a-nlerinit-pthreads.obj' libtool=no @AMDEPBACKSLASH@
+libnlerapr_a-nlerinit-apr.obj: nlerinit-apr.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libnlerapr_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libnlerapr_a-nlerinit-apr.obj -MD -MP -MF $(DEPDIR)/libnlerapr_a-nlerinit-apr.Tpo -c -o libnlerapr_a-nlerinit-apr.obj `if test -f 'nlerinit-apr.c'; then $(CYGPATH_W) 'nlerinit-apr.c'; else $(CYGPATH_W) '$(srcdir)/nlerinit-apr.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libnlerapr_a-nlerinit-apr.Tpo $(DEPDIR)/libnlerapr_a-nlerinit-apr.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='nlerinit-apr.c' object='libnlerapr_a-nlerinit-apr.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libnlerpthreads_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libnlerpthreads_a-nlerinit-pthreads.obj `if test -f 'nlerinit-pthreads.c'; then $(CYGPATH_W) 'nlerinit-pthreads.c'; else $(CYGPATH_W) '$(srcdir)/nlerinit-pthreads.c'; fi`
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libnlerapr_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libnlerapr_a-nlerinit-apr.obj `if test -f 'nlerinit-apr.c'; then $(CYGPATH_W) 'nlerinit-apr.c'; else $(CYGPATH_W) '$(srcdir)/nlerinit-apr.c'; fi`
 
-libnlerpthreads_a-nlertime-pthreads.o: nlertime-pthreads.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libnlerpthreads_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libnlerpthreads_a-nlertime-pthreads.o -MD -MP -MF $(DEPDIR)/libnlerpthreads_a-nlertime-pthreads.Tpo -c -o libnlerpthreads_a-nlertime-pthreads.o `test -f 'nlertime-pthreads.c' || echo '$(srcdir)/'`nlertime-pthreads.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libnlerpthreads_a-nlertime-pthreads.Tpo $(DEPDIR)/libnlerpthreads_a-nlertime-pthreads.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='nlertime-pthreads.c' object='libnlerpthreads_a-nlertime-pthreads.o' libtool=no @AMDEPBACKSLASH@
+libnlerapr_a-nlertime-apr.o: nlertime-apr.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libnlerapr_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libnlerapr_a-nlertime-apr.o -MD -MP -MF $(DEPDIR)/libnlerapr_a-nlertime-apr.Tpo -c -o libnlerapr_a-nlertime-apr.o `test -f 'nlertime-apr.c' || echo '$(srcdir)/'`nlertime-apr.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libnlerapr_a-nlertime-apr.Tpo $(DEPDIR)/libnlerapr_a-nlertime-apr.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='nlertime-apr.c' object='libnlerapr_a-nlertime-apr.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libnlerpthreads_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libnlerpthreads_a-nlertime-pthreads.o `test -f 'nlertime-pthreads.c' || echo '$(srcdir)/'`nlertime-pthreads.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libnlerapr_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libnlerapr_a-nlertime-apr.o `test -f 'nlertime-apr.c' || echo '$(srcdir)/'`nlertime-apr.c
 
-libnlerpthreads_a-nlertime-pthreads.obj: nlertime-pthreads.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libnlerpthreads_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libnlerpthreads_a-nlertime-pthreads.obj -MD -MP -MF $(DEPDIR)/libnlerpthreads_a-nlertime-pthreads.Tpo -c -o libnlerpthreads_a-nlertime-pthreads.obj `if test -f 'nlertime-pthreads.c'; then $(CYGPATH_W) 'nlertime-pthreads.c'; else $(CYGPATH_W) '$(srcdir)/nlertime-pthreads.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libnlerpthreads_a-nlertime-pthreads.Tpo $(DEPDIR)/libnlerpthreads_a-nlertime-pthreads.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='nlertime-pthreads.c' object='libnlerpthreads_a-nlertime-pthreads.obj' libtool=no @AMDEPBACKSLASH@
+libnlerapr_a-nlertime-apr.obj: nlertime-apr.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libnlerapr_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libnlerapr_a-nlertime-apr.obj -MD -MP -MF $(DEPDIR)/libnlerapr_a-nlertime-apr.Tpo -c -o libnlerapr_a-nlertime-apr.obj `if test -f 'nlertime-apr.c'; then $(CYGPATH_W) 'nlertime-apr.c'; else $(CYGPATH_W) '$(srcdir)/nlertime-apr.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libnlerapr_a-nlertime-apr.Tpo $(DEPDIR)/libnlerapr_a-nlertime-apr.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='nlertime-apr.c' object='libnlerapr_a-nlertime-apr.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libnlerpthreads_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libnlerpthreads_a-nlertime-pthreads.obj `if test -f 'nlertime-pthreads.c'; then $(CYGPATH_W) 'nlertime-pthreads.c'; else $(CYGPATH_W) '$(srcdir)/nlertime-pthreads.c'; fi`
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libnlerapr_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libnlerapr_a-nlertime-apr.obj `if test -f 'nlertime-apr.c'; then $(CYGPATH_W) 'nlertime-apr.c'; else $(CYGPATH_W) '$(srcdir)/nlertime-apr.c'; fi`
 
-libnlerpthreads_a-nleventpooled-pthreads.o: nleventpooled-pthreads.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libnlerpthreads_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libnlerpthreads_a-nleventpooled-pthreads.o -MD -MP -MF $(DEPDIR)/libnlerpthreads_a-nleventpooled-pthreads.Tpo -c -o libnlerpthreads_a-nleventpooled-pthreads.o `test -f 'nleventpooled-pthreads.c' || echo '$(srcdir)/'`nleventpooled-pthreads.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libnlerpthreads_a-nleventpooled-pthreads.Tpo $(DEPDIR)/libnlerpthreads_a-nleventpooled-pthreads.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='nleventpooled-pthreads.c' object='libnlerpthreads_a-nleventpooled-pthreads.o' libtool=no @AMDEPBACKSLASH@
+libnlerapr_a-nleventpooled-apr.o: nleventpooled-apr.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libnlerapr_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libnlerapr_a-nleventpooled-apr.o -MD -MP -MF $(DEPDIR)/libnlerapr_a-nleventpooled-apr.Tpo -c -o libnlerapr_a-nleventpooled-apr.o `test -f 'nleventpooled-apr.c' || echo '$(srcdir)/'`nleventpooled-apr.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libnlerapr_a-nleventpooled-apr.Tpo $(DEPDIR)/libnlerapr_a-nleventpooled-apr.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='nleventpooled-apr.c' object='libnlerapr_a-nleventpooled-apr.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libnlerpthreads_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libnlerpthreads_a-nleventpooled-pthreads.o `test -f 'nleventpooled-pthreads.c' || echo '$(srcdir)/'`nleventpooled-pthreads.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libnlerapr_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libnlerapr_a-nleventpooled-apr.o `test -f 'nleventpooled-apr.c' || echo '$(srcdir)/'`nleventpooled-apr.c
 
-libnlerpthreads_a-nleventpooled-pthreads.obj: nleventpooled-pthreads.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libnlerpthreads_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libnlerpthreads_a-nleventpooled-pthreads.obj -MD -MP -MF $(DEPDIR)/libnlerpthreads_a-nleventpooled-pthreads.Tpo -c -o libnlerpthreads_a-nleventpooled-pthreads.obj `if test -f 'nleventpooled-pthreads.c'; then $(CYGPATH_W) 'nleventpooled-pthreads.c'; else $(CYGPATH_W) '$(srcdir)/nleventpooled-pthreads.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libnlerpthreads_a-nleventpooled-pthreads.Tpo $(DEPDIR)/libnlerpthreads_a-nleventpooled-pthreads.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='nleventpooled-pthreads.c' object='libnlerpthreads_a-nleventpooled-pthreads.obj' libtool=no @AMDEPBACKSLASH@
+libnlerapr_a-nleventpooled-apr.obj: nleventpooled-apr.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libnlerapr_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libnlerapr_a-nleventpooled-apr.obj -MD -MP -MF $(DEPDIR)/libnlerapr_a-nleventpooled-apr.Tpo -c -o libnlerapr_a-nleventpooled-apr.obj `if test -f 'nleventpooled-apr.c'; then $(CYGPATH_W) 'nleventpooled-apr.c'; else $(CYGPATH_W) '$(srcdir)/nleventpooled-apr.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libnlerapr_a-nleventpooled-apr.Tpo $(DEPDIR)/libnlerapr_a-nleventpooled-apr.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='nleventpooled-apr.c' object='libnlerapr_a-nleventpooled-apr.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libnlerpthreads_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libnlerpthreads_a-nleventpooled-pthreads.obj `if test -f 'nleventpooled-pthreads.c'; then $(CYGPATH_W) 'nleventpooled-pthreads.c'; else $(CYGPATH_W) '$(srcdir)/nleventpooled-pthreads.c'; fi`
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libnlerapr_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libnlerapr_a-nleventpooled-apr.obj `if test -f 'nleventpooled-apr.c'; then $(CYGPATH_W) 'nleventpooled-apr.c'; else $(CYGPATH_W) '$(srcdir)/nleventpooled-apr.c'; fi`
 
-libnlerpthreads_a-nleventqueue-pthreads.o: nleventqueue-pthreads.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libnlerpthreads_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libnlerpthreads_a-nleventqueue-pthreads.o -MD -MP -MF $(DEPDIR)/libnlerpthreads_a-nleventqueue-pthreads.Tpo -c -o libnlerpthreads_a-nleventqueue-pthreads.o `test -f 'nleventqueue-pthreads.c' || echo '$(srcdir)/'`nleventqueue-pthreads.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libnlerpthreads_a-nleventqueue-pthreads.Tpo $(DEPDIR)/libnlerpthreads_a-nleventqueue-pthreads.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='nleventqueue-pthreads.c' object='libnlerpthreads_a-nleventqueue-pthreads.o' libtool=no @AMDEPBACKSLASH@
+libnlerapr_a-nleventqueue-apr.o: nleventqueue-apr.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libnlerapr_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libnlerapr_a-nleventqueue-apr.o -MD -MP -MF $(DEPDIR)/libnlerapr_a-nleventqueue-apr.Tpo -c -o libnlerapr_a-nleventqueue-apr.o `test -f 'nleventqueue-apr.c' || echo '$(srcdir)/'`nleventqueue-apr.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libnlerapr_a-nleventqueue-apr.Tpo $(DEPDIR)/libnlerapr_a-nleventqueue-apr.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='nleventqueue-apr.c' object='libnlerapr_a-nleventqueue-apr.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libnlerpthreads_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libnlerpthreads_a-nleventqueue-pthreads.o `test -f 'nleventqueue-pthreads.c' || echo '$(srcdir)/'`nleventqueue-pthreads.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libnlerapr_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libnlerapr_a-nleventqueue-apr.o `test -f 'nleventqueue-apr.c' || echo '$(srcdir)/'`nleventqueue-apr.c
 
-libnlerpthreads_a-nleventqueue-pthreads.obj: nleventqueue-pthreads.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libnlerpthreads_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libnlerpthreads_a-nleventqueue-pthreads.obj -MD -MP -MF $(DEPDIR)/libnlerpthreads_a-nleventqueue-pthreads.Tpo -c -o libnlerpthreads_a-nleventqueue-pthreads.obj `if test -f 'nleventqueue-pthreads.c'; then $(CYGPATH_W) 'nleventqueue-pthreads.c'; else $(CYGPATH_W) '$(srcdir)/nleventqueue-pthreads.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libnlerpthreads_a-nleventqueue-pthreads.Tpo $(DEPDIR)/libnlerpthreads_a-nleventqueue-pthreads.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='nleventqueue-pthreads.c' object='libnlerpthreads_a-nleventqueue-pthreads.obj' libtool=no @AMDEPBACKSLASH@
+libnlerapr_a-nleventqueue-apr.obj: nleventqueue-apr.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libnlerapr_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libnlerapr_a-nleventqueue-apr.obj -MD -MP -MF $(DEPDIR)/libnlerapr_a-nleventqueue-apr.Tpo -c -o libnlerapr_a-nleventqueue-apr.obj `if test -f 'nleventqueue-apr.c'; then $(CYGPATH_W) 'nleventqueue-apr.c'; else $(CYGPATH_W) '$(srcdir)/nleventqueue-apr.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libnlerapr_a-nleventqueue-apr.Tpo $(DEPDIR)/libnlerapr_a-nleventqueue-apr.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='nleventqueue-apr.c' object='libnlerapr_a-nleventqueue-apr.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libnlerpthreads_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libnlerpthreads_a-nleventqueue-pthreads.obj `if test -f 'nleventqueue-pthreads.c'; then $(CYGPATH_W) 'nleventqueue-pthreads.c'; else $(CYGPATH_W) '$(srcdir)/nleventqueue-pthreads.c'; fi`
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libnlerapr_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libnlerapr_a-nleventqueue-apr.obj `if test -f 'nleventqueue-apr.c'; then $(CYGPATH_W) 'nleventqueue-apr.c'; else $(CYGPATH_W) '$(srcdir)/nleventqueue-apr.c'; fi`
 
-libnlerpthreads_a-nllock-pthreads.o: nllock-pthreads.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libnlerpthreads_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libnlerpthreads_a-nllock-pthreads.o -MD -MP -MF $(DEPDIR)/libnlerpthreads_a-nllock-pthreads.Tpo -c -o libnlerpthreads_a-nllock-pthreads.o `test -f 'nllock-pthreads.c' || echo '$(srcdir)/'`nllock-pthreads.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libnlerpthreads_a-nllock-pthreads.Tpo $(DEPDIR)/libnlerpthreads_a-nllock-pthreads.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='nllock-pthreads.c' object='libnlerpthreads_a-nllock-pthreads.o' libtool=no @AMDEPBACKSLASH@
+libnlerapr_a-nllock-apr.o: nllock-apr.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libnlerapr_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libnlerapr_a-nllock-apr.o -MD -MP -MF $(DEPDIR)/libnlerapr_a-nllock-apr.Tpo -c -o libnlerapr_a-nllock-apr.o `test -f 'nllock-apr.c' || echo '$(srcdir)/'`nllock-apr.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libnlerapr_a-nllock-apr.Tpo $(DEPDIR)/libnlerapr_a-nllock-apr.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='nllock-apr.c' object='libnlerapr_a-nllock-apr.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libnlerpthreads_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libnlerpthreads_a-nllock-pthreads.o `test -f 'nllock-pthreads.c' || echo '$(srcdir)/'`nllock-pthreads.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libnlerapr_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libnlerapr_a-nllock-apr.o `test -f 'nllock-apr.c' || echo '$(srcdir)/'`nllock-apr.c
 
-libnlerpthreads_a-nllock-pthreads.obj: nllock-pthreads.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libnlerpthreads_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libnlerpthreads_a-nllock-pthreads.obj -MD -MP -MF $(DEPDIR)/libnlerpthreads_a-nllock-pthreads.Tpo -c -o libnlerpthreads_a-nllock-pthreads.obj `if test -f 'nllock-pthreads.c'; then $(CYGPATH_W) 'nllock-pthreads.c'; else $(CYGPATH_W) '$(srcdir)/nllock-pthreads.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libnlerpthreads_a-nllock-pthreads.Tpo $(DEPDIR)/libnlerpthreads_a-nllock-pthreads.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='nllock-pthreads.c' object='libnlerpthreads_a-nllock-pthreads.obj' libtool=no @AMDEPBACKSLASH@
+libnlerapr_a-nllock-apr.obj: nllock-apr.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libnlerapr_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libnlerapr_a-nllock-apr.obj -MD -MP -MF $(DEPDIR)/libnlerapr_a-nllock-apr.Tpo -c -o libnlerapr_a-nllock-apr.obj `if test -f 'nllock-apr.c'; then $(CYGPATH_W) 'nllock-apr.c'; else $(CYGPATH_W) '$(srcdir)/nllock-apr.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libnlerapr_a-nllock-apr.Tpo $(DEPDIR)/libnlerapr_a-nllock-apr.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='nllock-apr.c' object='libnlerapr_a-nllock-apr.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libnlerpthreads_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libnlerpthreads_a-nllock-pthreads.obj `if test -f 'nllock-pthreads.c'; then $(CYGPATH_W) 'nllock-pthreads.c'; else $(CYGPATH_W) '$(srcdir)/nllock-pthreads.c'; fi`
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libnlerapr_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libnlerapr_a-nllock-apr.obj `if test -f 'nllock-apr.c'; then $(CYGPATH_W) 'nllock-apr.c'; else $(CYGPATH_W) '$(srcdir)/nllock-apr.c'; fi`
 
-libnlerpthreads_a-nltask-pthreads.o: nltask-pthreads.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libnlerpthreads_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libnlerpthreads_a-nltask-pthreads.o -MD -MP -MF $(DEPDIR)/libnlerpthreads_a-nltask-pthreads.Tpo -c -o libnlerpthreads_a-nltask-pthreads.o `test -f 'nltask-pthreads.c' || echo '$(srcdir)/'`nltask-pthreads.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libnlerpthreads_a-nltask-pthreads.Tpo $(DEPDIR)/libnlerpthreads_a-nltask-pthreads.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='nltask-pthreads.c' object='libnlerpthreads_a-nltask-pthreads.o' libtool=no @AMDEPBACKSLASH@
+libnlerapr_a-nltask-apr.o: nltask-apr.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libnlerapr_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libnlerapr_a-nltask-apr.o -MD -MP -MF $(DEPDIR)/libnlerapr_a-nltask-apr.Tpo -c -o libnlerapr_a-nltask-apr.o `test -f 'nltask-apr.c' || echo '$(srcdir)/'`nltask-apr.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libnlerapr_a-nltask-apr.Tpo $(DEPDIR)/libnlerapr_a-nltask-apr.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='nltask-apr.c' object='libnlerapr_a-nltask-apr.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libnlerpthreads_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libnlerpthreads_a-nltask-pthreads.o `test -f 'nltask-pthreads.c' || echo '$(srcdir)/'`nltask-pthreads.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libnlerapr_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libnlerapr_a-nltask-apr.o `test -f 'nltask-apr.c' || echo '$(srcdir)/'`nltask-apr.c
 
-libnlerpthreads_a-nltask-pthreads.obj: nltask-pthreads.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libnlerpthreads_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libnlerpthreads_a-nltask-pthreads.obj -MD -MP -MF $(DEPDIR)/libnlerpthreads_a-nltask-pthreads.Tpo -c -o libnlerpthreads_a-nltask-pthreads.obj `if test -f 'nltask-pthreads.c'; then $(CYGPATH_W) 'nltask-pthreads.c'; else $(CYGPATH_W) '$(srcdir)/nltask-pthreads.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libnlerpthreads_a-nltask-pthreads.Tpo $(DEPDIR)/libnlerpthreads_a-nltask-pthreads.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='nltask-pthreads.c' object='libnlerpthreads_a-nltask-pthreads.obj' libtool=no @AMDEPBACKSLASH@
+libnlerapr_a-nltask-apr.obj: nltask-apr.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libnlerapr_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libnlerapr_a-nltask-apr.obj -MD -MP -MF $(DEPDIR)/libnlerapr_a-nltask-apr.Tpo -c -o libnlerapr_a-nltask-apr.obj `if test -f 'nltask-apr.c'; then $(CYGPATH_W) 'nltask-apr.c'; else $(CYGPATH_W) '$(srcdir)/nltask-apr.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libnlerapr_a-nltask-apr.Tpo $(DEPDIR)/libnlerapr_a-nltask-apr.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='nltask-apr.c' object='libnlerapr_a-nltask-apr.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libnlerpthreads_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libnlerpthreads_a-nltask-pthreads.obj `if test -f 'nltask-pthreads.c'; then $(CYGPATH_W) 'nltask-pthreads.c'; else $(CYGPATH_W) '$(srcdir)/nltask-pthreads.c'; fi`
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libnlerapr_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libnlerapr_a-nltask-apr.obj `if test -f 'nltask-apr.c'; then $(CYGPATH_W) 'nltask-apr.c'; else $(CYGPATH_W) '$(srcdir)/nltask-apr.c'; fi`
 
 mostlyclean-libtool:
 	-rm -f *.lo
@@ -805,12 +803,12 @@ clean-am: clean-generic clean-libLIBRARIES clean-libtool \
 	mostlyclean-am
 
 distclean: distclean-am
-		-rm -f ./$(DEPDIR)/libnlerpthreads_a-nlerinit-pthreads.Po
-	-rm -f ./$(DEPDIR)/libnlerpthreads_a-nlertime-pthreads.Po
-	-rm -f ./$(DEPDIR)/libnlerpthreads_a-nleventpooled-pthreads.Po
-	-rm -f ./$(DEPDIR)/libnlerpthreads_a-nleventqueue-pthreads.Po
-	-rm -f ./$(DEPDIR)/libnlerpthreads_a-nllock-pthreads.Po
-	-rm -f ./$(DEPDIR)/libnlerpthreads_a-nltask-pthreads.Po
+		-rm -f ./$(DEPDIR)/libnlerapr_a-nlerinit-apr.Po
+	-rm -f ./$(DEPDIR)/libnlerapr_a-nlertime-apr.Po
+	-rm -f ./$(DEPDIR)/libnlerapr_a-nleventpooled-apr.Po
+	-rm -f ./$(DEPDIR)/libnlerapr_a-nleventqueue-apr.Po
+	-rm -f ./$(DEPDIR)/libnlerapr_a-nllock-apr.Po
+	-rm -f ./$(DEPDIR)/libnlerapr_a-nltask-apr.Po
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
 	distclean-tags
@@ -856,12 +854,12 @@ install-ps-am:
 installcheck-am:
 
 maintainer-clean: maintainer-clean-am
-		-rm -f ./$(DEPDIR)/libnlerpthreads_a-nlerinit-pthreads.Po
-	-rm -f ./$(DEPDIR)/libnlerpthreads_a-nlertime-pthreads.Po
-	-rm -f ./$(DEPDIR)/libnlerpthreads_a-nleventpooled-pthreads.Po
-	-rm -f ./$(DEPDIR)/libnlerpthreads_a-nleventqueue-pthreads.Po
-	-rm -f ./$(DEPDIR)/libnlerpthreads_a-nllock-pthreads.Po
-	-rm -f ./$(DEPDIR)/libnlerpthreads_a-nltask-pthreads.Po
+		-rm -f ./$(DEPDIR)/libnlerapr_a-nlerinit-apr.Po
+	-rm -f ./$(DEPDIR)/libnlerapr_a-nlertime-apr.Po
+	-rm -f ./$(DEPDIR)/libnlerapr_a-nleventpooled-apr.Po
+	-rm -f ./$(DEPDIR)/libnlerapr_a-nleventqueue-apr.Po
+	-rm -f ./$(DEPDIR)/libnlerapr_a-nllock-apr.Po
+	-rm -f ./$(DEPDIR)/libnlerapr_a-nltask-apr.Po
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 
