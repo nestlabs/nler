@@ -78,10 +78,10 @@ nl_time_native_t nl_time_ms_to_delay_time_native(nl_time_ms_t aTime)
 
 static uint32_t nl_udiv64_by_clock_tick_rate(uint64_t inDividend)
 {
-    const uint32_t reciprocal = NL_MATH_UTILS_RECIPROCAL(configTICK_RATE_HZ ULL);
-    const uint32_t shiftedDivisor = NL_MATH_UTILS_SCALED_DIVISOR(configTICK_RATE_HZ ULL);
+    const uint32_t reciprocal = NL_MATH_UTILS_RECIPROCAL(configTICK_RATE_HZ);
+    const uint32_t shiftedDivisor = NL_MATH_UTILS_SCALED_DIVISOR(configTICK_RATE_HZ);
     return nl_div_uint64_into_uint32_helper(
-        NL_MATH_UTILS_SCALED_DIVIDEND(inDividend, configTICK_RATE_HZ ULL),
+        NL_MATH_UTILS_SCALED_DIVIDEND(inDividend, configTICK_RATE_HZ),
         reciprocal,
         shiftedDivisor);
 }
