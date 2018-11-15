@@ -177,10 +177,10 @@ NLER_COVERAGE_INFO                      = ${NLER_COVERAGE_BUNDLE}/${PACKAGE}${NL
 $(NLER_COVERAGE_BUNDLE):
 	$(call create-directory)
 
-$(NLER_COVERAGE_INFO): check | $(NLER_COVERAGE_BUNDLE)
+$(NLER_COVERAGE_INFO): check-local | $(NLER_COVERAGE_BUNDLE)
 	$(call generate-coverage-report,${abs_top_builddir})
 
-coverage: $(NLER_COVERAGE_INFO)
+coverage-local: $(NLER_COVERAGE_INFO)
 
 clean-local: clean-local-coverage
 
