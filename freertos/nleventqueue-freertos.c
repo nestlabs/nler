@@ -118,8 +118,18 @@ static void dump_event_contents(nleventqueue_t *aEventQueue)
         {
             break;
         }
-        NL_LOG_CRIT(lrERQUEUE, "[%u] event %p, type = %d, handler = %p, closure = %p\n",
-                    count, event, event->mType, event->mHandler, event->mHandlerClosure);
+        // event shouldn't be NULL, but we've seen cases where it was
+        // in crash logs sent to service (could indicate memory corruption)
+        // so be extra cautious not to fault here
+        if (event)
+        {
+            NL_LOG_CRIT(lrERQUEUE, "[%u] event %p, type = %d, handler = %p, closure = %p\n",
+                        count, event, event->mType, event->mHandler, event->mHandlerClosure);
+        }
+        else
+        {
+            NL_LOG_CRIT(lrERQUEUE, "[%u] event is NULL in queue, unexpected\n", count);
+        }
         count++;
     }
 }
