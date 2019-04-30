@@ -38,6 +38,19 @@ extern char NLER_STACK_SECTION_START[];
 extern char NLER_STACK_SECTION_END[];
 #endif // HAVE_NLER_STACK_SECTION
 
+/* For openocd's FreeRTOS support to work, it needs this symbol.
+ * In earlier versions of FreeRTOS, this was a symbol in the kernel.
+ * Since at least v7.5.3, this symbol is no longer in the kernel.
+ * A close approximation is uxTopReadyPriority, but that is problematic
+ * to use because if configUSE_PORT_OPTIMISED_TASK_SELECTION is set
+ * to 1, then uxTopReadyPriority is treated as not a simple uint but
+ * 1 left shifted by the actual top ready priority. There's no way for
+ * openocd to know what config setting was used, so easiest thing
+ * is to always provide this symbol. Make sure the linker script
+ * has an EXTERN(uxTopUsedPriority) to prevent it from being dead stripped.
+ */
+const int __attribute__((used)) uxTopUsedPriority = configMAX_PRIORITIES - 1;
+
 int nltask_create(nltask_entry_point_t aEntry, const char *aName, void *aStack, size_t aStackSize, nltask_priority_t aPriority, void *aParams, nltask_t *aTask)
 {
     int retval = NLER_ERROR_BAD_INPUT;
