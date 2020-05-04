@@ -1,3 +1,10 @@
+1.0.6 (2020-05-04)
+
+        * Updated to nlbuild-autotools 1.7.2.
+
+        * Leverage NLFOREIGN_SUBDIR_DEPENDENCIES for nlunit-test
+          rather than SUBDIRS in third_party.
+
 1.0.5 (2019-05-24)
 
         * Updated to nlbuild-autotools 1.6.11.
