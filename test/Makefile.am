@@ -162,6 +162,13 @@ test_task_LDADD                          = $(COMMON_LDADD)
 
 test_timer_SOURCES                       = test-timer.c nltestlogregions.c
 test_timer_LDADD                         = $(COMMON_LDADD)
+#
+# Foreign make dependencies
+#
+
+NLFOREIGN_SUBDIR_DEPENDENCIES                         = \
+   $(NLUNIT_TEST_FOREIGN_SUBDIR_DEPENDENCY)             \
+   $(NULL)
 
 if NLER_BUILD_COVERAGE
 CLEANFILES                               = $(wildcard *.gcda *.gcno)
