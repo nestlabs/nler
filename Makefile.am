@@ -186,7 +186,7 @@ $(distdir)/.dist-version $(builddir)/.local-version:
 # to manage the nlunit-test repo. Two directories need to be writable
 # to facilitate this.
 #
-DISTCHECK_CONFIGURE_FLAGS=`chmod u+w ../.. ../../third_party`
+DISTCHECK_CONFIGURE_FLAGS=`chmod u+w .. ../third_party`
 
 dist distcheck: $(BUILT_SOURCES)
 
