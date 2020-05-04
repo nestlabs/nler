@@ -1013,7 +1013,7 @@ else
 fi
 
 AC_SUBST(NLUNIT_TEST_SUBDIRS, [${maybe_nlunit_test_dirstem}])
-AM_CONDITIONAL([NLIO_WITH_NLUNIT_TEST_INTERNAL], [test "${nl_with_nlunit_test}" = "internal"])
+AM_CONDITIONAL([NLER_WITH_NLUNIT_TEST_INTERNAL], [test "${nl_with_nlunit_test}" = "internal"])
 
 #
 # Nlutilities
