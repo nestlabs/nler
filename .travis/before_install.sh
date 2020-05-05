@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
 #
 #    Copyright 2018 Google LLC All Rights Reserved.
@@ -28,16 +28,33 @@ die()
     exit 1
 }
 
+brew_install()
+{
+  local package
+
+  package="${1}"
+
+  if brew ls --versions "${package}"; then
+    brew upgrade "${package}";
+  else
+    brew install "${package}"
+  fi
+}
+
 case "${BUILD_TARGET}" in
 
-    linux-auto-*)
+    *-auto-*)
 	;;
 
     linux-nspr-*)
-	sudo apt-get install libnspr4 libnspr4-dev
+        sudo apt-get install libnspr4 libnspr4-dev
 	;;
 
-    linux-pthreads-*)
+    osx-nspr-*)
+        brew update && brew_install nspr
+        ;;
+
+    *-pthreads-*)
 	;;
 
     *)
