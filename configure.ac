@@ -1013,7 +1013,7 @@ else
 fi
 
 AC_SUBST(NLUNIT_TEST_SUBDIRS, [${maybe_nlunit_test_dirstem}])
-AM_CONDITIONAL([NLIO_WITH_NLUNIT_TEST_INTERNAL], [test "${nl_with_nlunit_test}" = "internal"])
+AM_CONDITIONAL([NLER_WITH_NLUNIT_TEST_INTERNAL], [test "${nl_with_nlunit_test}" = "internal"])
 
 #
 # Nlutilities
@@ -1230,6 +1230,7 @@ NL_RESTORE_WERROR
 
 if test "${nl_with_nlunit_test}" = "internal"; then
     AC_CONFIG_SUBDIRS([third_party/nlunit-test/repo])
+    AC_SUBST(NLUNIT_TEST_FOREIGN_SUBDIR_DEPENDENCY,["${ac_pwd}/third_party/nlunit-test/repo/src"])
 fi
 
 #
@@ -1262,75 +1263,76 @@ AC_MSG_NOTICE([
 
   Configuration Summary
   ---------------------
-  Package                                   : ${PACKAGE_NAME}
-  Version                                   : ${PACKAGE_VERSION}
-  Interface                                 : ${LIBNLER_VERSION_INFO//:/.}
-  Build system                              : ${build}
-  Host system                               : ${host}
-  Target system                             : ${target}
-  Target architecture                       : ${target_cpu}
-  Target OS                                 : ${target_os}
-  Build platform                            : ${NLER_BUILD_PLATFORM}
-  Build instruction set architecture        : ${NLER_ASM_ISA}
-  Cross compiling                           : ${cross_compiling}
-  Build shared libraries                    : ${enable_shared}
-  Build static libraries                    : ${enable_static}
-  Build debug libraries                     : ${nl_cv_build_debug}
-  Build optimized libraries                 : ${nl_cv_build_optimized}
-  Build coverage libraries                  : ${nl_cv_build_coverage}
-  Build coverage reports                    : ${nl_cv_build_coverage_reports}
-  Lcov                                      : ${LCOV:--}
-  Genhtml                                   : ${GENHTML:--}
-  Build tests                               : ${nl_cv_build_tests}
-  Build asserts                             : ${nler_build_asserts}
-  Build default logger                      : ${nler_build_default_logger}
-  Build event timer                         : ${nler_build_event_timer}
-  Build flow tracer                         : ${nler_build_flow_tracer}
-  Build log tokenization                    : ${nler_build_log_tokenization}
-  Build simulateable time                   : ${nler_build_simulateable_time}
-  Build software timers                     : ${nler_build_software_timers}
-  Build stack alignment                     : ${nler_build_stack_alignment}
-  Build task local storage                  : ${nler_build_task_local_storage}
-  Build wake timer                          : ${nler_build_wake_timer}
-  Build utilities                           : ${nler_build_utilities}
-  Prefix                                    : ${prefix}
-  Documentation support                     : ${nl_cv_build_docs}
-  Doxygen                                   : ${DOXYGEN:--}
-  GraphViz dot                              : ${DOT:--}
-  PERL                                      : ${PERL:--}
-  FreeRTOS source                           : ${nl_with_freertos:--}
-  FreeRTOS compile flags                    : ${FREERTOS_CPPFLAGS:--}
-  FreeRTOS link flags                       : ${FREERTOS_LDFLAGS:--}
-  FreeRTOS link libraries                   : ${FREERTOS_LIBS:--}
-  Nlcompiler source                         : ${nl_with_nlcompiler:--}
-  Nlcompiler compile flags                  : ${NLCOMPILER_CPPFLAGS:--}
-  Nlcompiler link flags                     : ${NLCOMPILER_LDFLAGS:--}
-  Nlcompiler link libraries                 : ${NLCOMPILER_LIBS:--}
-  Nlunit-test source                        : ${nl_with_nlunit_test:--}
-  Nlunit-test compile flags                 : ${NLUNIT_TEST_CPPFLAGS:--}
-  Nlunit-test link flags                    : ${NLUNIT_TEST_LDFLAGS:--}
-  Nlunit-test link libraries                : ${NLUNIT_TEST_LIBS:--}
-  Nlutilities source                        : ${nl_with_nlutilities:--}
-  Nlutilities compile flags                 : ${NLUTILITIES_CPPFLAGS:--}
-  Nlutilities link flags                    : ${NLUTILITIES_LDFLAGS:--}
-  Nlutilities link libraries                : ${NLUTILITIES_LIBS:--}
-  NSPR source                               : ${nl_with_nspr:--}
-  NSPR compile flags                        : ${NSPR_CPPFLAGS:--}
-  NSPR link flags                           : ${NSPR_LDFLAGS:--}
-  NSPR link libraries                       : ${NSPR_LIBS:--}
-  PThreads compile flags                    : ${PTHREAD_CFLAGS:--}
-  PThreads link libraries                   : ${PTHREAD_LIBS:--}
-  Assembler                                 : ${CCAS}
-  C Preprocessor                            : ${CPP}
-  C Compiler                                : ${CC}
-  Archiver                                  : ${AR}
-  Archive Indexer                           : ${RANLIB}
-  Symbol Stripper                           : ${STRIP}
-  Object Copier                             : ${OBJCOPY}
-  Assembler flags                           : ${CCASFLAGS:--}
-  C Preprocessor flags                      : ${CPPFLAGS:--}
-  C Compile flags                           : ${CFLAGS:--}
-  Link flags                                : ${LDFLAGS:--}
-  Link libraries                            : ${LIBS}
+  Package                                     : ${PACKAGE_NAME}
+  Version                                     : ${PACKAGE_VERSION}
+  Interface                                   : ${LIBNLER_VERSION_INFO//:/.}
+  Build system                                : ${build}
+  Host system                                 : ${host}
+  Target system                               : ${target}
+  Target architecture                         : ${target_cpu}
+  Target OS                                   : ${target_os}
+  Build platform                              : ${NLER_BUILD_PLATFORM}
+  Build instruction set architecture          : ${NLER_ASM_ISA}
+  Cross compiling                             : ${cross_compiling}
+  Build shared libraries                      : ${enable_shared}
+  Build static libraries                      : ${enable_static}
+  Build debug libraries                       : ${nl_cv_build_debug}
+  Build optimized libraries                   : ${nl_cv_build_optimized}
+  Build coverage libraries                    : ${nl_cv_build_coverage}
+  Build coverage reports                      : ${nl_cv_build_coverage_reports}
+  Lcov                                        : ${LCOV:--}
+  Genhtml                                     : ${GENHTML:--}
+  Build tests                                 : ${nl_cv_build_tests}
+  Build asserts                               : ${nler_build_asserts}
+  Build default logger                        : ${nler_build_default_logger}
+  Build event timer                           : ${nler_build_event_timer}
+  Build flow tracer                           : ${nler_build_flow_tracer}
+  Build log tokenization                      : ${nler_build_log_tokenization}
+  Build simulateable time                     : ${nler_build_simulateable_time}
+  Build software timers                       : ${nler_build_software_timers}
+  Build stack alignment                       : ${nler_build_stack_alignment}
+  Build task local storage                    : ${nler_build_task_local_storage}
+  Build wake timer                            : ${nler_build_wake_timer}
+  Build utilities                             : ${nler_build_utilities}
+  Prefix                                      : ${prefix}
+  Documentation support                       : ${nl_cv_build_docs}
+  Doxygen                                     : ${DOXYGEN:--}
+  GraphViz dot                                : ${DOT:--}
+  PERL                                        : ${PERL:--}
+  FreeRTOS source                             : ${nl_with_freertos:--}
+  FreeRTOS compile flags                      : ${FREERTOS_CPPFLAGS:--}
+  FreeRTOS link flags                         : ${FREERTOS_LDFLAGS:--}
+  FreeRTOS link libraries                     : ${FREERTOS_LIBS:--}
+  Nlcompiler source                           : ${nl_with_nlcompiler:--}
+  Nlcompiler compile flags                    : ${NLCOMPILER_CPPFLAGS:--}
+  Nlcompiler link flags                       : ${NLCOMPILER_LDFLAGS:--}
+  Nlcompiler link libraries                   : ${NLCOMPILER_LIBS:--}
+  Nlunit-test source                          : ${nl_with_nlunit_test:--}
+  Nlunit-test compile flags                   : ${NLUNIT_TEST_CPPFLAGS:--}
+  Nlunit-test link flags                      : ${NLUNIT_TEST_LDFLAGS:--}
+  Nlunit-test link libraries                  : ${NLUNIT_TEST_LIBS:--}
+  Nlunit-test foreign subdirectory dependency : ${NLUNIT_TEST_FOREIGN_SUBDIR_DEPENDENCY:--}
 
+  Nlutilities source                          : ${nl_with_nlutilities:--}
+  Nlutilities compile flags                   : ${NLUTILITIES_CPPFLAGS:--}
+  Nlutilities link flags                      : ${NLUTILITIES_LDFLAGS:--}
+  Nlutilities link libraries                  : ${NLUTILITIES_LIBS:--}
+  NSPR source                                 : ${nl_with_nspr:--}
+  NSPR compile flags                          : ${NSPR_CPPFLAGS:--}
+  NSPR link flags                             : ${NSPR_LDFLAGS:--}
+  NSPR link libraries                         : ${NSPR_LIBS:--}
+  PThreads compile flags                      : ${PTHREAD_CFLAGS:--}
+  PThreads link libraries                     : ${PTHREAD_LIBS:--}
+  Assembler                                   : ${CCAS}
+  C Preprocessor                              : ${CPP}
+  C Compiler                                  : ${CC}
+  Archiver                                    : ${AR}
+  Archive Indexer                             : ${RANLIB}
+  Symbol Stripper                             : ${STRIP}
+  Object Copier                               : ${OBJCOPY}
+  Assembler flags                             : ${CCASFLAGS:--}
+  C Preprocessor flags                        : ${CPPFLAGS:--}
+  C Compile flags                             : ${CFLAGS:--}
+  Link flags                                  : ${LDFLAGS:--}
+  Link libraries                              : ${LIBS}
 ])

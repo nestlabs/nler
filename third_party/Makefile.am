@@ -1,4 +1,5 @@
 #
+#    Copyright 2020 Project nler Authors. All Rights Reserved.
 #    Copyright 2018 Nest Labs Inc. All Rights Reserved.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License");
@@ -36,12 +37,8 @@ DIST_SUBDIRS                      = \
 distclean-recursive: DIST_SUBDIRS += $(NLUNIT_TEST_SUBDIRS)
 
 # Always build (e.g. for 'make all') these subdirectories.
-#
-# The value of NLUNIT_TEST_SUBDIRS will be populated by configure if
-# --with-nlunit_test=internal
 
 SUBDIRS                           = \
-    $(NLUNIT_TEST_SUBDIRS)          \
     $(NULL)
 
 include $(abs_top_nlbuild_autotools_dir)/automake/post.am
