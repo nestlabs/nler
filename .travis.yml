@@ -68,10 +68,6 @@ matrix:
       env: BUILD_TARGET="osx-auto-clang" CC="clang"
       os: osx
       compiler: clang
-    - name: "OS X with Netscape Portable Runtime against clang/LLVM"
-      env: BUILD_TARGET="osx-nspr-clang" CC="clang"
-      os: osx
-      compiler: clang
     - name: "OS X with POSIX Threads against clang/LLVM"
       env: BUILD_TARGET="osx-pthreads-clang" CC="clang"
       os: osx
