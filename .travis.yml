@@ -25,10 +25,6 @@ language: generic
 
 sudo: required
 
-compiler:
-  - clang
-  - gcc
-
 before_install:
   - .travis/before_install.sh
 
@@ -68,3 +64,15 @@ matrix:
       env: BUILD_TARGET="linux-pthreads-gcc" CC="gcc"
       os: linux
       compiler: gcc
+    - name: "OS X with Automatic Platform Detection against clang/LLVM"
+      env: BUILD_TARGET="osx-auto-clang" CC="clang"
+      os: osx
+      compiler: clang
+    - name: "OS X with Netscape Portable Runtime against clang/LLVM"
+      env: BUILD_TARGET="osx-nspr-clang" CC="clang"
+      os: osx
+      compiler: clang
+    - name: "OS X with POSIX Threads against clang/LLVM"
+      env: BUILD_TARGET="osx-pthreads-clang" CC="clang"
+      os: osx
+      compiler: clang

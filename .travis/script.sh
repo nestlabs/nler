@@ -32,31 +32,31 @@ die()
 case "${BUILD_TARGET}" in
 
     linux-auto-gcc-distcheck)
-        ./configure && make && make distcheck
+        ./configure -C && make && make distcheck
         ;;
 
-    linux-auto-clang)
-        ./configure --with-build-platform=auto && make && make check
+    linux-auto-clang|osx-auto-clang)
+        ./configure -C --with-build-platform=auto && make && make check
         ;;
 
     linux-auto-gcc)
-        ./configure --with-build-platform=auto --enable-coverage && make && make check
+        ./configure -C --with-build-platform=auto --enable-coverage && make && make check
         ;;
 
-    linux-nspr-clang)
-        ./configure --with-build-platform=nspr && make && make check
+    linux-nspr-clang|osx-nspr-clang)
+        ./configure -C --with-build-platform=nspr && make && make check
         ;;
 
     linux-nspr-gcc)
-        ./configure --with-build-platform=nspr --enable-coverage && make && make check
+        ./configure -C --with-build-platform=nspr --enable-coverage && make && make check
         ;;
 
-    linux-pthreads-clang)
-        ./configure --with-build-platform=pthreads && make && make check
+    linux-pthreads-clang|osx-pthreads-clang)
+        ./configure -C --with-build-platform=pthreads && make && make check
         ;;
 
     linux-pthreads-gcc)
-        ./configure --with-build-platform=pthreads --enable-coverage && make && make check
+        ./configure -C --with-build-platform=pthreads --enable-coverage && make && make check
         ;;
 
     *)
