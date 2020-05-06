@@ -67,7 +67,7 @@ extern "C" {
                                  (((x) & 0x00000004) ? 29 :     \
                                   (((x) & 0x00000002) ? 30 : 31)))))))))))))))))))))))))))))))
 
-#define NL_MATH_UTILS_SCALED_DIVISOR(DIVISOR) ((DIVISOR) << NL_MATH_UTIL_COMPUTE_LEFT_SHIFT(DIVISOR)) /**< Scale the divisor s.t. its MSB is set */
+#define NL_MATH_UTILS_SCALED_DIVISOR(DIVISOR) (((uint32_t)(DIVISOR)) << NL_MATH_UTIL_COMPUTE_LEFT_SHIFT(DIVISOR)) /**< Scale the divisor s.t. its MSB is set */
 
 #define NL_MATH_UTILS_RECIPROCAL(DIVISOR) ((UINT64_MAX / NL_MATH_UTILS_SCALED_DIVISOR(DIVISOR)) - (1ULL << 32)) /**< Compute the reciprocal of a divisor */
 
@@ -92,9 +92,7 @@ extern "C" {
 uint32_t nl_div_uint64_into_uint32_helper(uint64_t inDividend, uint32_t inInverse, uint32_t inDivisor);
 
 /** A macro that defines a function that generates a 32-bit quotient
- *  of a 64-bit divident and a constant. Users of the macro must pass
- *  a ULL constant; otherwise the evaluation by the C preprocessor
- *  produces incorrect results.
+ *  of a 64-bit divident and a constant.
  */
 #define NL_GENERATE_UDIV64_BY(DIVISOR) \
     uint32_t nl_udiv64_by_##DIVISOR (uint64_t inDividend)               \
