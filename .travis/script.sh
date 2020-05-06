@@ -36,27 +36,27 @@ case "${BUILD_TARGET}" in
         ;;
 
     linux-auto-clang|osx-auto-clang)
-        ./configure -C --with-build-platform=auto && make && make check
+        ./configure -C --with-build-platform=auto && make check
         ;;
 
     linux-auto-gcc)
-        ./configure -C --with-build-platform=auto --enable-coverage && make && make check
+        ./configure -C --with-build-platform=auto --enable-coverage && make check
         ;;
 
     linux-nspr-clang|osx-nspr-clang)
-        ./configure -C --with-build-platform=nspr && make && make check
+        ./configure -C --with-build-platform=nspr && make check
         ;;
 
     linux-nspr-gcc)
-        ./configure -C --with-build-platform=nspr --enable-coverage && make && make check
+        ./configure -C --with-build-platform=nspr --enable-coverage && make check
         ;;
 
     linux-pthreads-clang|osx-pthreads-clang)
-        ./configure -C --with-build-platform=pthreads && make && make check
+        ./configure -C --with-build-platform=pthreads && make check
         ;;
 
     linux-pthreads-gcc)
-        ./configure -C --with-build-platform=pthreads --enable-coverage && make && make check
+        ./configure -C --with-build-platform=pthreads --enable-coverage && make check
         ;;
 
     *)
