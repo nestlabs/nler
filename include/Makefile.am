@@ -1,4 +1,5 @@
 #
+#    Copyright 2020 Project nler Authors. All Rights Reserved.
 #    Copyright 2015-2017 Nest Labs Inc. All Rights Reserved.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License");
@@ -40,6 +41,7 @@ include_HEADERS             = \
     nlerlogtoken.h            \
     nlermacros.h              \
     nlermathutil.h            \
+    nlersemaphore.h           \
     nlertask.h                \
     nlertime.h                \
     nlertimer.h               \

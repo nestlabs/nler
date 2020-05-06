@@ -15,6 +15,7 @@
 @SET_MAKE@
 
 #
+#    Copyright 2020 Project nler Authors. All Rights Reserved.
 #    Copyright 2015-2017 Nest Labs Inc. All Rights Reserved.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License");
@@ -169,9 +170,10 @@ am__include_HEADERS_DIST = nlerassert.h nleratomicops.h nlercfg.h \
 	nlererror.h nlerevent.h nlereventpooled.h nlereventqueue.h \
 	nlereventqueue_sim.h nlereventtypes.h nlerinit.h nlerlock.h \
 	nlerlog.h nlerlogmanager.h nlerlogregion.h nlerlogtoken.h \
-	nlermacros.h nlermathutil.h nlertask.h nlertime.h nlertimer.h \
-	nlertimer_sim.h nlerevent_timer.h nlerflowtrace-enum.h \
-	nlerflowtracer.h nllist.h nlresendabletimer.h nlsettings.h
+	nlermacros.h nlermathutil.h nlersemaphore.h nlertask.h \
+	nlertime.h nlertimer.h nlertimer_sim.h nlerevent_timer.h \
+	nlerflowtrace-enum.h nlerflowtracer.h nllist.h \
+	nlresendabletimer.h nlsettings.h
 am__vpath_adj_setup = srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`;
 am__vpath_adj = case $$p in \
     $(srcdir)/*) f=`echo "$$p" | sed "s|^$$srcdirstrip/||"`;; \
@@ -403,9 +405,9 @@ include_HEADERS = nlerassert.h nleratomicops.h nlercfg.h nlererror.h \
 	nlerevent.h nlereventpooled.h nlereventqueue.h \
 	nlereventqueue_sim.h nlereventtypes.h nlerinit.h nlerlock.h \
 	nlerlog.h nlerlogmanager.h nlerlogregion.h nlerlogtoken.h \
-	nlermacros.h nlermathutil.h nlertask.h nlertime.h nlertimer.h \
-	nlertimer_sim.h $(NULL) $(am__append_1) $(am__append_2) \
-	$(am__append_3)
+	nlermacros.h nlermathutil.h nlersemaphore.h nlertask.h \
+	nlertime.h nlertimer.h nlertimer_sim.h $(NULL) $(am__append_1) \
+	$(am__append_2) $(am__append_3)
 all: nler-config.h
 	$(MAKE) $(AM_MAKEFLAGS) all-am
 

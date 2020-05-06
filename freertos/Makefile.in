@@ -15,6 +15,7 @@
 @SET_MAKE@
 
 #
+#    Copyright (c) 2020 Project nler Authors
 #    Copyright (c) 2018 Nest Labs, Inc.
 #    All rights reserved.
 #
@@ -175,6 +176,7 @@ am_libnlerfreertos_a_OBJECTS =  \
 	libnlerfreertos_a-nleventpooled-freertos.$(OBJEXT) \
 	libnlerfreertos_a-nleventqueue-freertos.$(OBJEXT) \
 	libnlerfreertos_a-nllock-freertos.$(OBJEXT) \
+	libnlerfreertos_a-nlsemaphore-freertos.$(OBJEXT) \
 	libnlerfreertos_a-nltask-freertos.$(OBJEXT)
 libnlerfreertos_a_OBJECTS = $(am_libnlerfreertos_a_OBJECTS)
 AM_V_P = $(am__v_P_@AM_V@)
@@ -435,6 +437,7 @@ libnlerfreertos_a_SOURCES = \
     nleventpooled-freertos.c      \
     nleventqueue-freertos.c       \
     nllock-freertos.c             \
+    nlsemaphore-freertos.c        \
     nltask-freertos.c             \
     $(NULL)
 
@@ -526,6 +529,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libnlerfreertos_a-nleventpooled-freertos.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libnlerfreertos_a-nleventqueue-freertos.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libnlerfreertos_a-nllock-freertos.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libnlerfreertos_a-nlsemaphore-freertos.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libnlerfreertos_a-nltask-freertos.Po@am__quote@
 
 .c.o:
@@ -621,6 +625,20 @@ libnlerfreertos_a-nllock-freertos.obj: nllock-freertos.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='nllock-freertos.c' object='libnlerfreertos_a-nllock-freertos.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libnlerfreertos_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libnlerfreertos_a-nllock-freertos.obj `if test -f 'nllock-freertos.c'; then $(CYGPATH_W) 'nllock-freertos.c'; else $(CYGPATH_W) '$(srcdir)/nllock-freertos.c'; fi`
+
+libnlerfreertos_a-nlsemaphore-freertos.o: nlsemaphore-freertos.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libnlerfreertos_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libnlerfreertos_a-nlsemaphore-freertos.o -MD -MP -MF $(DEPDIR)/libnlerfreertos_a-nlsemaphore-freertos.Tpo -c -o libnlerfreertos_a-nlsemaphore-freertos.o `test -f 'nlsemaphore-freertos.c' || echo '$(srcdir)/'`nlsemaphore-freertos.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libnlerfreertos_a-nlsemaphore-freertos.Tpo $(DEPDIR)/libnlerfreertos_a-nlsemaphore-freertos.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='nlsemaphore-freertos.c' object='libnlerfreertos_a-nlsemaphore-freertos.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libnlerfreertos_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libnlerfreertos_a-nlsemaphore-freertos.o `test -f 'nlsemaphore-freertos.c' || echo '$(srcdir)/'`nlsemaphore-freertos.c
+
+libnlerfreertos_a-nlsemaphore-freertos.obj: nlsemaphore-freertos.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libnlerfreertos_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libnlerfreertos_a-nlsemaphore-freertos.obj -MD -MP -MF $(DEPDIR)/libnlerfreertos_a-nlsemaphore-freertos.Tpo -c -o libnlerfreertos_a-nlsemaphore-freertos.obj `if test -f 'nlsemaphore-freertos.c'; then $(CYGPATH_W) 'nlsemaphore-freertos.c'; else $(CYGPATH_W) '$(srcdir)/nlsemaphore-freertos.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libnlerfreertos_a-nlsemaphore-freertos.Tpo $(DEPDIR)/libnlerfreertos_a-nlsemaphore-freertos.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='nlsemaphore-freertos.c' object='libnlerfreertos_a-nlsemaphore-freertos.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libnlerfreertos_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libnlerfreertos_a-nlsemaphore-freertos.obj `if test -f 'nlsemaphore-freertos.c'; then $(CYGPATH_W) 'nlsemaphore-freertos.c'; else $(CYGPATH_W) '$(srcdir)/nlsemaphore-freertos.c'; fi`
 
 libnlerfreertos_a-nltask-freertos.o: nltask-freertos.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libnlerfreertos_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libnlerfreertos_a-nltask-freertos.o -MD -MP -MF $(DEPDIR)/libnlerfreertos_a-nltask-freertos.Tpo -c -o libnlerfreertos_a-nltask-freertos.o `test -f 'nltask-freertos.c' || echo '$(srcdir)/'`nltask-freertos.c

@@ -44,4 +44,8 @@ typedef StaticSemaphore_t nlrecursive_lock_t;
 #define NLLOCK_INITIALIZER {}
 #define NLRECURSIVE_LOCK_INITIALIZER {}
 
+/* the buffer/control block for semaphores
+ */
+typedef StaticSemaphore_t nlsemaphore_t;
+
 #endif /* NLER_NATIVE_H */

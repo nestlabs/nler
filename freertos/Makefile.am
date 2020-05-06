@@ -1,4 +1,5 @@
 #
+#    Copyright (c) 2020 Project nler Authors
 #    Copyright (c) 2018 Nest Labs, Inc.
 #    All rights reserved.
 #
@@ -37,6 +38,7 @@ libnlerfreertos_a_SOURCES       = \
     nleventpooled-freertos.c      \
     nleventqueue-freertos.c       \
     nllock-freertos.c             \
+    nlsemaphore-freertos.c        \
     nltask-freertos.c             \
     $(NULL)
 

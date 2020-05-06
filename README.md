@@ -15,6 +15,7 @@ NLER provides abstractions for:
 * (event) queues
 * locks
 * logging
+* semaphores
 * threads
 * timers
 
