@@ -106,7 +106,7 @@ void nleventqueue_disable_event_counting(nleventqueue_t *aEventQueue)
 }
 
 #if NLER_ASSERT_ON_FULL_QUEUE
-static void dump_event_contents(nleventqueue_t *aEventQueue)
+static void dump_event_contents(nleventqueue_t *aEventQueue, bool aFromIsr)
 {
     // dump up to NLER_DUMP_QUEUE_COUNT_LIMIT queued events to help debug what it's full with.
     // do in critical section to prevent anything from mucking with the queue while we do the dump.
@@ -114,9 +114,19 @@ static void dump_event_contents(nleventqueue_t *aEventQueue)
     while (count < NLER_DUMP_QUEUE_COUNT_LIMIT)
     {
         nl_event_t *event = NULL;
-        if (xQueueReceive((QueueHandle_t)aEventQueue, &event, 0) != pdTRUE)
+        if (aFromIsr)
         {
-            break;
+            if (xQueueReceiveFromISR((QueueHandle_t)aEventQueue, &event, NULL) != pdTRUE)
+            {
+                break;
+            }
+        }
+        else
+        {
+            if (xQueueReceive((QueueHandle_t)aEventQueue, &event, 0) != pdTRUE)
+            {
+                break;
+            }
         }
         // event shouldn't be NULL, but we've seen cases where it was
         // in crash logs sent to service (could indicate memory corruption)
@@ -154,7 +164,7 @@ int nleventqueue_post_event(nleventqueue_t *aEventQueue, const nl_event_t *aEven
 #if NLER_ASSERT_ON_FULL_QUEUE
         NL_LOG_CRIT(lrERQUEUE, "nleventqueue_post_event dumping existing events in the full queue:\n");
         taskENTER_CRITICAL();
-        dump_event_contents(aEventQueue);
+        dump_event_contents(aEventQueue, false);
         taskEXIT_CRITICAL();
 
         NLER_ASSERT(0);
@@ -188,7 +198,7 @@ int nleventqueue_post_event_from_isr(nleventqueue_t *aEventQueue, const nl_event
 
 #if NLER_ASSERT_ON_FULL_QUEUE
         NL_LOG_CRIT(lrERQUEUE, "nleventqueue_post_event_from_isr dumping existing events in the full queue:\n");
-        dump_event_contents(aEventQueue);
+        dump_event_contents(aEventQueue, true);
         /* Assert here indicating that posting event from isr failed */
         NLER_ASSERT(0);
 #endif
