@@ -61,7 +61,7 @@
 #define kTHREAD_PUBLISHER_SLEEP_MS  491
 #define kTHREAD_MAIN_SLEEP_MS       241
 
-#define kTHREAD_GET_EVENT_WAIT_MS  2003
+#define kTHREAD_GET_EVENT_WAIT_MS  4001
 
 /**
  *  The "sensor" updates in this unit test are sent on two timer ticks:
