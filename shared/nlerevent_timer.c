@@ -527,7 +527,7 @@ void nl_event_timer_start(nl_event_timer_t *aTimer, nl_time_ms_t aTimeoutMS, boo
     // cancel in case it was already running
     nl_event_timer_cancel(aTimer);
 
-#if !NLER_FEATURE_TIMER_USING_SWTIMER && NLER_FEATURE_SIMULATEABLE_TIME
+#if NLER_FEATURE_SIMULATEABLE_TIME
     lock_timer_from_client_task(timer);
 #endif
 
@@ -567,7 +567,7 @@ void nl_event_timer_cancel(nl_event_timer_t *aTimer)
     NLER_ASSERT(timer->mTask == NULL || timer->mTask == nltask_get_current());
 #endif
 
-#if !NLER_FEATURE_TIMER_USING_SWTIMER && NLER_FEATURE_SIMULATEABLE_TIME
+#if NLER_FEATURE_SIMULATEABLE_TIME
     lock_timer_from_client_task(timer);
 #endif
     timer->mCancelled = true;
