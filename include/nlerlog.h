@@ -138,39 +138,18 @@ void nl_log_send_tokenized(void (*aOutputCharFunc)(uint8_t c, void *context),
 #define NL_LOG_IDENTIFIER(a, u) NL_LOG_MERGE(NL_LOG_MERGE(a, __LINE__), NL_LOG_MERGE(_, u))
 #define NL_LOG_SECTION(a, u) NLER_STRINGIFY(NL_LOG_IDENTIFIER(a, u))
 
-#if (defined(NL_COMPILER_GCC_ELF) || defined(NL_COMPILER_GCC_LINUX) || defined(NL_COMPILER_GCC_MACHO)) && NL_COMPILER_VERSION_MAJOR >= 6
 #define NL_LOG_CREATE_ENTRY(unique, reg, format_str)                         \
     static const char NL_LOG_IDENTIFIER(_format_str_, unique)[]               \
         __attribute__((section(NL_LOG_SECTION(.log_strings., unique))))       \
         = format_str;                                                        \
-    static const uint32_t NL_LOG_IDENTIFIER(_token_region_, unique)           \
-        __attribute__((section(NL_LOG_SECTION(.token_region_table., unique))))\
-        __attribute__((__used__))                                            \
-        = reg;                                                               \
-    static const uint32_t NL_LOG_IDENTIFIER(_local_token_, unique)            \
-        __attribute__((section(NL_LOG_SECTION(.token_region_table., unique))))\
-        __attribute__((__used__))                                            \
-        = (uint32_t)NL_LOG_IDENTIFIER(_format_str_, unique);                  \
+    static const nl_log_token_region_entry_t NL_LOG_IDENTIFIER(_local_token_, unique)  \
+        __attribute__((section(NL_LOG_SECTION(.token_region_table., unique))))         \
+        __attribute__((__used__))                                                      \
+        = { .mToken = (uint32_t)NL_LOG_IDENTIFIER(_format_str_, unique),               \
+            .mRegionId = reg };                                                        \
     static const nl_log_token_entry_t NL_LOG_IDENTIFIER(_entry_, unique)     \
         __attribute__((section(NL_LOG_SECTION(.log_table., unique))))         \
         = {(uint32_t)NL_LOG_IDENTIFIER(_format_str_, unique)};
-#else
-#define NL_LOG_CREATE_ENTRY(unique, reg, format_str)                         \
-    static const char NL_LOG_IDENTIFIER(_format_str_, unique)[]               \
-        __attribute__((section(NL_LOG_SECTION(.log_strings., unique))))       \
-        = format_str;                                                        \
-    static const uint32_t NL_LOG_IDENTIFIER(_local_token_, unique)            \
-        __attribute__((section(NL_LOG_SECTION(.token_region_table., unique))))\
-        __attribute__((__used__))                                            \
-        = (uint32_t)NL_LOG_IDENTIFIER(_format_str_, unique);                  \
-    static const uint32_t NL_LOG_IDENTIFIER(_token_region_, unique)           \
-        __attribute__((section(NL_LOG_SECTION(.token_region_table., unique))))\
-        __attribute__((__used__))                                            \
-        = reg;                                                               \
-    static const nl_log_token_entry_t NL_LOG_IDENTIFIER(_entry_, unique)     \
-        __attribute__((section(NL_LOG_SECTION(.log_table., unique))))         \
-        = {(uint32_t)NL_LOG_IDENTIFIER(_format_str_, unique)};
-#endif
 
 #define NL_LOG_IMPL_HELPER(unique, reg, fmt, aArgs...)                       \
     NL_LOG_CREATE_ENTRY(unique, reg, fmt);                                   \
