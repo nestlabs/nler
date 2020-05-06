@@ -1,5 +1,6 @@
 /*
  *
+ *    Copyright (c) 2020 Project nler Authors
  *    Copyright (c) 2014-2018 Nest Labs, Inc.
  *    All rights reserved.
  *
@@ -57,8 +58,10 @@
  * Preprocessor Defitions
  */
 
-#define kTHREAD_PUBLISHER_SLEEP_MS 491
-#define kTHREAD_MAIN_SLEEP_MS      241
+#define kTHREAD_PUBLISHER_SLEEP_MS  491
+#define kTHREAD_MAIN_SLEEP_MS       241
+
+#define kTHREAD_GET_EVENT_WAIT_MS  2003
 
 /**
  *  The "sensor" updates in this unit test are sent on two timer ticks:
@@ -477,9 +480,12 @@ static void taskEntrySubscriber(void *aParams)
         bool         succeeded = true;
         bool         failed = false;
 
-        ev = nleventqueue_get_event(&data->mSubscriber);
+        ev = nleventqueue_get_event_with_timeout(&data->mSubscriber, kTHREAD_GET_EVENT_WAIT_MS);
 
-        nl_dispatch_event(ev, nl_test_default_handler, NULL);
+        if (ev != NULL)
+        {
+            nl_dispatch_event(ev, nl_test_default_handler, NULL);
+        }
 
         for (i = 0; i < kSENSOR_TYPES_MAX; i++)
         {
@@ -853,9 +859,12 @@ static void taskEntryPublisher(void *aParams)
         bool         succeeded = true;
         bool         failed = false;
 
-        ev = nleventqueue_get_event(&data->mPublisher);
+        ev = nleventqueue_get_event_with_timeout(&data->mPublisher, kTHREAD_GET_EVENT_WAIT_MS);
 
-        nl_test_driver_eventhandler(ev, &ddata);
+        if (ev != NULL)
+        {
+            nl_test_driver_eventhandler(ev, &ddata);
+        }
 
         check_succeeded_or_failed(curtask, kSENSOR_TYPE_CO, &ddata.mCO.mSendStats, &succeeded, &failed);
         check_succeeded_or_failed(curtask, kSENSOR_TYPE_SMOKE, &ddata.mSmoke.mSendStats, &succeeded, &failed);
@@ -924,7 +933,7 @@ static bool was_successful(volatile const taskData_t *aSubscriber,
 
 bool nler_subpub_test(nleventqueue_t *aTimerQueue)
 {
-    globalData_t                      globals;
+    static globalData_t               globals;
     taskSubscriberData_t              taskDataSubscriber;
     taskPublisherData_t               taskDataPublisher;
     nl_event_t                       *queuememSubscriber[50];
