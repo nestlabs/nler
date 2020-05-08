@@ -10,8 +10,8 @@ transparency in design and potential implementation. Where possible,
 individual subsystems of the runtime avoid having dependencies on other
 subsystems to enable an a la carte use of the available functionality. No
 attempt is made to mimic the functionality supplied by more complex runtime
-facilities such as Posix. Implementations of the interfaces are available for
-FreeRTOS, Linux, Darwin and NSPR.
+facilities such as POSIX. Implementations of the interfaces are available for
+FreeRTOS, Linux, Darwin, and NSPR.
 
 \section subsystems Subsystems
 
@@ -24,6 +24,7 @@ Name                 | Headers
 @ref tasks           | nlertask.h
 @ref time            | nlertime.h
 @ref timer           | nlertimer.h
+@ref semaphores      | nlersemaphore.h
 @ref simulated_time  | nlertimer.h
 
 */
