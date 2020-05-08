@@ -1,5 +1,6 @@
 /*
  *
+ *    Copyright (c) 2020 Project nler Authors
  *    Copyright (c) 2018 Google LLC
  *    All rights reserved.
  *
@@ -53,5 +54,9 @@ typedef uintptr_t nlrecursive_lock_t;
 
 #define NLLOCK_INITIALIZER 0
 #define NLRECURSIVE_LOCK_INITIALIZER 0
+
+/* the buffer/control block for the lock
+ */
+typedef uintptr_t nlsemaphore_t;
 
 #endif /* NLER_NATIVE_H */
