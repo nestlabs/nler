@@ -184,8 +184,9 @@ int nleventqueue_post_event(nleventqueue_t *aEventQueue, const nl_event_t *aEven
 int nleventqueue_post_event_from_isr(nleventqueue_t *aEventQueue, const nl_event_t *aEvent)
 {
     int             retval = NLER_SUCCESS;
-    portBASE_TYPE   err, yield;
-#if NLER_FEATURE_SIMULATEABLE_TIME
+    portBASE_TYPE   err;
+    portBASE_TYPE   yield = pdFALSE;
+#if NL_FEATURE_SIMULATEABLE_TIME
     nleventqueue_freertos_t *sim_queue_info = (nleventqueue_freertos_t *)&aEventQueue->uxDummy8;
 #endif
     err = xQueueSendToBackFromISR((QueueHandle_t) aEventQueue, &aEvent, &yield);

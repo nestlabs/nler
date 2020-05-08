@@ -100,7 +100,7 @@ int nlsemaphore_give(nlsemaphore_t *aSemaphore)
 int nlsemaphore_give_from_isr(nlsemaphore_t *aSemaphore)
 {
     int retval;
-    BaseType_t HigherPriorityTaskWoken;
+    BaseType_t HigherPriorityTaskWoken = pdFALSE;
 
     if (pdTRUE != xSemaphoreGiveFromISR((SemaphoreHandle_t)aSemaphore, &HigherPriorityTaskWoken))
     {
