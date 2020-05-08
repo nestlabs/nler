@@ -18,10 +18,10 @@
 
 /**
  *    @file
- *      Semaphores (binary and counting) implementation. All of the
- *      usual caveats surrounding the use of semaphores in general
- *      apply. Semaphores beget deadlocks. Use with care and avoid
- *      unless absolutely necessary.
+ *      Semaphores (binary and counting) implementation for POSIX
+ *      Threads.  All of the usual caveats surrounding the use of
+ *      semaphores in general apply. Semaphores beget deadlocks. Use
+ *      with care and avoid unless absolutely necessary.
  *
  *      This implementation takes the portable approach of using a
  *      POSIX thread mutex, condition variable, and discrete counter
