@@ -1,4 +1,5 @@
 #
+#    Copyright (c) 2020 Project nler Authors
 #    Copyright (c) 2018 Nest Labs, Inc.
 #    All rights reserved.
 #
@@ -37,6 +38,7 @@ libnlerpthreads_a_SOURCES       = \
     nleventpooled-pthreads.c      \
     nleventqueue-pthreads.c       \
     nllock-pthreads.c             \
+    nlsemaphore-pthreads.c        \
     nltask-pthreads.c             \
     $(NULL)
 
