@@ -1,0 +1,27 @@
+/** @page semaphores Binary and Counting Semaphores
+
+Binary and counting semaphores allow for guarding resources shared
+among tasks or for synchronization across tasks. Semaphores do not
+offer any priority inheritance mechnanism, unlike binary locks (that
+is, mutexes).
+
+Semaphores (binary or counting) are created and destroyed using:
+
+@code
+int nlsemaphore_binary_create(nlsemaphore_t *aSemaphore);
+int nlsemaphore_counting_create(nlsemaphore_t *aSemaphore, size_t aMaxCount, size_t aInitialCount);
+void nlsemaphore_destroy(nlsemaphore_t *aSemaphore);
+@endcode
+
+And are taken (waited on) and given (posted on) using:
+
+@code
+int nlsemaphore_take(nlsemaphore_t *aSemaphore);
+int nlsemaphore_take_with_timeout(nlsemaphore_t *aSemaphore, nl_time_ms_t aTimeoutMsec);
+int nlsemaphore_give(nlsemaphore_t *aSemaphore);
+int nlsemaphore_give_from_isr(nlsemaphore_t *aSemaphore);
+@endcode
+
+For more information about semaphores see nlersemaphore.h.
+
+*/

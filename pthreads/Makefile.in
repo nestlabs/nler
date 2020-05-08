@@ -15,6 +15,7 @@
 @SET_MAKE@
 
 #
+#    Copyright (c) 2020 Project nler Authors
 #    Copyright (c) 2018 Nest Labs, Inc.
 #    All rights reserved.
 #
@@ -175,6 +176,7 @@ am_libnlerpthreads_a_OBJECTS =  \
 	libnlerpthreads_a-nleventpooled-pthreads.$(OBJEXT) \
 	libnlerpthreads_a-nleventqueue-pthreads.$(OBJEXT) \
 	libnlerpthreads_a-nllock-pthreads.$(OBJEXT) \
+	libnlerpthreads_a-nlsemaphore-pthreads.$(OBJEXT) \
 	libnlerpthreads_a-nltask-pthreads.$(OBJEXT)
 libnlerpthreads_a_OBJECTS = $(am_libnlerpthreads_a_OBJECTS)
 AM_V_P = $(am__v_P_@AM_V@)
@@ -435,6 +437,7 @@ libnlerpthreads_a_SOURCES = \
     nleventpooled-pthreads.c      \
     nleventqueue-pthreads.c       \
     nllock-pthreads.c             \
+    nlsemaphore-pthreads.c        \
     nltask-pthreads.c             \
     $(NULL)
 
@@ -526,6 +529,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libnlerpthreads_a-nleventpooled-pthreads.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libnlerpthreads_a-nleventqueue-pthreads.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libnlerpthreads_a-nllock-pthreads.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libnlerpthreads_a-nlsemaphore-pthreads.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libnlerpthreads_a-nltask-pthreads.Po@am__quote@
 
 .c.o:
@@ -621,6 +625,20 @@ libnlerpthreads_a-nllock-pthreads.obj: nllock-pthreads.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='nllock-pthreads.c' object='libnlerpthreads_a-nllock-pthreads.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libnlerpthreads_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libnlerpthreads_a-nllock-pthreads.obj `if test -f 'nllock-pthreads.c'; then $(CYGPATH_W) 'nllock-pthreads.c'; else $(CYGPATH_W) '$(srcdir)/nllock-pthreads.c'; fi`
+
+libnlerpthreads_a-nlsemaphore-pthreads.o: nlsemaphore-pthreads.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libnlerpthreads_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libnlerpthreads_a-nlsemaphore-pthreads.o -MD -MP -MF $(DEPDIR)/libnlerpthreads_a-nlsemaphore-pthreads.Tpo -c -o libnlerpthreads_a-nlsemaphore-pthreads.o `test -f 'nlsemaphore-pthreads.c' || echo '$(srcdir)/'`nlsemaphore-pthreads.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libnlerpthreads_a-nlsemaphore-pthreads.Tpo $(DEPDIR)/libnlerpthreads_a-nlsemaphore-pthreads.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='nlsemaphore-pthreads.c' object='libnlerpthreads_a-nlsemaphore-pthreads.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libnlerpthreads_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libnlerpthreads_a-nlsemaphore-pthreads.o `test -f 'nlsemaphore-pthreads.c' || echo '$(srcdir)/'`nlsemaphore-pthreads.c
+
+libnlerpthreads_a-nlsemaphore-pthreads.obj: nlsemaphore-pthreads.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libnlerpthreads_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libnlerpthreads_a-nlsemaphore-pthreads.obj -MD -MP -MF $(DEPDIR)/libnlerpthreads_a-nlsemaphore-pthreads.Tpo -c -o libnlerpthreads_a-nlsemaphore-pthreads.obj `if test -f 'nlsemaphore-pthreads.c'; then $(CYGPATH_W) 'nlsemaphore-pthreads.c'; else $(CYGPATH_W) '$(srcdir)/nlsemaphore-pthreads.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libnlerpthreads_a-nlsemaphore-pthreads.Tpo $(DEPDIR)/libnlerpthreads_a-nlsemaphore-pthreads.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='nlsemaphore-pthreads.c' object='libnlerpthreads_a-nlsemaphore-pthreads.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libnlerpthreads_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libnlerpthreads_a-nlsemaphore-pthreads.obj `if test -f 'nlsemaphore-pthreads.c'; then $(CYGPATH_W) 'nlsemaphore-pthreads.c'; else $(CYGPATH_W) '$(srcdir)/nlsemaphore-pthreads.c'; fi`
 
 libnlerpthreads_a-nltask-pthreads.o: nltask-pthreads.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libnlerpthreads_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libnlerpthreads_a-nltask-pthreads.o -MD -MP -MF $(DEPDIR)/libnlerpthreads_a-nltask-pthreads.Tpo -c -o libnlerpthreads_a-nltask-pthreads.o `test -f 'nltask-pthreads.c' || echo '$(srcdir)/'`nltask-pthreads.c

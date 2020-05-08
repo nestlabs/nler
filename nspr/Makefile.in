@@ -15,6 +15,7 @@
 @SET_MAKE@
 
 #
+#    Copyright (c) 2020 Project nler Authors
 #    Copyright (c) 2018 Nest Labs, Inc.
 #    All rights reserved.
 #
@@ -174,6 +175,7 @@ am_libnlernspr_a_OBJECTS = libnlernspr_a-nlerinit-nspr.$(OBJEXT) \
 	libnlernspr_a-nleventpooled-nspr.$(OBJEXT) \
 	libnlernspr_a-nleventqueue-nspr.$(OBJEXT) \
 	libnlernspr_a-nllock-nspr.$(OBJEXT) \
+	libnlernspr_a-nlsemaphore-nspr.$(OBJEXT) \
 	libnlernspr_a-nltask-nspr.$(OBJEXT)
 libnlernspr_a_OBJECTS = $(am_libnlernspr_a_OBJECTS)
 AM_V_P = $(am__v_P_@AM_V@)
@@ -434,6 +436,7 @@ libnlernspr_a_SOURCES = \
     nleventpooled-nspr.c          \
     nleventqueue-nspr.c           \
     nllock-nspr.c                 \
+    nlsemaphore-nspr.c            \
     nltask-nspr.c                 \
     $(NULL)
 
@@ -525,6 +528,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libnlernspr_a-nleventpooled-nspr.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libnlernspr_a-nleventqueue-nspr.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libnlernspr_a-nllock-nspr.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libnlernspr_a-nlsemaphore-nspr.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libnlernspr_a-nltask-nspr.Po@am__quote@
 
 .c.o:
@@ -620,6 +624,20 @@ libnlernspr_a-nllock-nspr.obj: nllock-nspr.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='nllock-nspr.c' object='libnlernspr_a-nllock-nspr.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libnlernspr_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libnlernspr_a-nllock-nspr.obj `if test -f 'nllock-nspr.c'; then $(CYGPATH_W) 'nllock-nspr.c'; else $(CYGPATH_W) '$(srcdir)/nllock-nspr.c'; fi`
+
+libnlernspr_a-nlsemaphore-nspr.o: nlsemaphore-nspr.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libnlernspr_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libnlernspr_a-nlsemaphore-nspr.o -MD -MP -MF $(DEPDIR)/libnlernspr_a-nlsemaphore-nspr.Tpo -c -o libnlernspr_a-nlsemaphore-nspr.o `test -f 'nlsemaphore-nspr.c' || echo '$(srcdir)/'`nlsemaphore-nspr.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libnlernspr_a-nlsemaphore-nspr.Tpo $(DEPDIR)/libnlernspr_a-nlsemaphore-nspr.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='nlsemaphore-nspr.c' object='libnlernspr_a-nlsemaphore-nspr.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libnlernspr_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libnlernspr_a-nlsemaphore-nspr.o `test -f 'nlsemaphore-nspr.c' || echo '$(srcdir)/'`nlsemaphore-nspr.c
+
+libnlernspr_a-nlsemaphore-nspr.obj: nlsemaphore-nspr.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libnlernspr_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libnlernspr_a-nlsemaphore-nspr.obj -MD -MP -MF $(DEPDIR)/libnlernspr_a-nlsemaphore-nspr.Tpo -c -o libnlernspr_a-nlsemaphore-nspr.obj `if test -f 'nlsemaphore-nspr.c'; then $(CYGPATH_W) 'nlsemaphore-nspr.c'; else $(CYGPATH_W) '$(srcdir)/nlsemaphore-nspr.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libnlernspr_a-nlsemaphore-nspr.Tpo $(DEPDIR)/libnlernspr_a-nlsemaphore-nspr.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='nlsemaphore-nspr.c' object='libnlernspr_a-nlsemaphore-nspr.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libnlernspr_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libnlernspr_a-nlsemaphore-nspr.obj `if test -f 'nlsemaphore-nspr.c'; then $(CYGPATH_W) 'nlsemaphore-nspr.c'; else $(CYGPATH_W) '$(srcdir)/nlsemaphore-nspr.c'; fi`
 
 libnlernspr_a-nltask-nspr.o: nltask-nspr.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libnlernspr_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libnlernspr_a-nltask-nspr.o -MD -MP -MF $(DEPDIR)/libnlernspr_a-nltask-nspr.Tpo -c -o libnlernspr_a-nltask-nspr.o `test -f 'nltask-nspr.c' || echo '$(srcdir)/'`nltask-nspr.c

@@ -1,4 +1,5 @@
 #
+#    Copyright (c) 2020 Project nler Authors
 #    Copyright (c) 2018 Nest Labs, Inc.
 #    All rights reserved.
 #
@@ -37,6 +38,7 @@ libnlernspr_a_SOURCES           = \
     nleventpooled-nspr.c          \
     nleventqueue-nspr.c           \
     nllock-nspr.c                 \
+    nlsemaphore-nspr.c            \
     nltask-nspr.c                 \
     $(NULL)
 

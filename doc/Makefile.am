@@ -1,4 +1,5 @@
 #
+#    Copyright 2020 Project nler Authors. All Rights Reserved.
 #    Copyright 2016-2018 Nest Labs Inc. All Rights Reserved.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,6 +31,7 @@ EXTRA_DIST                                      = \
     index.dox                                     \
     locks.dox                                     \
     logging.dox                                   \
+    semaphores.dox                                \
     simulated_time.dox                            \
     simulated_time_states.svg                     \
     tasks.dox                                     \

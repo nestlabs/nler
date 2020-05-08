@@ -23,9 +23,11 @@
  *
  */
 
+#include <errno.h>
+#include <pthread.h>
 #include <stdlib.h>
 
-#include <nlererror.h>
+#include <nlerassert.h>
 #include <nlererror.h>
 #include <nlerlock.h>
 
@@ -33,78 +35,180 @@
 
 static int nlpthreads_lock_create(nllock_t *aLock, int aType)
 {
-    int                   retval = NLER_SUCCESS;
     pthread_mutex_t      *lLock = (pthread_mutex_t *)aLock;
-    pthread_mutexattr_t   mutexattr;
-    int                   status;
+    pthread_mutexattr_t   lMutexAttr;
+    int                   lStatus;
+    int                   lRetval = NLER_SUCCESS;
 
     if (lLock == NULL)
     {
-        retval = NLER_ERROR_BAD_INPUT;
+        lRetval = NLER_ERROR_BAD_INPUT;
         goto done;
     }
 
-    status = pthread_mutexattr_init(&mutexattr);
-    if (status != 0)
+    lStatus = pthread_mutexattr_init(&lMutexAttr);
+    if (lStatus != 0)
     {
+        switch (lStatus)
+        {
+
+        case EINVAL:
+            lRetval = NLER_ERROR_BAD_INPUT;
+            break;
+
+        case ENOMEM:
+            lRetval = NLER_ERROR_NO_MEMORY;
+            break;
+
+        default:
+            lRetval = NLER_ERROR_FAILURE;
+            break;
+
+        }
+
         goto done;
     }
 
-    status = pthread_mutexattr_settype(&mutexattr, aType);
-    if (status != 0)
+    lStatus = pthread_mutexattr_settype(&lMutexAttr, aType);
+    if (lStatus != 0)
     {
+        switch (lStatus)
+        {
+
+        case EINVAL:
+            lRetval = NLER_ERROR_BAD_INPUT;
+            break;
+
+        default:
+            lRetval = NLER_ERROR_FAILURE;
+            break;
+
+        }
+
         goto mutexattr_destroy;
     }
 
-    status = pthread_mutex_init(aLock, &mutexattr);
-    if (status != 0)
+    lStatus = pthread_mutex_init(aLock, &lMutexAttr);
+    if (lStatus != 0)
     {
+        switch (lStatus)
+        {
+
+        case EAGAIN:
+            lRetval = NLER_ERROR_NO_RESOURCE;
+            break;
+
+        case ENOMEM:
+            lRetval = NLER_ERROR_NO_MEMORY;
+            break;
+
+        case EBUSY:
+            lRetval = NLER_ERROR_BAD_STATE;
+            break;
+
+        case EINVAL:
+            lRetval = NLER_ERROR_BAD_INPUT;
+            break;
+
+        case EPERM:
+        default:
+            lRetval = NLER_ERROR_INIT;
+            break;
+        }
+
         goto mutexattr_destroy;
     }
-
-    return (retval);
 
 mutexattr_destroy:
-    pthread_mutexattr_destroy(&mutexattr);
+    lStatus = pthread_mutexattr_destroy(&lMutexAttr);
+    if (lStatus != 0)
+    {
+        lRetval = NLER_ERROR_INIT;
+    }
 
  done:
-    return (retval);
+    return (lRetval);
 }
 
 static void nlpthreads_lock_destroy(pthread_mutex_t *aLock)
 {
+    int lStatus;
+
     if (aLock != NULL)
     {
-        pthread_mutex_destroy(aLock);
+        lStatus = pthread_mutex_destroy(aLock);
+        NLER_ASSERT(lStatus == 0);
     }
 }
 
 static int nlpthreads_lock_enter(pthread_mutex_t *aLock)
 {
-    int              retval = NLER_SUCCESS;
-    int              status;
+    int              lRetval = NLER_SUCCESS;
+    int              lStatus;
 
-    status = pthread_mutex_lock(aLock);
-    if (status != 0)
+    if (aLock == NULL)
     {
-        retval = NLER_ERROR_FAILURE;
+        lRetval = NLER_ERROR_BAD_INPUT;
+        goto done;
     }
 
-    return retval;
+    lStatus = pthread_mutex_lock(aLock);
+    if (lStatus != 0)
+    {
+        switch (lStatus)
+        {
+
+        case EINVAL:
+        case EDEADLK:
+            lRetval = NLER_ERROR_BAD_STATE;
+            break;
+
+        default:
+            lRetval = NLER_ERROR_FAILURE;
+            break;
+
+        }
+
+        goto done;
+    }
+
+ done:
+    return lRetval;
 }
 
 static int nlpthreads_lock_exit(pthread_mutex_t *aLock)
 {
-    int              retval = NLER_SUCCESS;
-    int              status;
+    int              lRetval = NLER_SUCCESS;
+    int              lStatus;
 
-    status = pthread_mutex_unlock(aLock);
-    if (status != 0)
+    if (aLock == NULL)
     {
-        retval = NLER_ERROR_FAILURE;
+        lRetval = NLER_ERROR_BAD_INPUT;
+        goto done;
     }
 
-    return retval;
+    lStatus = pthread_mutex_unlock(aLock);
+    if (lStatus != 0)
+    {
+        switch (lStatus)
+        {
+
+        case EINVAL:
+            lRetval = NLER_ERROR_BAD_STATE;
+            break;
+
+        case EPERM:
+        default:
+            lRetval = NLER_ERROR_FAILURE;
+            break;
+
+        }
+
+        goto done;
+    }
+
+ done:
+    return (lRetval);
 }
 
 int nllock_create(nllock_t *aLock)

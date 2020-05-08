@@ -1,4 +1,5 @@
 #
+#    Copyright (c) 2020 Project nler Authors
 #    Copyright (c) 2018 Nest Labs, Inc.
 #    All rights reserved.
 #
@@ -75,6 +76,8 @@ check_PROGRAMS                                 = \
     test-lock                                    \
     test-nlmathutil                              \
     test-pooledevent                             \
+    test-binary-semaphore                        \
+    test-counting-semaphore                      \
     test-task                                    \
     $(NULL)
 
@@ -150,6 +153,12 @@ test_nlmathutil_LDADD                    = $(COMMON_LDADD)
 test_pooledevent_SOURCES                 = test-pooledevent.c nltestlogregions.c
 test_pooledevent_LDADD                   = $(COMMON_LDADD)
 
+test_binary_semaphore_SOURCES            = test-binary-semaphore.c nltestlogregions.c
+test_binary_semaphore_LDADD              = $(COMMON_LDADD)
+
+test_counting_semaphore_SOURCES          = test-counting-semaphore.c nltestlogregions.c
+test_counting_semaphore_LDADD            = $(COMMON_LDADD)
+
 test_settings_SOURCES                    = test-settings.c nltestlogregions.c
 test_settings_CPPFLAGS                   = $(AM_CPPFLAGS) -DHAVE_NLER_SETTINGS_APPLICATION_SETTINGS_KEYS -DNLER_SETTINGS_APPLICATION_SETTINGS_KEYS=\"test-settings.h\"
 test_settings_LDADD                      = -L$(top_builddir)/utilities -lnlerutilities $(COMMON_LDADD)
@@ -162,9 +171,14 @@ test_task_LDADD                          = $(COMMON_LDADD)
 
 test_timer_SOURCES                       = test-timer.c nltestlogregions.c
 test_timer_LDADD                         = $(COMMON_LDADD)
+
 #
 # Foreign make dependencies
 #
+
+NLFOREIGN_FILE_DEPENDENCIES                           = \
+   $(NLER_LDADD)                                        \
+   $(NULL)
 
 NLFOREIGN_SUBDIR_DEPENDENCIES                         = \
    $(NLUNIT_TEST_FOREIGN_SUBDIR_DEPENDENCY)             \

@@ -1,5 +1,6 @@
 /*
  *
+ *    Copyright (c) 2020 Project nler Authors
  *    Copyright (c) 2018 Google LLC
  *    All rights reserved.
  *
@@ -29,6 +30,7 @@
 #include <stdint.h>
 
 #include <nspr/prthread.h>
+#include <nspr/prcvar.h>
 
 /* the buffer/control block for the task
  */
@@ -53,5 +55,17 @@ typedef uintptr_t nlrecursive_lock_t;
 
 #define NLLOCK_INITIALIZER 0
 #define NLRECURSIVE_LOCK_INITIALIZER 0
+
+/* the buffer/control block for the lock
+ */
+typedef struct nlsemaphore_nspr_s
+{
+    nllock_t                       mLock;
+    PRCondVar *                    mCondition;
+    int32_t                        mCurrentCount;
+    size_t                         mMaxCount;
+} nlsemaphore_nspr_t;
+
+typedef nlsemaphore_nspr_t nlsemaphore_t;
 
 #endif /* NLER_NATIVE_H */

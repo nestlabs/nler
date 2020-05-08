@@ -52,4 +52,16 @@ typedef pthread_mutex_t nlrecursive_lock_t;
 #define NLLOCK_INITIALIZER PTHREAD_MUTEX_INITIALIZER
 #define NLRECURSIVE_LOCK_INITIALIZER PTHREAD_MUTEX_INITIALIZER
 
+/* the buffer/control block for the semaphore
+ */
+typedef struct nlsemaphore_pthreads_s
+{
+    nllock_t                       mLock;
+    pthread_cond_t                 mCondition;
+    int32_t                        mCurrentCount;
+    size_t                         mMaxCount;
+} nlsemaphore_pthreads_t;
+
+typedef nlsemaphore_pthreads_t nlsemaphore_t;
+
 #endif /* NLER_NATIVE_H */

@@ -1191,9 +1191,10 @@ elif test "${NLER_BUILD_PLATFORM}" == "pthreads"; then
     NLER_LIBS="${NLER_LIBS} ${PTHREAD_LIBS}"
 fi
 
-# Add any code coverage CPPFLAGS and LDFLAGS
+# Add any code coverage CPPFLAGS, LDFLAGS, and LIBS
 
 CPPFLAGS="${CPPFLAGS} ${NL_COVERAGE_CPPFLAGS}"
+LDFLAGS="${LDFLAGS} ${NL_COVERAGE_LDFLAGS}"
 LIBS="${LIBS} ${NL_COVERAGE_LIBS}"
 
 # Add any build feature and platform CPPFLAGS

@@ -15,6 +15,7 @@
 @SET_MAKE@
 
 #
+#    Copyright (c) 2020 Project nler Authors
 #    Copyright (c) 2018 Nest Labs, Inc.
 #    All rights reserved.
 #
@@ -111,6 +112,8 @@ target_triplet = @target@
 @NLER_BUILD_TESTS_TRUE@	test-lock$(EXEEXT) \
 @NLER_BUILD_TESTS_TRUE@	test-nlmathutil$(EXEEXT) \
 @NLER_BUILD_TESTS_TRUE@	test-pooledevent$(EXEEXT) \
+@NLER_BUILD_TESTS_TRUE@	test-binary-semaphore$(EXEEXT) \
+@NLER_BUILD_TESTS_TRUE@	test-counting-semaphore$(EXEEXT) \
 @NLER_BUILD_TESTS_TRUE@	test-task$(EXEEXT) $(am__EXEEXT_1) \
 @NLER_BUILD_TESTS_TRUE@	$(am__EXEEXT_2)
 @NLER_BUILD_FLOW_TRACER_TRUE@@NLER_BUILD_TESTS_TRUE@am__append_1 = \
@@ -226,6 +229,23 @@ AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
 am__v_lt_0 = --silent
 am__v_lt_1 = 
+am__test_binary_semaphore_SOURCES_DIST = test-binary-semaphore.c \
+	nltestlogregions.c
+@NLER_BUILD_TESTS_TRUE@am_test_binary_semaphore_OBJECTS =  \
+@NLER_BUILD_TESTS_TRUE@	test-binary-semaphore.$(OBJEXT) \
+@NLER_BUILD_TESTS_TRUE@	nltestlogregions.$(OBJEXT)
+test_binary_semaphore_OBJECTS = $(am_test_binary_semaphore_OBJECTS)
+@NLER_BUILD_TESTS_TRUE@test_binary_semaphore_DEPENDENCIES =  \
+@NLER_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_2)
+am__test_counting_semaphore_SOURCES_DIST = test-counting-semaphore.c \
+	nltestlogregions.c
+@NLER_BUILD_TESTS_TRUE@am_test_counting_semaphore_OBJECTS =  \
+@NLER_BUILD_TESTS_TRUE@	test-counting-semaphore.$(OBJEXT) \
+@NLER_BUILD_TESTS_TRUE@	nltestlogregions.$(OBJEXT)
+test_counting_semaphore_OBJECTS =  \
+	$(am_test_counting_semaphore_OBJECTS)
+@NLER_BUILD_TESTS_TRUE@test_counting_semaphore_DEPENDENCIES =  \
+@NLER_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_2)
 am__test_earlyevent_SOURCES_DIST = test-earlyevent.c \
 	nltestlogregions.c
 @NLER_BUILD_TESTS_TRUE@am_test_earlyevent_OBJECTS =  \
@@ -337,14 +357,17 @@ am__v_CCLD_ = $(am__v_CCLD_@AM_DEFAULT_V@)
 am__v_CCLD_0 = @echo "  CCLD    " $@;
 am__v_CCLD_1 = 
 SOURCES = $(libnlertest_a_SOURCES) $(test_atomic_SOURCES) \
-	$(test_earlyevent_SOURCES) $(test_event_SOURCES) \
-	$(test_eventqueue_SOURCES) $(test_lock_SOURCES) \
-	$(test_nlerflowtracer_SOURCES) $(test_nlmathutil_SOURCES) \
-	$(test_pooledevent_SOURCES) $(test_settings_SOURCES) \
-	$(test_subpub_SOURCES) $(test_task_SOURCES) \
-	$(test_timer_SOURCES)
+	$(test_binary_semaphore_SOURCES) \
+	$(test_counting_semaphore_SOURCES) $(test_earlyevent_SOURCES) \
+	$(test_event_SOURCES) $(test_eventqueue_SOURCES) \
+	$(test_lock_SOURCES) $(test_nlerflowtracer_SOURCES) \
+	$(test_nlmathutil_SOURCES) $(test_pooledevent_SOURCES) \
+	$(test_settings_SOURCES) $(test_subpub_SOURCES) \
+	$(test_task_SOURCES) $(test_timer_SOURCES)
 DIST_SOURCES = $(am__libnlertest_a_SOURCES_DIST) \
 	$(am__test_atomic_SOURCES_DIST) \
+	$(am__test_binary_semaphore_SOURCES_DIST) \
+	$(am__test_counting_semaphore_SOURCES_DIST) \
 	$(am__test_earlyevent_SOURCES_DIST) \
 	$(am__test_event_SOURCES_DIST) \
 	$(am__test_eventqueue_SOURCES_DIST) \
@@ -802,6 +825,10 @@ noinst_HEADERS = \
 @NLER_BUILD_TESTS_TRUE@test_nlmathutil_LDADD = $(COMMON_LDADD)
 @NLER_BUILD_TESTS_TRUE@test_pooledevent_SOURCES = test-pooledevent.c nltestlogregions.c
 @NLER_BUILD_TESTS_TRUE@test_pooledevent_LDADD = $(COMMON_LDADD)
+@NLER_BUILD_TESTS_TRUE@test_binary_semaphore_SOURCES = test-binary-semaphore.c nltestlogregions.c
+@NLER_BUILD_TESTS_TRUE@test_binary_semaphore_LDADD = $(COMMON_LDADD)
+@NLER_BUILD_TESTS_TRUE@test_counting_semaphore_SOURCES = test-counting-semaphore.c nltestlogregions.c
+@NLER_BUILD_TESTS_TRUE@test_counting_semaphore_LDADD = $(COMMON_LDADD)
 @NLER_BUILD_TESTS_TRUE@test_settings_SOURCES = test-settings.c nltestlogregions.c
 @NLER_BUILD_TESTS_TRUE@test_settings_CPPFLAGS = $(AM_CPPFLAGS) -DHAVE_NLER_SETTINGS_APPLICATION_SETTINGS_KEYS -DNLER_SETTINGS_APPLICATION_SETTINGS_KEYS=\"test-settings.h\"
 @NLER_BUILD_TESTS_TRUE@test_settings_LDADD = -L$(top_builddir)/utilities -lnlerutilities $(COMMON_LDADD)
@@ -811,9 +838,14 @@ noinst_HEADERS = \
 @NLER_BUILD_TESTS_TRUE@test_task_LDADD = $(COMMON_LDADD)
 @NLER_BUILD_TESTS_TRUE@test_timer_SOURCES = test-timer.c nltestlogregions.c
 @NLER_BUILD_TESTS_TRUE@test_timer_LDADD = $(COMMON_LDADD)
+
 #
 # Foreign make dependencies
 #
+@NLER_BUILD_TESTS_TRUE@NLFOREIGN_FILE_DEPENDENCIES = \
+@NLER_BUILD_TESTS_TRUE@   $(NLER_LDADD)                                        \
+@NLER_BUILD_TESTS_TRUE@   $(NULL)
+
 @NLER_BUILD_TESTS_TRUE@NLFOREIGN_SUBDIR_DEPENDENCIES = \
 @NLER_BUILD_TESTS_TRUE@   $(NLUNIT_TEST_FOREIGN_SUBDIR_DEPENDENCY)             \
 @NLER_BUILD_TESTS_TRUE@   $(NULL)
@@ -918,6 +950,14 @@ test-atomic$(EXEEXT): $(test_atomic_OBJECTS) $(test_atomic_DEPENDENCIES) $(EXTRA
 	@rm -f test-atomic$(EXEEXT)
 	$(AM_V_CCLD)$(LINK) $(test_atomic_OBJECTS) $(test_atomic_LDADD) $(LIBS)
 
+test-binary-semaphore$(EXEEXT): $(test_binary_semaphore_OBJECTS) $(test_binary_semaphore_DEPENDENCIES) $(EXTRA_test_binary_semaphore_DEPENDENCIES) 
+	@rm -f test-binary-semaphore$(EXEEXT)
+	$(AM_V_CCLD)$(LINK) $(test_binary_semaphore_OBJECTS) $(test_binary_semaphore_LDADD) $(LIBS)
+
+test-counting-semaphore$(EXEEXT): $(test_counting_semaphore_OBJECTS) $(test_counting_semaphore_DEPENDENCIES) $(EXTRA_test_counting_semaphore_DEPENDENCIES) 
+	@rm -f test-counting-semaphore$(EXEEXT)
+	$(AM_V_CCLD)$(LINK) $(test_counting_semaphore_OBJECTS) $(test_counting_semaphore_LDADD) $(LIBS)
+
 test-earlyevent$(EXEEXT): $(test_earlyevent_OBJECTS) $(test_earlyevent_DEPENDENCIES) $(EXTRA_test_earlyevent_DEPENDENCIES) 
 	@rm -f test-earlyevent$(EXEEXT)
 	$(AM_V_CCLD)$(LINK) $(test_earlyevent_OBJECTS) $(test_earlyevent_LDADD) $(LIBS)
@@ -971,6 +1011,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nlertimer-test.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nltestlogregions.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-atomic.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-binary-semaphore.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-counting-semaphore.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-earlyevent.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-event.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-eventqueue.Po@am__quote@
@@ -1280,6 +1322,20 @@ test-nlmathutil.log: test-nlmathutil$(EXEEXT)
 test-pooledevent.log: test-pooledevent$(EXEEXT)
 	@p='test-pooledevent$(EXEEXT)'; \
 	b='test-pooledevent'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+test-binary-semaphore.log: test-binary-semaphore$(EXEEXT)
+	@p='test-binary-semaphore$(EXEEXT)'; \
+	b='test-binary-semaphore'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+test-counting-semaphore.log: test-counting-semaphore$(EXEEXT)
+	@p='test-counting-semaphore$(EXEEXT)'; \
+	b='test-counting-semaphore'; \
 	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
