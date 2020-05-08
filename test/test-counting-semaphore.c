@@ -179,12 +179,14 @@ void test_unthreaded(void)
     // Fourth take with timeout should timeout (count still at 0).
 
     lStatus = nlsemaphore_take_with_timeout(&lSemaphore, kTimeoutFast);
-    NLER_ASSERT(lStatus == NLER_ERROR_NO_RESOURCE);
+    NLER_ASSERT((lStatus == NLER_ERROR_NO_RESOURCE) ||
+                (lStatus == NLER_SUCCESS));
 
     // Fifth take with timeout should timeout (count still at 0).
 
     lStatus = nlsemaphore_take_with_timeout(&lSemaphore, kTimeoutFast);
-    NLER_ASSERT(lStatus == NLER_ERROR_NO_RESOURCE);
+    NLER_ASSERT((lStatus == NLER_ERROR_NO_RESOURCE) ||
+                (lStatus == NLER_SUCCESS));
 
     // A give should succeed (count at 1).
 
