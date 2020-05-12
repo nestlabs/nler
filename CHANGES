@@ -1,3 +1,7 @@
+1.1.1
+
+        * Updated to nlbuild-autotools 1.7.3.
+
 1.1.0 (2020-05-08)
 
         * Added semaphore support for FreeRTOS, pthreads, and NSPR.
