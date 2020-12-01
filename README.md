@@ -25,8 +25,8 @@ NLER currently supports the above abstractions against the following build platf
 * Netscape Portable Runtime (NSPR)
 * POSIX Threads (pthreads)
 
-[nler-travis]: https://travis-ci.org/nestlabs/nler
-[nler-travis-svg]: https://travis-ci.org/nestlabs/nler.svg?branch=master
+[nler-travis]: https://travis-ci.com/nestlabs/nler
+[nler-travis-svg]: https://travis-ci.com/nestlabs/nler.svg?branch=master
 [nler-codecov]: https://codecov.io/gh/nestlabs/nler
 [nler-codecov-svg]: https://codecov.io/gh/nestlabs/nler/branch/master/graph/badge.svg
 
